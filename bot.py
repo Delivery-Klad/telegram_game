@@ -14,16 +14,6 @@ filesFolderName = 'files/'
 logFileName = 'LogBot.txt'
 
 
-def errorLog(reason):
-    try:
-        print('\n' + delimiter_line)
-        print(str(datetime.now().strftime('%d-%m-%Y %H:%M:%S')))
-        print(reason + '\n')
-    except Exception as e:
-        print(e)
-        print('ошибка в errorLog')
-
-
 def log(message): # запись лога сообщений
     try:
         file = open(filesFolderName + logFileName, 'a')
@@ -45,7 +35,7 @@ def log(message): # запись лога сообщений
                                                                     message.text))
         file.close()
     except Exception as e:
-        errorLog('ошибка при записи лога')
+        print(e)
 
 
 def createTables(): # создание таблиц в sql если их нет
@@ -62,21 +52,18 @@ def createTables(): # создание таблиц в sql если их нет
                         'First_Name TEXT,'
                         'Last_Name TEXT,'
                         'Reg_Date TEXT)')
-        cursor.execute('CREATE TABLE IF NOT EXISTS Errors(Date TEXT,'
-                        'Time TEXT,'
-                        'reason TEXT)')
         connect.commit()
         cursor.close()
         connect.close()
-    except Exception as e:
-        errorLog('ошибка в функции создания таблиц')
+    except Excetion as e:
+        print(e)
 
 
 def notInLists(message): # проверка есть ли пользователь в каком-либо списке
     try:
         return True
     except Exception as e:
-        errorLog('Возникла ошибка при проверке нахождения пользователя в списке')
+        print(e)
 
 
 @bot.message_handler(commands=['start'])
@@ -106,14 +93,14 @@ def handler_start(message):
             bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text='<b>Вы что-то делаете...</b>')
     except Exception as e:
         print(e)
-        errorLog('ошибка при обработке команды start')
 
 
-try: # максимально странная конструкция
+try: # максимально странная конструкция, но работает
     while True:
         try:
+            # Все, что выполняется в зависимости от времени писать сюды, в теории должно работать
             bot.polling(none_stop=True, interval=0)
         except Exception as e:
             print(e)
 except Exception as e:
-            print(e)
+    print(e)
