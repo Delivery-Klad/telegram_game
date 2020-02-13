@@ -13,6 +13,10 @@ databaseName = 'DataBase.db'
 helpButtonName = 'Помощь🆘'
 filesFolderName = 'files/'
 logFileName = 'LogBot.txt'
+acceptWorkButton = 'Выполнить работу'
+cancelWorkButton = 'Отказаться'
+admins_list = [441287694, 496537969]
+print(bot.get_me())
 
 
 def log(message): # запись лога сообщений
@@ -43,26 +47,32 @@ def createTables(): # создание таблиц в sql если их нет
     try:
         connect = sqlite3.connect(filesFolderName + databaseName)
         cursor = connect.cursor()
-        cursor.execute('CREATE TABLE IF NOT EXISTS Admins(ID INTEGER,'
-                        'UserName TEXT,'
-                        'First_Name TEXT,'
-                        'Last_Name TEXT,'
-                        'Permissions INTEGER)')
         cursor.execute('CREATE TABLE IF NOT EXISTS Users(ID INTEGER,'
                         'UserName TEXT,'
                         'First_Name TEXT,'
                         'Last_Name TEXT,'
                         'Reg_Date TEXT)')
+
         connect.commit()
         cursor.close()
         connect.close()
-    except Excetion as e:
+    except Exception as e:
         print(e)
 
 
 def notInLists(message): # проверка есть ли пользователь в каком-либо списке
     try:
         return True
+    except Exception as e:
+        print(e)
+
+
+def isAdmin(ids): # проверка является ли пользователь админом
+    try:
+        if int(ids) in admins_list:
+            return True
+        else:
+            return False
     except Exception as e:
         print(e)
 
@@ -98,7 +108,6 @@ def handler_start(message):
 
 def timer():
     try:
-        print('start')
         can=True
         while True:
             try:
@@ -112,6 +121,68 @@ def timer():
                     can=True
             except Exception as e:
                 print(e)
+    except Exception as e:
+        print(e)
+
+
+@bot.message_handler(commands=['log']) # функция обработки запроса логов
+def handler_log(message):
+    try:
+        log(message)
+        if isAdmin(message.from_user.id):
+            doc = open(filesFolderName + logFileName, 'rb')
+            bot.send_document(message.from_user.id, doc)
+    except Exception as e:
+        print(e)
+
+
+@bot.message_handler(commands=['db']) # функция обработки запроса базы данных
+def handler_db(message):
+    try:
+        log(message)
+        if isAdmin(message.from_user.id):
+            doc = open(filesFolderName + dataBaseFileName, 'rb')
+            bot.send_document(message.from_user.id, doc)
+    except Exception as e:
+        print(e)
+
+
+@bot.message_handler(commands=['help']) # обработка команды помощи
+def handler_help(message):
+    try:
+        log(message)
+        bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text='Меню помощи\n'
+                                                                               '-\n'
+                                                                               '-\n'
+                                                                               '-\n'
+                                                                               '-\n'
+                                                                               '-\n'
+                                                                               '-\n'
+                                                                               '-\n'
+                                                                               '-\n'
+                                                                               '-')
+    except Exception as e:
+        print(e)
+
+
+@bot.callback_query_handler(func=lambda c: True) # функция обработки inline кнопок
+def func(c):
+    try:
+        if c.data == '0':
+            handler_help(c)
+    except Exception as e:
+        print(e)
+
+
+@bot.message_handler(content_types=['text']) # функция обработки текстовых сообщений
+def handler_text(message):
+    try:
+        if message.text == acceptWorkButton:
+            o = 0
+        elif message.text == cancelWorkButton:
+            o = 0
+        elif message.text == helpButtonName:
+            o = 0
     except Exception as e:
         print(e)
 
