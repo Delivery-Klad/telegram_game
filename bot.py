@@ -1,5 +1,6 @@
 from datetime import datetime
 from telebot import types
+import threading
 import sqlite3
 import telebot
 import random
@@ -95,10 +96,31 @@ def handler_start(message):
         print(e)
 
 
-try: # максимально странная конструкция, но работает
+def timer():
+    try:
+        print('start')
+        can=True
+        while True:
+            try:
+                if int(datetime.now().strftime('%M'))%5==0 and int(datetime.now().strftime('%S'))==0:
+                    if can:
+                        bot.send_message(496537969, 'test')
+                        bot.send_message(441287694, 'ti priemniy')
+                        print('sending')
+                    can=False
+                else:
+                    can=True
+            except Exception as e:
+                print(e)
+    except Exception as e:
+        print(e)
+
+
+try: # максимально странная конструкция
     while True:
+        t=threading.Thread(target=timer, name='timer')
+        t.start()
         try:
-            # Все, что выполняется в зависимости от времени писать сюды, в теории должно работать
             bot.polling(none_stop=True, interval=0)
         except Exception as e:
             print(e)
