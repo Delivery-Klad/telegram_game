@@ -27,8 +27,8 @@ def timer(bot):
                                     userId = cursor.fetchall()
                                     dataBase.plus_count_works(userId[0][0])  # +1 к выполненным заданиям
                                     dataBase.change_status(userId[0][0], args.waitStatus, 'None')  # статуса ожидания работы и установка времени на None
-                        bot.send_message(496537969, 'test')
-                        bot.send_message(441287694, 'test')
+                        # bot.send_message(496537969, 'test')
+                        # bot.send_message(441287694, 'test')
                         print('sending')
                     can = False  # чтобы не выполнялось несколько раз в секунду
                 else:

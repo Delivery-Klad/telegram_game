@@ -44,3 +44,7 @@ def isAdmin(userId):  # проверка является ли пользова�
             return False
     except Exception as e:
         print(e)
+
+
+def set_nickname():
+    o = 0
