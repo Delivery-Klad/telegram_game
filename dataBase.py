@@ -1,3 +1,6 @@
+"""
+файл для работы с базой данных
+"""
 import sqlite3
 import args
 
@@ -22,7 +25,7 @@ def createTables():  # создание таблиц в sql если их нет
         print(e)
 
 
-def change_status(message, status, time):
+def change_status(message, status, time):  # замена статуса и указание времени начала
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
     cursor.execute("UPDATE Users SET Status='{0}' WHERE ID='{1}'".format(str(status), str(message.from_user.id)))
@@ -32,7 +35,7 @@ def change_status(message, status, time):
     connect.close()
 
 
-def plus_count_works(message):
+def plus_count_works(message):  # указание количества выполненных работ
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
     cursor.execute("UPDATE Users SET Count_Works=Count_Works+1 WHERE ID='{0}'".format(str(message.from_user.id)))

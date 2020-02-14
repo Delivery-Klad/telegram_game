@@ -1,3 +1,6 @@
+"""
+файл для всяких функций
+"""
 from datetime import datetime
 import args
 
@@ -33,9 +36,9 @@ def notInLists(message):  # проверка есть ли пользовате�
         print(e)
 
 
-def isAdmin(ids):  # проверка является ли пользователь админом
+def isAdmin(userId):  # проверка является ли пользователь админом
     try:
-        if int(ids) in args.admins_list:
+        if int(userId) in args.admins_list:
             return True
         else:
             return False

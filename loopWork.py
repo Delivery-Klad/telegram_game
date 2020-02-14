@@ -1,3 +1,6 @@
+"""
+файл, выполняющий действия в зависимости от времени
+"""
 from datetime import datetime
 import dataBase
 import sqlite3
@@ -22,12 +25,12 @@ def timer(bot):
                                 if mitutes_now > 30 and mitutes_now - start_minutes > 30 or mitutes_now < 30 and start_minutes > 30:
                                     cursor.execute("SELECT ID FROM Users WHERE Start_time=" + str(start_minutes))  # остановить выполнение работы
                                     userId = cursor.fetchall()
-                                    dataBase.plus_count_works(userId[0][0])
-                                    dataBase.change_status(userId[0][0], args.waitStatus, 'None')
+                                    dataBase.plus_count_works(userId[0][0])  # +1 к выполненным заданиям
+                                    dataBase.change_status(userId[0][0], args.waitStatus, 'None')  # статуса ожидания работы и установка времени на None
                         bot.send_message(496537969, 'test')
                         bot.send_message(441287694, 'test')
                         print('sending')
-                    can = False
+                    can = False  # чтобы не выполнялось несколько раз в секунду
                 else:
                     can = True
             except Exception as e:

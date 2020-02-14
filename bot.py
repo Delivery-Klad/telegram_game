@@ -1,3 +1,6 @@
+"""
+файл для обработки команд
+"""
 from datetime import datetime
 from telebot import types
 import threading
