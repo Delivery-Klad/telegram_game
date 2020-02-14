@@ -179,3 +179,17 @@ try:  # максимально странная конструкция
             print(e)
 except Exception as e:
     print(e)
+
+
+@bot.message_handler(commands=['Quest'])  # функция обработки запроса логов
+def handler_log(message):
+    try:
+            quests = dataBase.QuestsArr()
+            res = ""
+            for Qest in quests:
+                for i in Qest:
+                    res += i + " "
+                res += "\n"
+            bot.send_message(message.from_user.id, res)
+    except Exception as e:
+        print(e)

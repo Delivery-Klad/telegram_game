@@ -4,6 +4,7 @@
 import sqlite3
 import args
 
+QuestsArr = []
 
 def createTables():  # создание таблиц в sql если их нет
     try:
@@ -42,3 +43,24 @@ def plus_count_works(message):  # указание количества выпо
     connect.commit()
     cursor.close()
     connect.close()
+
+def GetQuests():
+    connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+    cursor = connect.cursor()
+    cursor.execute("SELECT * FROM {}".format("Quests"))
+    QuestsArr = []
+    res = cursor.fetchall()
+    for i in res:
+       QuestsArr.append(Quests(i[0], i[1], i[2], i[3]))
+    connect.close()
+
+class Quests():
+    Profession = ""
+    Quest = ""
+    Rank = ""
+    Time = ""
+    def __init__(self, prof, quest, rank, time):
+        self.Profession = prof
+        self.Quest = quest
+        self.Rank = rank
+        self.Time = time
