@@ -101,6 +101,15 @@ def func(c):
         print(e)
 
 
+@bot.message_handler(commands=['quest'])
+def sender_lol(message):
+    try:
+            quests = dataBase.GetQuests()
+            bot.send_message(message.from_user.id, str(quests))
+    except Exception as e:
+        print(e)
+
+
 @bot.message_handler(content_types=['text'])  # функция обработки текстовых сообщений
 def handler_text(message):
     try:
@@ -180,16 +189,3 @@ try:  # максимально странная конструкция
 except Exception as e:
     print(e)
 
-
-@bot.message_handler(commands=['Quest'])  # функция обработки запроса логов
-def handler_log(message):
-    try:
-            quests = dataBase.QuestsArr()
-            res = ""
-            for Qest in quests:
-                for i in Qest:
-                    res += i + " "
-                res += "\n"
-            bot.send_message(message.from_user.id, res)
-    except Exception as e:
-        print(e)

@@ -6,6 +6,7 @@ import args
 
 QuestsArr = []
 
+
 def createTables():  # создание таблиц в sql если их нет
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
@@ -36,29 +37,35 @@ def change_status(id, status, time):  # замена статуса и указ�
     connect.close()
 
 
-def plus_count_works(message):  # указание количества выполненных работ
+def plus_count_works(userId):  # указание количества выполненных работ
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
-    cursor.execute("UPDATE Users SET Count_Works=Count_Works+1 WHERE ID='{0}'".format(str(message.from_user.id)))
+    cursor.execute("UPDATE Users SET Count_Works=Count_Works+1 WHERE ID='{0}'".format(str(userId)))
     connect.commit()
     cursor.close()
     connect.close()
 
+
 def GetQuests():
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
-    cursor.execute("SELECT * FROM {}".format("Quests"))
+    cursor.execute("SELECT * FROM Quests")
     QuestsArr = []
     res = cursor.fetchall()
     for i in res:
-       QuestsArr.append(Quests(i[0], i[1], i[2], i[3]))
+        quet = [i[0], i[1], i[2], i[3]]
+        print(quet)
+        QuestsArr.append(quet)
     connect.close()
+    return QuestsArr
+
 
 class Quests():
     Profession = ""
     Quest = ""
     Rank = ""
     Time = ""
+
     def __init__(self, prof, quest, rank, time):
         self.Profession = prof
         self.Quest = quest
