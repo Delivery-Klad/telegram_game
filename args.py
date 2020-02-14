@@ -1,0 +1,11 @@
+token = '1074352529:AAEIKKcGDpFtQt-7NNm0EYnxZiau9oARZAo'
+delimiter_line = '------------------------------------------------'
+acceptWorkButton = 'Выполнить работу'
+cancelWorkButton = 'Отказаться'
+databaseName = 'DataBase.db'
+helpButtonName = 'Помощь🆘'
+filesFolderName = 'files/'
+logFileName = 'LogBot.txt'
+workStatus = 'Work'
+waitStatus = 'Chill'
+admins_list = [441287694, 496537969]
