@@ -46,5 +46,5 @@ def isAdmin(userId):  # проверка является ли пользова�
         print(e)
 
 
-def set_nickname():
+def set_nickname(nickName):
     o = 0

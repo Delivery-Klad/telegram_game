@@ -17,6 +17,7 @@ import os
 bot = telebot.TeleBot(args.token)
 techList = ['программист', 'математик']
 gumList = ['Миша', 'ленивая жопа']
+nickList = []
 print(bot.get_me())
 
 
@@ -130,6 +131,15 @@ def handler_text(message):
             bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                              text='<i>Ваша профессия </i><b>' + message.text + '</b>', reply_markup=user_markup)
             connect.commit()
+            bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                             text='<i>Теперь укажите ваш никнейм </i>', reply_markup=user_markup)
+            nickList.append(message.from_user.id)
+        elif message.from_user.id in nickList:
+            index = nickList.index(message.from_user.id)
+            functions.set_nickname(message.text)
+            bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                             text='<b>Ваш никнейм' + message.text + '</b>')
+            nickList.pop(index)
         else:
             cursor.execute("SELECT Spec FROM Users WHERE ID=" + str(message.from_user.id))
             spec = cursor.fetchall()
