@@ -1,5 +1,6 @@
 import sqlite3
 from datetime import datetime
+
 delimiter_line = '------------------------------------------------'
 databaseName = 'DataBase.db'
 helpButtonName = 'Помощь🆘'
@@ -8,7 +9,7 @@ logFileName = 'LogBot.txt'
 admins_list = [441287694, 496537969]
 
 
-def log(message): # запись лога сообщений
+def log(message):  # запись лога сообщений
     try:
         file = open(filesFolderName + logFileName, 'a')
         file.write('\n' + delimiter_line + '\n')
@@ -19,28 +20,29 @@ def log(message): # запись лога сообщений
                                                                             message.text))
         else:
             file.write('\nСообщение от {0} {1}, (id = {2})\nТекст - {3}'.format(message.from_user.first_name,
-                                                                            message.from_user.last_name,
-                                                                            str(message.from_user.id),
-                                                                            message.text))
+                                                                                message.from_user.last_name,
+                                                                                str(message.from_user.id),
+                                                                                message.text))
         print('\n' + delimiter_line)
         print(str(datetime.now().strftime('%d-%m-%Y %H:%M:%S')))
         print('Сообщение от {0}, (id = {1})\nТекст - {2}'.format(message.from_user.username,
-                                                                    str(message.from_user.id),
-                                                                    message.text))
+                                                                 str(message.from_user.id),
+                                                                 message.text))
         file.close()
     except Exception as e:
         print(e)
 
 
-def createTables(): # создание таблиц в sql если их нет
+def createTables():  # создание таблиц в sql если их нет
     try:
         connect = sqlite3.connect(filesFolderName + databaseName)
         cursor = connect.cursor()
         cursor.execute('CREATE TABLE IF NOT EXISTS Users(ID INTEGER,'
-                        'UserName TEXT,'
-                        'First_Name TEXT,'
-                        'Last_Name TEXT,'
-                        'Reg_Date TEXT)')
+                       'UserName TEXT,'
+                       'NickName TEXT,'
+                       'Spec TEXT,'
+                       'Profession TEXT,'
+                       'Reg_Date TEXT)')
 
         connect.commit()
         cursor.close()
@@ -49,14 +51,14 @@ def createTables(): # создание таблиц в sql если их нет
         print(e)
 
 
-def notInLists(message): # проверка есть ли пользователь в каком-либо списке
+def notInLists(message):  # проверка есть ли пользователь в каком-либо списке
     try:
         return True
     except Exception as e:
         print(e)
 
 
-def isAdmin(ids): # проверка является ли пользователь админом
+def isAdmin(ids):  # проверка является ли пользователь админом
     try:
         if int(ids) in admins_list:
             return True

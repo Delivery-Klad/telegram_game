@@ -17,6 +17,9 @@ filesFolderName = 'files/'
 logFileName = 'LogBot.txt'
 acceptWorkButton = 'Выполнить работу'
 cancelWorkButton = 'Отказаться'
+
+techList = ['программист', 'математик']
+gumList = ['Миша', 'ленивая жопа']
 print(bot.get_me())
 
 
@@ -25,6 +28,11 @@ def handler_start(message):
     try:
         functions.log(message)
         functions.createTables()
+        key1 = types.InlineKeyboardMarkup()
+        key1.add(types.InlineKeyboardButton(text=helpButtonName, callback_data='0'))
+        bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text='<b>Welcome</b>')
+        bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text='<b>Узнать как пользоваться ботом</b>',
+                         reply_markup=key1)
         contain = False
         connect = sqlite3.connect(filesFolderName + databaseName)
         cursor = connect.cursor()
@@ -35,16 +43,13 @@ def handler_start(message):
                 contain = True
                 break
         if not contain:
-            data = [message.from_user.id, message.from_user.username, message.from_user.first_name, message.from_user.last_name, str(datetime.now().strftime('%d-%m-%Y %H:%M:%S'))]
-            cursor.execute('INSERT INTO Users VALUES(?, ?, ?, ?, ?)', data)
+            bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text='<i>Для того, чтобы определить ваш '
+                                                                                   'склад ума, скажите чему '
+                                                                                   'равно</i> <b>2+2*2</b>')
+            data = [message.from_user.id, message.from_user.username, "None", "None", "None",
+                    str(datetime.now().strftime('%d-%m-%Y %H:%M:%S'))]
+            cursor.execute('INSERT INTO Users VALUES(?, ?, ?, ?, ?, ?)', data)
         connect.commit()
-        if functions.notInLists(message):
-            key1 = types.InlineKeyboardMarkup()
-            key1.add(types.InlineKeyboardButton(text=helpButtonName, callback_data='0'))
-            bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text='<b>Welcome</b>')
-            bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text='<b>Узнать как пользоваться ботом</b>', reply_markup=key1)
-        else:
-            bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text='<b>Вы что-то делаете...</b>')
     except Exception as e:
         print(e)
 
@@ -101,12 +106,55 @@ def func(c):
 @bot.message_handler(content_types=['text'])  # функция обработки текстовых сообщений
 def handler_text(message):
     try:
-        if message.text == acceptWorkButton:
-            o = 0
-        elif message.text == cancelWorkButton:
+        functions.log(message)
+        connect = sqlite3.connect(filesFolderName + databaseName)
+        cursor = connect.cursor()
+        if message.text == acceptWorkButton or message.text == cancelWorkButton:
             o = 0
         elif message.text == helpButtonName:
             o = 0
+        elif message.text in techList or message.text in gumList:
+            if message.text in techList:
+                cursor.execute("SELECT Spec FROM Users WHERE ID=" + str(message.from_user.id))
+                spec = cursor.fetchall()
+                if spec[0][0] == 'tech':
+                    cursor.execute(
+                        "UPDATE Users SET Profession='{0}' WHERE ID='{1}'".format(str(message.text), str(message.from_user.id)))
+            else:
+                cursor.execute("SELECT Spec FROM Users WHERE ID=" + str(message.from_user.id))
+                spec = cursor.fetchall()
+                if spec[0][0] == 'gum':
+                    cursor.execute(
+                        "UPDATE Users SET Profession='{0}' WHERE ID='{1}'".format(str(message.text), str(message.from_user.id)))
+            bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                             text='<i>Ваша профессия ' + message.text + '</i>')
+            connect.commit()
+        else:
+            cursor.execute("SELECT Spec FROM Users WHERE ID=" + str(message.from_user.id))
+            spec = cursor.fetchall()
+            if spec[0][0] == 'None':
+                if message.text == "6":
+                    bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                                     text='<b>Поздравляем, вы-технарь</b>')
+                    cursor.execute("UPDATE Users SET Spec='tech' WHERE ID=" + str(message.from_user.id))
+                    user_markup = telebot.types.ReplyKeyboardMarkup(True, False)
+                    user_markup.row(techList[0], techList[1])
+                    bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                                     text='<i>Теперь вы можете выбрать одну из предложенных профессий</i>',
+                                     reply_markup=user_markup)
+                else:
+                    bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                                     text='<b>Соболезнуем, вы-гуманитарий</b>')
+                    cursor.execute("UPDATE Users SET Spec='gum' WHERE ID=" + str(message.from_user.id))
+                    user_markup = telebot.types.ReplyKeyboardMarkup(True, False)
+                    user_markup.row(gumList[0], gumList[1])
+                    bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                                     text='<i>Теперь вы можете выбрать одну из предложенных профессий</i>',
+                                     reply_markup=user_markup)
+                connect.commit()
+
+        cursor.close()
+        connect.close()
     except Exception as e:
         print(e)
 
