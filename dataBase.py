@@ -25,11 +25,11 @@ def createTables():  # создание таблиц в sql если их нет
         print(e)
 
 
-def change_status(message, status, time):  # замена статуса и указание времени начала
+def change_status(id, status, time):  # замена статуса и указание времени начала
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
-    cursor.execute("UPDATE Users SET Status='{0}' WHERE ID='{1}'".format(str(status), str(message.from_user.id)))
-    cursor.execute("UPDATE Users SET Start_time='{0}' WHERE ID='{1}'".format(str(time), str(message.from_user.id)))
+    cursor.execute("UPDATE Users SET Status='{0}' WHERE ID='{1}'".format(str(status), str(id)))
+    cursor.execute("UPDATE Users SET Start_time='{0}' WHERE ID='{1}'".format(str(time), str(id)))
     connect.commit()
     cursor.close()
     connect.close()

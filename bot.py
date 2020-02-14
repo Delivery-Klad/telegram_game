@@ -108,7 +108,7 @@ def handler_text(message):
         cursor = connect.cursor()
         if message.text == args.acceptWorkButton or message.text == args.cancelWorkButton:
             if message.text == args.acceptWorkButton:
-                dataBase.change_status(message, args.workStatus, datetime.now().strftime('%M'))
+                dataBase.change_status(message.from_user.id, args.workStatus, datetime.now().strftime('%M'))
 
         elif message.text == args.helpButtonName:
             o = 0
