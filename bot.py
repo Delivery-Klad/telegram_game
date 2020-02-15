@@ -28,7 +28,10 @@ def handler_start(message):
         dataBase.createTables()
         key1 = types.InlineKeyboardMarkup()
         key1.add(types.InlineKeyboardButton(text=args.helpButtonName, callback_data='0'))
-        bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text='<b>Welcome</b>')
+        try:
+            bot.send_sticker(message.from_user.id, args.hello)
+        except Exception as e:
+            print(e)
         bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text='<b>Узнать как пользоваться ботом</b>',
                          reply_markup=key1)
         contain = False
@@ -44,7 +47,7 @@ def handler_start(message):
             bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text='<i>Для того, чтобы определить ваш '
                                                                                    'склад ума, скажите чему '
                                                                                    'равно</i> <b>2+2*2</b>')
-            data = [message.from_user.id, message.from_user.username, "None", "None", "None", str(args.waitStatus), 0, "None",
+            data = [message.from_user.id, message.from_user.username, "None", "None", "None", str(args.waitStatus), 0, 0,
                     str(datetime.now().strftime('%d-%m-%Y %H:%M:%S'))]
             cursor.execute('INSERT INTO Users VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)', data)
         connect.commit()
@@ -92,6 +95,20 @@ def handler_help(message):
         print(e)
 
 
+@bot.message_handler(commands=['Quest'])  # функция обработки запроса логов
+def handler_log(message):
+    try:
+            quests = args.QuestsArr()
+            res = ""
+            for Qest in quests:
+                for i in Qest:
+                    res += i + " "
+                res += "\n"
+            bot.send_message(message.from_user.id, res)
+    except Exception as e:
+        print(e)
+
+
 @bot.callback_query_handler(func=lambda c: True)  # функция обработки inline кнопок
 def func(c):
     try:
@@ -110,7 +127,6 @@ def handler_text(message):
         if message.text == args.acceptWorkButton or message.text == args.cancelWorkButton:
             if message.text == args.acceptWorkButton:
                 dataBase.change_status(message.from_user.id, args.workStatus, datetime.now().strftime('%M'))
-
         elif message.text == args.helpButtonName:
             o = 0
         elif message.text in techList or message.text in gumList:
@@ -136,14 +152,15 @@ def handler_text(message):
             nickList.append(message.from_user.id)
         elif message.from_user.id in nickList:
             index = nickList.index(message.from_user.id)
-            functions.set_nickname(message.text)
+            dataBase.set_nickname(message)
             bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
-                             text='<b>Ваш никнейм' + message.text + '</b>')
+                             text='<b>Ваш никнейм ' + message.text + '</b>')
             nickList.pop(index)
         else:
             cursor.execute("SELECT Spec FROM Users WHERE ID=" + str(message.from_user.id))
             spec = cursor.fetchall()
             if spec[0][0] == 'None':
+                print('ggg')
                 if message.text == "6":
                     bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                      text='<b>Поздравляем, вы-технарь</b>')
@@ -153,6 +170,10 @@ def handler_text(message):
                     bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                      text='<i>Теперь вы можете выбрать одну из предложенных профессий</i>',
                                      reply_markup=user_markup)
+                    try:
+                        bot.send_sticker(message.from_user.id, args.choose)
+                    except Exception as e:
+                        print(e)
                 else:
                     bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                      text='<b>Соболезнуем, вы-гуманитарий</b>')
@@ -163,6 +184,8 @@ def handler_text(message):
                                      text='<i>Теперь вы можете выбрать одну из предложенных профессий</i>',
                                      reply_markup=user_markup)
                 connect.commit()
+            else:
+                bot.send_message(message.from_user.id, message.text)
         cursor.close()
         connect.close()
     except Exception as e:
@@ -179,17 +202,3 @@ try:  # максимально странная конструкция
             print(e)
 except Exception as e:
     print(e)
-
-
-@bot.message_handler(commands=['Quest'])  # функция обработки запроса логов
-def handler_log(message):
-    try:
-            quests = dataBase.QuestsArr()
-            res = ""
-            for Qest in quests:
-                for i in Qest:
-                    res += i + " "
-                res += "\n"
-            bot.send_message(message.from_user.id, res)
-    except Exception as e:
-        print(e)
