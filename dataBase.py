@@ -18,6 +18,10 @@ def createTables():  # создание таблиц в sql если их нет
                        'Start_time TEXT,'  # время начала выполнения задания
                        'Count_Works INTEGER,'  # количество выполненных заданий
                        'Reg_Date TEXT)')  # дата регистрации
+        cursor.execute('CREATE TABLE IF NOT EXISTS Quests(Profession TEXT,'  # профессия 
+                       'Quest TEXT,'  # задание
+                       'Rank INTEGER,'  # ранг/сложность задания
+                       'Time INTEGER')  # время выполнения задания
         connect.commit()
         cursor.close()
         connect.close()
@@ -48,6 +52,20 @@ def set_nickname(nickName):
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
     cursor.execute("UPDATE Users SET NickName='{0}' WHERE ID='{1}'".format(str(nickName.text), str(nickName.from_user.id)))
+    connect.commit()
+    cursor.close()
+    connect.close()
+
+
+def add_Quest(message):
+    connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+    cursor = connect.cursor()
+    print('ggg')
+    data = message.text.split(' , ')
+    print(data)
+    data.pop(0)
+    print(data)
+    cursor.execute("INSERT INTO Quests VALUES(?, ?, ?, ?)", data)
     connect.commit()
     cursor.close()
     connect.close()

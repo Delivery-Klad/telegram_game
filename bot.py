@@ -77,34 +77,55 @@ def handler_db(message):
         print(e)
 
 
+@bot.message_handler(commands=['add_quest'])  # функция обработки запроса логов
+def handler_add_quest(message):
+    try:
+        functions.log(message)
+        dataBase.add_Quest(message)
+    except Exception as e:
+        print(e)
+
+
 @bot.message_handler(commands=['help'])  # обработка команды помощи
 def handler_help(message):
     try:
         functions.log(message)
         bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text='Меню помощи\n'
-                                                                               '-\n'
-                                                                               '-\n'
-                                                                               '-\n'
-                                                                               '-\n'
+                                                                               '/start - Начать ользоваться ботом\n'
+                                                                               '/help - Меню помощи\n'
+                                                                               '/accept - Согласиться на выполнение работы\n'
+                                                                               '/cancel - Отказаться от выполнения работы\n'
                                                                                '-\n'
                                                                                '-\n'
                                                                                '-\n'
                                                                                '-\n'
                                                                                '-')
+        if functions.isAdmin(message.from_user.id):
+            bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text='Меню помощи\n'
+                                                                                   '/log - Запросить логи\n'
+                                                                                   '/db - Запросить базу данных\n'
+                                                                                   '/add_quest - (по формату /add_quest , профессия , задание , ранг , время)\n'
+                                                                                   '-\n'
+                                                                                   '-\n'
+                                                                                   '-\n'
+                                                                                   '-\n'
+                                                                                   '-\n'
+                                                                                   '-')
     except Exception as e:
         print(e)
 
 
 @bot.message_handler(commands=['Quest'])  # функция обработки запроса логов
-def handler_log(message):
+def handler_quest(message):
     try:
-            quests = args.QuestsArr()
-            res = ""
-            for Qest in quests:
-                for i in Qest:
-                    res += i + " "
-                res += "\n"
-            bot.send_message(message.from_user.id, res)
+        functions.log(message)
+        quests = args.QuestsArr()
+        res = ""
+        for Qest in quests:
+            for i in Qest:
+                res += i + " "
+            res += "\n"
+        bot.send_message(message.from_user.id, res)
     except Exception as e:
         print(e)
 
