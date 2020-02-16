@@ -82,14 +82,9 @@ def GetQuests():
     connect.close()
 
 
-class Quests():
-    Profession = ""
-    Quest = ""
-    Rank = ""
-    Time = ""
-
-    def __init__(self, prof, quest, rank, time):
-        self.Profession = prof
-        self.Quest = quest
-        self.Rank = rank
-        self.Time = time
+def UpdProf():
+    connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+    cursor = connect.cursor()
+    cursor.execute("SELECT DISTINCT Professions * FROM {}".format("Quests"))
+    args.ProfArr = cursor.fetchall()
+    connect.close()
