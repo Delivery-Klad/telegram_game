@@ -78,13 +78,14 @@ def GetQuests():
     args.QuestsArr = []
     res = cursor.fetchall()
     for i in res:
-        args.QuestsArr.append(Quests(i[0], i[1], i[2], i[3]))
+        args.QuestsArr.append([i[0], i[1], i[2], i[3]])
     connect.close()
 
 
 def UpdProf():
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
-    cursor.execute("SELECT DISTINCT Professions * FROM {}".format("Quests"))
+    cursor.execute("SELECT DISTINCT Profession FROM {}".format("Quests"))
     args.ProfArr = cursor.fetchall()
+    print(args.ProfArr)
     connect.close()

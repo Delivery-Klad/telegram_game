@@ -118,6 +118,7 @@ def handler_help(message):
 @bot.message_handler(commands=['Quest'])  # функция обработки запроса логов
 def handler_quest(message):
     try:
+        dataBase.UpdProf()
         functions.log(message)
         quests = args.QuestsArr()
         res = ""
