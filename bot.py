@@ -115,16 +115,16 @@ def handler_help(message):
         print(e)
 
 
-@bot.message_handler(commands=['Quest'])  # функция обработки запроса логов
+@bot.message_handler(commands=['quest'])  # функция обработки запроса логов
 def handler_quest(message):
     try:
         dataBase.UpdProf()
         functions.log(message)
-        quests = args.QuestsArr()
-        res = ""
+        quests = args.QuestsArr
+        res = " "
         for Qest in quests:
             for i in Qest:
-                res += i + " "
+                res += str(i) + " "
             res += "\n"
         bot.send_message(message.from_user.id, res)
     except Exception as e:
