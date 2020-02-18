@@ -119,6 +119,7 @@ def handler_help(message):
 def handler_quest(message):
     try:
         dataBase.UpdProf()
+        dataBase.UpdQuests()
         functions.log(message)
         quests = args.QuestsArr
         res = " "
@@ -126,7 +127,7 @@ def handler_quest(message):
             for i in Qest:
                 res += str(i) + " "
             res += "\n"
-        bot.send_message(message.from_user.id, res)
+        bot.send_message(message.from_user.id, str(res))
     except Exception as e:
         print(e)
 

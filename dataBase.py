@@ -71,7 +71,7 @@ def add_Quest(message):
     connect.close()
 
 
-def GetQuests():
+def UpdQuests():
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
     cursor.execute("SELECT * FROM {}".format("Quests"))
