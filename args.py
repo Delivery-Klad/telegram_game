@@ -15,5 +15,5 @@ logFileName = 'LogBot.txt'
 workStatus = 'Work'  # статус во время выполнения работы
 waitStatus = 'Chill'  # статус во время ожидиния работы
 admins_list = [441287694, 496537969]
-QuestsArr = []
-ProfArr = []  #Уникальные профессии
+QuestsArr = []  #Квесты с их профессиями и тд
+ProfArr = []  #Уникальные профессии и их направление

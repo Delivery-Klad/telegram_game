@@ -15,6 +15,7 @@ import args
 import os
 
 bot = telebot.TeleBot(args.token)
+#dataBase.createTables()
 dataBase.UpdProf()
 dataBase.UpdQuests()
 

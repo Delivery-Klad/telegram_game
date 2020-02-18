@@ -21,9 +21,9 @@ def createTables():  # создание таблиц в sql если их нет
         cursor.execute('CREATE TABLE IF NOT EXISTS Quests(Profession TEXT,'  # профессия 
                        'Quest TEXT,'  # задание
                        'Rank INTEGER,'  # ранг/сложность задания
-                       'Time INTEGER')  # время выполнения задания
-        cursor.execute('CREATE TABLE IF NOT EXISTS Proffessions(Profession TEXT,'  # профессия 
-                       'Check INTEGER,')  # 0/1 - гум/технарь
+                       'Time INTEGER)')  # время выполнения задания
+        cursor.execute('CREATE TABLE IF NOT EXISTS Profs(Prof TEXT,'  # профессия 
+                       'ProfCheck INTEGER)')  # 0/1/3 - гум/технарь/доступен всем
         connect.commit()
         cursor.close()
         connect.close()
@@ -81,13 +81,14 @@ def UpdQuests():
     res = cursor.fetchall()
     for i in res:
         args.QuestsArr.append([i[0], i[1], i[2], i[3]])
+    print(args.QuestsArr)
     connect.close()
 
 
 def UpdProf():
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
-    cursor.execute("SELECT DISTINCT Profession FROM {}".format("Quests"))
+    cursor.execute("SELECT * FROM Profs")
     args.ProfArr = cursor.fetchall()
     print(args.ProfArr)
     connect.close()
