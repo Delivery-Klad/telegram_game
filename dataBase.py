@@ -22,6 +22,8 @@ def createTables():  # создание таблиц в sql если их нет
                        'Quest TEXT,'  # задание
                        'Rank INTEGER,'  # ранг/сложность задания
                        'Time INTEGER')  # время выполнения задания
+        cursor.execute('CREATE TABLE IF NOT EXISTS Proffessions(Profession TEXT,'  # профессия 
+                       'Check INTEGER,')  # 0/1 - гум/технарь
         connect.commit()
         cursor.close()
         connect.close()

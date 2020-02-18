@@ -15,6 +15,9 @@ import args
 import os
 
 bot = telebot.TeleBot(args.token)
+dataBase.UpdProf()
+dataBase.UpdQuests()
+
 techList = ['программист', 'математик']
 gumList = ['Миша', 'ленивая жопа']
 nickList = []
@@ -115,14 +118,14 @@ def handler_help(message):
         print(e)
 
 
-@bot.message_handler(commands=['quest'])  # функция обработки запроса логов
+@bot.message_handler(commands=['quest'])  # функция обработки всех квестов.
 def handler_quest(message):
     try:
         dataBase.UpdProf()
         dataBase.UpdQuests()
         functions.log(message)
         quests = args.QuestsArr
-        res = " "
+        res = ""
         for Qest in quests:
             for i in Qest:
                 res += str(i) + " "
