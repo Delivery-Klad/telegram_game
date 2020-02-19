@@ -36,6 +36,20 @@ def notInLists(message):  # проверка есть ли пользовате�
         print(e)
 
 
+def isFree(userID):  # проверить выполняет ли пользователь какую-либо работу
+    try:
+        return True
+    except Exception as e:
+        print(e)
+
+
+def send_task(userID, message, bot):  # отправка задания пользователю
+    try:
+        o = 0
+    except Exception as e:
+        print(e)
+
+
 def isAdmin(userId):  # проверка является ли пользователь админом
     try:
         if int(userId) in args.admins_list:

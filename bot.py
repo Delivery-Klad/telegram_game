@@ -137,6 +137,22 @@ def handler_quest(message):
 @bot.message_handler(commands=['give_task'])  # функция выдачи задания
 def handler_giveTask(message):
     try:
+        dataBase.give_task(message)
+    except Exception as e:
+        print(e)
+
+
+@bot.message_handler(commands=['accept'])  # функция выдачи задания
+def handler_accept(message):
+    try:
+        o = 0
+    except Exception as e:
+        print(e)
+
+
+@bot.message_handler(commands=['cancel'])  # функция выдачи задания
+def handler_cancel(message):
+    try:
         o = 0
     except Exception as e:
         print(e)
@@ -157,11 +173,20 @@ def handler_text(message):
         functions.log(message)
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
+        if str(message.text[1]+message.text[2]+message.text[3]+message.text[4]) == 'task':
+            print('success')
+            workerID = message.text[5:]
+            if functions.isFree(workerID):
+                functions.send_task(workerID, message, bot)
+                # тут дописать
+            else:
+                bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                                 text='<b>OOPS\nКажется пользователь занят</b>')
         if message.text == args.acceptWorkButton or message.text == args.cancelWorkButton:
             if message.text == args.acceptWorkButton:
                 dataBase.change_status(message.from_user.id, args.workStatus, datetime.now().strftime('%M'))
         elif message.text == args.helpButtonName:
-            handler_help()
+            handler_help(message)
         elif message.text in args.techList or message.text in args.gumList or message.text in args.lowList:
             user_markup = telebot.types.ReplyKeyboardMarkup(True, False)
             user_markup.row(args.helpButtonName)
