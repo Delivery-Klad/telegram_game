@@ -161,8 +161,8 @@ def handler_text(message):
             if message.text == args.acceptWorkButton:
                 dataBase.change_status(message.from_user.id, args.workStatus, datetime.now().strftime('%M'))
         elif message.text == args.helpButtonName:
-            o = 0
-        elif message.text in args.techList or message.text in args.gumList:
+            handler_help()
+        elif message.text in args.techList or message.text in args.gumList or message.text in args.lowList:
             user_markup = telebot.types.ReplyKeyboardMarkup(True, False)
             user_markup.row(args.helpButtonName)
             if message.text in args.techList:
@@ -171,14 +171,20 @@ def handler_text(message):
                 if spec[0][0] == 'tech':
                     cursor.execute(
                         "UPDATE Users SET Profession='{0}' WHERE ID='{1}'".format(str(message.text), str(message.from_user.id)))
-            else:
+            elif message.text in args.gumList:
                 cursor.execute("SELECT Spec FROM Users WHERE ID=" + str(message.from_user.id))
                 spec = cursor.fetchall()
                 if spec[0][0] == 'gum':
                     cursor.execute(
                         "UPDATE Users SET Profession='{0}' WHERE ID='{1}'".format(str(message.text), str(message.from_user.id)))
+            else:
+                cursor.execute("SELECT Spec FROM Users WHERE ID=" + str(message.from_user.id))
+                spec = cursor.fetchall()
+                if spec[0][0] == 'low':
+                    cursor.execute(
+                        "UPDATE Users SET Profession='{0}' WHERE ID='{1}'".format(str(message.text), str(message.from_user.id)))
             bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
-                             text='<i>Ваша профессия </i><b>' + message.text + '</b>', reply_markup=user_markup)
+                             text='<i>Ваша профессия</i> <b>' + message.text + '</b>', reply_markup=user_markup)
             connect.commit()
             bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                              text='<i>Теперь укажите ваш никнейм </i>', reply_markup=user_markup)
@@ -187,7 +193,7 @@ def handler_text(message):
             index = nickList.index(message.from_user.id)
             dataBase.set_nickname(message)
             bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
-                             text='<b>Ваш никнейм ' + message.text + '</b>')
+                             text='<i>Ваш никнейм</i> <b>' + message.text + '</b>')
             nickList.pop(index)
         else:
             cursor.execute("SELECT Spec FROM Users WHERE ID=" + str(message.from_user.id))
@@ -199,7 +205,8 @@ def handler_text(message):
                                      text='<b>Поздравляем, вы-технарь</b>')
                     cursor.execute("UPDATE Users SET Spec='tech' WHERE ID=" + str(message.from_user.id))
                     user_markup = telebot.types.ReplyKeyboardMarkup(True, False)
-                    user_markup.row(args.techList[0], args.techList[1])
+                    for i in args.techList:
+                        user_markup.row(i)
                     bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                      text='<i>Теперь вы можете выбрать одну из предложенных профессий</i>',
                                      reply_markup=user_markup)
@@ -212,7 +219,8 @@ def handler_text(message):
                                      text='<b>Соболезнуем, вы-гуманитарий</b>')
                     cursor.execute("UPDATE Users SET Spec='gum' WHERE ID=" + str(message.from_user.id))
                     user_markup = telebot.types.ReplyKeyboardMarkup(True, False)
-                    user_markup.row(args.gumList[0], args.gumList[1])
+                    for i in args.gumList:
+                        user_markup.row(i)
                     bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                      text='<i>Теперь вы можете выбрать одну из предложенных профессий</i>',
                                      reply_markup=user_markup)
@@ -221,7 +229,8 @@ def handler_text(message):
                                      text='<b>Походу у вас с головой проблемы</b>')
                     cursor.execute("UPDATE Users SET Spec='low' WHERE ID=" + str(message.from_user.id))
                     user_markup = telebot.types.ReplyKeyboardMarkup(True, False)
-                    user_markup.row(args.lowList[0], args.lowList[1])
+                    for i in args.lowList:
+                        user_markup.row(i)
                     bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                      text='<i>Теперь вы можете выбрать одну из предложенных профессий</i>',
                                      reply_markup=user_markup)
