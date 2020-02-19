@@ -26,7 +26,7 @@ def timer(bot):
                                     cursor.execute("SELECT ID FROM Users WHERE Start_time=" + str(start_minutes))  # остановить выполнение работы
                                     userId = cursor.fetchall()
                                     dataBase.plus_count_works(userId[0][0])  # +1 к выполненным заданиям
-                                    dataBase.change_status(userId[0][0], args.waitStatus, 'None')  # статуса ожидания работы и установка времени на None
+                                    dataBase.change_status(userId[0][0], args.waitStatus, 'None')  #  статус ожидания работы и установка времени на None
                         # bot.send_message(496537969, 'test')
                         # bot.send_message(441287694, 'test')
                         print('sending')

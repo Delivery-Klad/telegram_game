@@ -73,6 +73,13 @@ def add_Quest(message):
     connect.close()
 
 
+def give_task(message):
+    connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+    cursor = connect.cursor()
+    cursor.execute("SELECT ID,NickName FROM Users WHERE Status=" + str(args.waitStatus))
+    users = cursor.fetchall()
+
+
 def UpdQuests():
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
