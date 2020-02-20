@@ -134,7 +134,7 @@ def isFree(userID):  # проверить выполняет ли пользов
         print(e)
 
 
-def getWorkers(message):
+def get_workers(message):
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
     cursor.execute("SELECT ID,NickName,Profession FROM Users WHERE Status=" + str(args.waitStatus))

@@ -49,7 +49,8 @@ def handler_start(message):
             bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text='<i>Для того, чтобы определить ваш '
                                                                                    'склад ума, скажите чему '
                                                                                    'равно</i> <b>2+2*2</b>')
-            data = [message.from_user.id, message.from_user.username, "None", "None", "None", str(args.waitStatus), 0, 0,
+            data = [message.from_user.id, message.from_user.username, "None", "None", "None", str(args.waitStatus), 0,
+                    0,
                     str(datetime.now().strftime('%d-%m-%Y %H:%M:%S'))]
             cursor.execute('INSERT INTO Users VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)', data)
         connect.commit()
@@ -138,7 +139,7 @@ def handler_quest(message):
 def handler_giveTask(message):
     try:
         bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
-                         text='<b>Выберете кому дать дать задание:\n</b>' + str(dataBase.getWorkers(message)))
+                         text='<b>Выберете кому дать дать задание:\n</b>' + str(dataBase.get_workers(message)))
     except Exception as e:
         print(e)
 
@@ -147,8 +148,10 @@ def handler_giveTask(message):
 def handler_accept(message):
     try:
         if dataBase.isFree(message.from_user.id):
-            dataBase.start_job(message.from_user.id, args.workStatus, datetime.now().strftime('%M'))
-
+            job_timer = 3
+            dataBase.start_job(message.from_user.id, args.workStatus, int(datetime.now().strftime('%M')) + job_timer)
+            bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                             text='<i>Вы Начали выполнение здания это займет примерно</i> <b>' + str(job_timer) + '</b> <i> мин</i>')
         else:
             bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                              text='<b>OOPS\nВы заняты чем-то другим</b>')
@@ -180,13 +183,14 @@ def handler_text(message):
         functions.log(message)
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
-        if str(message.text[1]+message.text[2]+message.text[3]+message.text[4]) == 'task':
+        if str(message.text[1] + message.text[2] + message.text[3] + message.text[4]) == 'task':
             print('success')
             workerID = message.text[5:]
             if dataBase.isFree(workerID):
                 functions.send_task(workerID, message, bot)
                 bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
-                                 text='<i>Вы отправили задание пользователю</i> <b>' + str(dataBase.get_nickname(workerID)) + '</b>')
+                                 text='<i>Вы отправили задание пользователю</i> <b>' + str(
+                                     dataBase.get_nickname(workerID)) + '</b>')
             else:
                 bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                  text='<b>OOPS\nКажется пользователь занят</b>')
@@ -243,7 +247,7 @@ def handler_text(message):
                         user_markup.row(i)
                     bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                      text='<i>Теперь вы можете выбрать одну из предложенных профессий</i>',
-                                         reply_markup=user_markup)
+                                     reply_markup=user_markup)
                     try:
                         bot.send_sticker(message.from_user.id, args.choose)
                     except Exception as e:

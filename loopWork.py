@@ -14,7 +14,7 @@ def timer(bot):
         can = True
         while True:
             try:
-                if int(datetime.now().strftime('%M')) % 5 == 0 and int(datetime.now().strftime('%S')) == 0:
+                if int(datetime.now().strftime('%M')) % 2 == 0 and int(datetime.now().strftime('%S')) == 0:
                     if can:
                         cursor.execute("SELECT End_time FROM Users")
                         end_time = cursor.fetchall()
