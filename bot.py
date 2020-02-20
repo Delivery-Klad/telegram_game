@@ -145,7 +145,12 @@ def handler_giveTask(message):
 @bot.message_handler(commands=['accept'])  # функция выдачи задания
 def handler_accept(message):
     try:
-        o = 0
+        if dataBase.isFree(message.from_user.id):
+            dataBase.start_job(message.from_user.id, args.workStatus, datetime.now().strftime('%M'))
+
+        else:
+            bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                             text='<b>OOPS\nВы заняты чем-то другим</b>')
     except Exception as e:
         print(e)
 
@@ -153,7 +158,8 @@ def handler_accept(message):
 @bot.message_handler(commands=['cancel'])  # функция выдачи задания
 def handler_cancel(message):
     try:
-        o = 0
+        bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                         text='<b>Вы отказались от выполнения задания</b>')
     except Exception as e:
         print(e)
 
@@ -176,44 +182,32 @@ def handler_text(message):
         if str(message.text[1]+message.text[2]+message.text[3]+message.text[4]) == 'task':
             print('success')
             workerID = message.text[5:]
-            if functions.isFree(workerID):
+            if dataBase.isFree(workerID):
                 functions.send_task(workerID, message, bot)
-                # тут дописать
+                bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                                 text='<i>Вы отправили задание пользователю</i> <b>' + str(dataBase.get_nickname(workerID)) + '</b>')
             else:
                 bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                  text='<b>OOPS\nКажется пользователь занят</b>')
         if message.text == args.acceptWorkButton or message.text == args.cancelWorkButton:
             if message.text == args.acceptWorkButton:
-                dataBase.change_status(message.from_user.id, args.workStatus, datetime.now().strftime('%M'))
+                handler_accept(message)
+            elif message.text == args.cancelWorkButton:
+                handler_cancel(message)
         elif message.text == args.helpButtonName:
             handler_help(message)
         elif message.text in args.techList or message.text in args.gumList or message.text in args.lowList:
             user_markup = telebot.types.ReplyKeyboardMarkup(True, False)
             user_markup.row(args.helpButtonName)
-            if message.text in args.techList:
-                cursor.execute("SELECT Spec FROM Users WHERE ID=" + str(message.from_user.id))
-                spec = cursor.fetchall()
-                if spec[0][0] == 'tech':
-                    cursor.execute(
-                        "UPDATE Users SET Profession='{0}' WHERE ID='{1}'".format(str(message.text), str(message.from_user.id)))
-            elif message.text in args.gumList:
-                cursor.execute("SELECT Spec FROM Users WHERE ID=" + str(message.from_user.id))
-                spec = cursor.fetchall()
-                if spec[0][0] == 'gum':
-                    cursor.execute(
-                        "UPDATE Users SET Profession='{0}' WHERE ID='{1}'".format(str(message.text), str(message.from_user.id)))
+            if dataBase.set_profession(message):
+                bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                                 text='<i>Ваша профессия</i> <b>' + message.text + '</b>', reply_markup=user_markup)
+                bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                                 text='<i>Теперь укажите ваш никнейм </i>', reply_markup=user_markup)
+                nickList.append(message.from_user.id)
             else:
-                cursor.execute("SELECT Spec FROM Users WHERE ID=" + str(message.from_user.id))
-                spec = cursor.fetchall()
-                if spec[0][0] == 'low':
-                    cursor.execute(
-                        "UPDATE Users SET Profession='{0}' WHERE ID='{1}'".format(str(message.text), str(message.from_user.id)))
-            bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
-                             text='<i>Ваша профессия</i> <b>' + message.text + '</b>', reply_markup=user_markup)
-            connect.commit()
-            bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
-                             text='<i>Теперь укажите ваш никнейм </i>', reply_markup=user_markup)
-            nickList.append(message.from_user.id)
+                bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                                 text='<b>Произошла ошибка, повторите попытку позже</b>')
         elif message.from_user.id in nickList:
             index = nickList.index(message.from_user.id)
             dataBase.set_nickname(message)

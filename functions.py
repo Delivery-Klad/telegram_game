@@ -36,16 +36,16 @@ def notInLists(message):  # проверка есть ли пользовате�
         print(e)
 
 
-def isFree(userID):  # проверить выполняет ли пользователь какую-либо работу
-    try:
-        return True
-    except Exception as e:
-        print(e)
-
-
 def send_task(userID, message, bot):  # отправка задания пользователю
     try:
-        o = 0
+        bot.send_message(parse_mode='HTML', chat_id=userID,
+                         text='<i>Пользователь</i> <b>{0}</b> <i>отправил вам задание\n/accept - Согласиться\n/cancel '
+                              '- Отказаться</i>'.format(str(message.from_user.id)))
+        """
+        
+        тут сделать рандомную выдачу задания
+        
+        """
     except Exception as e:
         print(e)
 

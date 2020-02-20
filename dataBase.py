@@ -31,11 +31,11 @@ def createTables():  # создание таблиц в sql если их нет
         print(e)
 
 
-def change_status(id, status, time):  # замена статуса и указание времени начала
+def start_job(userID, status, time):  # замена статуса и указание времени начала
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
-    cursor.execute("UPDATE Users SET Status='{0}' WHERE ID='{1}'".format(str(status), str(id)))
-    cursor.execute("UPDATE Users SET Start_time='{0}' WHERE ID='{1}'".format(str(time), str(id)))
+    cursor.execute("UPDATE Users SET Status='{0}' WHERE ID='{1}'".format(str(status), str(userID)))
+    cursor.execute("UPDATE Users SET Start_time='{0}' WHERE ID='{1}'".format(str(time), str(userID)))
     connect.commit()
     cursor.close()
     connect.close()
@@ -59,18 +59,77 @@ def set_nickname(nickName):
     connect.close()
 
 
+def set_profession(message):
+    try:
+        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+        cursor = connect.cursor()
+        if message.text in args.techList:
+            cursor.execute("SELECT Spec FROM Users WHERE ID=" + str(message.from_user.id))
+            spec = cursor.fetchall()
+            if spec[0][0] == 'tech':
+                cursor.execute(
+                    "UPDATE Users SET Profession='{0}' WHERE ID='{1}'".format(str(message.text),
+                                                                              str(message.from_user.id)))
+        elif message.text in args.gumList:
+            cursor.execute("SELECT Spec FROM Users WHERE ID=" + str(message.from_user.id))
+            spec = cursor.fetchall()
+            if spec[0][0] == 'gum':
+                cursor.execute(
+                    "UPDATE Users SET Profession='{0}' WHERE ID='{1}'".format(str(message.text),
+                                                                              str(message.from_user.id)))
+        else:
+            cursor.execute("SELECT Spec FROM Users WHERE ID=" + str(message.from_user.id))
+            spec = cursor.fetchall()
+            if spec[0][0] == 'low':
+                cursor.execute(
+                    "UPDATE Users SET Profession='{0}' WHERE ID='{1}'".format(str(message.text),
+                                                                              str(message.from_user.id)))
+        connect.commit()
+        cursor.close()
+        connect.close()
+        return True
+    except Exception as e:
+        print(e)
+
+
+def get_nickname(userID):
+    try:
+        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+        cursor = connect.cursor()
+        cursor.execute("SELECT NickName FROM Users WHERE ID=" + str(userID))
+        name = cursor.fetchall()
+        connect.commit()
+        cursor.close()
+        connect.close()
+        return name[0][0]
+    except Exception as e:
+        print(e)
+
+
 def add_Quest(message):
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
-    print('ggg')
     data = message.text.split(' , ')
-    print(data)
     data.pop(0)
     print(data)
     cursor.execute("INSERT INTO Quests VALUES(?, ?, ?, ?)", data)
     connect.commit()
     cursor.close()
     connect.close()
+
+
+def isFree(userID):  # проверить выполняет ли пользователь какую-либо работу
+    try:
+        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+        cursor = connect.cursor()
+        cursor.execute("SELECT Status FROM Users WHERE ID=" + str(userID))
+        status = cursor.fetchall()
+        if status[0][0] == args.waitStatus:
+            return True
+        else:
+            return False
+    except Exception as e:
+        print(e)
 
 
 def give_task(message):
