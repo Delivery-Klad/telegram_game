@@ -126,12 +126,37 @@ def isFree(userID):  # проверить выполняет ли пользов
         cursor = connect.cursor()
         cursor.execute("SELECT Status FROM Users WHERE ID=" + str(userID))
         status = cursor.fetchall()
+        connect.commit()
+        cursor.close()
+        connect.close()
         if status[0][0] == args.waitStatus:
             return True
         else:
             return False
     except Exception as e:
         print(e)
+
+
+def up_lvl(userID):
+    connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+    cursor = connect.cursor()
+    cursor.execute("SELECT Count_Works FROM Users WHERE ID=" + str(userID))
+    jobs = cursor.fetchall()
+    if jobs[0][0] in args.jobs_to_lvl_up:
+        cursor.execute("UPDATE Users SET UserRank=UserRank+1 WHERE ID=" + str(userID))
+        give_new_prof(userID)
+    connect.commit()
+    cursor.close()
+    connect.close()
+
+
+def give_new_prof(userID):
+    pass
+    """
+    
+    отправлять список новых профессий, СНАЧАЛА ДОДЕЛАТЬ СПИСКИ
+    
+    """
 
 
 def get_workers(message):
@@ -143,6 +168,9 @@ def get_workers(message):
     for i in range(len(users[0])):
         if users[i][0] != message.from_user.id:
             msg_text += users[i][1] + users[i][2] + ' /task' + users[i][0]
+    connect.commit()
+    cursor.close()
+    connect.close()
     return msg_text
 
 
@@ -155,6 +183,8 @@ def UpdQuests():
     for i in res:
         args.QuestsArr.append([i[0], i[1], i[2], i[3]])
     print(args.QuestsArr)
+    connect.commit()
+    cursor.close()
     connect.close()
 
 
@@ -164,4 +194,6 @@ def UpdProf():
     cursor.execute("SELECT * FROM Profs")
     args.ProfArr = cursor.fetchall()
     print(args.ProfArr)
+    connect.commit()
+    cursor.close()
     connect.close()

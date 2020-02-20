@@ -28,8 +28,9 @@ def timer(bot):
                                     userId = cursor.fetchall()
                                     for i in range(len(userId[0])):
                                         dataBase.plus_count_works(userId[i][0])  # +1 к выполненным заданиям
-                                        dataBase.start_job(userId[i][0], args.waitStatus, 'None')  #  статус ожидания работы и установка времени на None
+                                        dataBase.start_job(userId[i][0], args.waitStatus, 'None')  # статус ожидания работы и установка времени на None
                                         functions.end_work(userId[i][0])
+                                        dataBase.up_lvl(userId[i][0])  # повышение ранга(если выпонено условие)
                         # bot.send_message(496537969, 'test')
                         # bot.send_message(441287694, 'test')
                         print('sending')

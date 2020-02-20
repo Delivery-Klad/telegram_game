@@ -52,7 +52,7 @@ def handler_start(message):
                                                                                    'равно</i> <b>2+2*2</b>')
             data = [message.from_user.id, message.from_user.username, "None", "None", "None", str(args.waitStatus), 0,
                     0,
-                    str(datetime.now().strftime('%d-%m-%Y %H:%M:%S'))]
+                    str(datetime.now().strftime('%d-%m-%Y %H:%M:%S')), 0]
             cursor.execute('INSERT INTO Users VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)', data)
         connect.commit()
     except Exception as e:

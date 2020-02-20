@@ -2,10 +2,9 @@
 файл для всяких функций
 """
 from datetime import datetime
-import telebot
 import args
 
-bot = 0
+bot = None
 
 
 def log(message):  # запись лога сообщений
