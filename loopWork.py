@@ -16,17 +16,18 @@ def timer(bot):
             try:
                 if int(datetime.now().strftime('%M')) % 5 == 0 and int(datetime.now().strftime('%S')) == 0:
                     if can:
-                        cursor.execute("SELECT Start_time FROM Users")
-                        start_time = cursor.fetchall()
-                        for i in range(len(start_time[0])):
-                            if start_time[0][i] != 'None':
-                                start_minutes = int(start_time[0][i])
+                        cursor.execute("SELECT End_time FROM Users")
+                        end_time = cursor.fetchall()
+                        for i in range(len(end_time[0])):
+                            if end_time[0][i] != 'None':
+                                end_minutes = int(end_time[0][i])
                                 mitutes_now = int(datetime.now().strftime('%M'))
-                                if mitutes_now > 30 and mitutes_now - start_minutes > 30 or mitutes_now < 30 and start_minutes > 30:
-                                    cursor.execute("SELECT ID FROM Users WHERE Start_time=" + str(start_minutes))  # остановить выполнение работы
+                                if mitutes_now == end_minutes or mitutes_now > end_minutes:
+                                    cursor.execute("SELECT ID FROM Users WHERE End_time=" + str(end_minutes))  # остановить выполнение работы
                                     userId = cursor.fetchall()
-                                    dataBase.plus_count_works(userId[0][0])  # +1 к выполненным заданиям
-                                    dataBase.change_status(userId[0][0], args.waitStatus, 'None')  #  статус ожидания работы и установка времени на None
+                                    for i in range(len(userId[0])):
+                                        dataBase.plus_count_works(userId[0][i])  # +1 к выполненным заданиям
+                                        dataBase.start_job(userId[0][i], args.waitStatus, 'None')  #  статус ожидания работы и установка времени на None
                         # bot.send_message(496537969, 'test')
                         # bot.send_message(441287694, 'test')
                         print('sending')

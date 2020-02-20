@@ -137,7 +137,8 @@ def handler_quest(message):
 @bot.message_handler(commands=['give_task'])  # функция выдачи задания
 def handler_giveTask(message):
     try:
-        dataBase.give_task(message)
+        bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                         text='<b>Выберете кому дать дать задание:\n</b>' + str(dataBase.getWorkers(message)))
     except Exception as e:
         print(e)
 

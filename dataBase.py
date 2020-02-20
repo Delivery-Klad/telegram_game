@@ -15,15 +15,17 @@ def createTables():  # создание таблиц в sql если их нет
                        'Spec TEXT,'  # специализация
                        'Profession TEXT,'  # профессия 
                        'Status TEXT,'  # работает/отдыхает
-                       'Start_time TEXT,'  # время начала выполнения задания
+                       'End_time TEXT,'  # время начала выполнения задания
                        'Count_Works INTEGER,'  # количество выполненных заданий
-                       'Reg_Date TEXT)')  # дата регистрации
+                       'Reg_Date TEXT,'
+                       'UserRank TEXT)')  # дата регистрации
         cursor.execute('CREATE TABLE IF NOT EXISTS Quests(Profession TEXT,'  # профессия 
                        'Quest TEXT,'  # задание
                        'Rank INTEGER,'  # ранг/сложность задания
                        'Time INTEGER)')  # время выполнения задания
         cursor.execute('CREATE TABLE IF NOT EXISTS Profs(Prof TEXT,'  # профессия 
-                       'ProfCheck INTEGER)')  # 0/1/3 - гум/технарь/доступен всем
+                       'ProfCheck INTEGER,'
+                       'ProfRank INTEGER)')  # 0/1/3 - гум/технарь/доступен всем
         connect.commit()
         cursor.close()
         connect.close()
@@ -132,11 +134,16 @@ def isFree(userID):  # проверить выполняет ли пользов
         print(e)
 
 
-def give_task(message):
+def getWorkers(message):
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
-    cursor.execute("SELECT ID,NickName FROM Users WHERE Status=" + str(args.waitStatus))
+    cursor.execute("SELECT ID,NickName,Profession FROM Users WHERE Status=" + str(args.waitStatus))
     users = cursor.fetchall()
+    msg_text = ''
+    for i in range(len(users[0])):
+        if users[i][0] != message.from_user.id:
+            msg_text += users[i][1] + users[i][2] + ' /task' + users[i][0]
+    return msg_text
 
 
 def UpdQuests():
