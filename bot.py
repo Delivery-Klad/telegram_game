@@ -50,10 +50,10 @@ def handler_start(message):
             bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text='<i>Для того, чтобы определить ваш '
                                                                                    'склад ума, скажите чему '
                                                                                    'равно</i> <b>2+2*2</b>')
-            data = [message.from_user.id, message.from_user.username, "None", "None", "None", str(args.waitStatus), 0,
+            data = [message.from_user.id, message.from_user.username, "None", "None", "None", str(args.waitStatus), "None",
                     0,
                     str(datetime.now().strftime('%d-%m-%Y %H:%M:%S')), 0]
-            cursor.execute('INSERT INTO Users VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)', data)
+            cursor.execute('INSERT INTO Users VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', data)
         connect.commit()
     except Exception as e:
         print(e)
@@ -182,26 +182,31 @@ def func(c):
 def handler_text(message):
     try:
         functions.log(message)
-        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
-        cursor = connect.cursor()
-        if str(message.text[1] + message.text[2] + message.text[3] + message.text[4]) == 'task':
-            print('success')
-            workerID = message.text[5:]
-            if dataBase.isFree(workerID):
-                functions.send_task(workerID, message, bot)
-                bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
-                                 text='<i>Вы отправили задание пользователю</i> <b>' + str(
-                                     dataBase.get_nickname(workerID)) + '</b>')
-            else:
-                bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
-                                 text='<b>OOPS\nКажется пользователь занят</b>')
+        if len(message.text) > 5:
+            if str(message.text[1] + message.text[2] + message.text[3] + message.text[4]) == 'task':
+                workerID = message.text[5:]
+                if dataBase.isFree(workerID):
+                    functions.send_task(workerID, message, bot)
+                    bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                                     text='<i>Вы отправили задание пользователю</i> <b>' + str(
+                                         dataBase.get_nickname(workerID)) + '</b>')
+                else:
+                    bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                                     text='<b>OOPS\nКажется пользователь занят</b>')
         if message.text == args.acceptWorkButton or message.text == args.cancelWorkButton:
             if message.text == args.acceptWorkButton:
                 handler_accept(message)
             elif message.text == args.cancelWorkButton:
                 handler_cancel(message)
-        elif message.text == args.helpButtonName:
-            handler_help(message)
+        elif message.text == args.helpButtonName or message.from_user.id in nickList:
+            if message.text == args.helpButtonName:
+                handler_help(message)
+            else:
+                index = nickList.index(message.from_user.id)
+                dataBase.set_nickname(message)
+                bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                                 text='<i>Ваш никнейм</i> <b>' + message.text + '</b>')
+                nickList.pop(index)
         elif message.text in args.techList or message.text in args.gumList or message.text in args.lowList:
             user_markup = telebot.types.ReplyKeyboardMarkup(True, False)
             user_markup.row(args.helpButtonName)
@@ -214,21 +219,12 @@ def handler_text(message):
             else:
                 bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                  text='<b>Произошла ошибка, повторите попытку позже</b>')
-        elif message.from_user.id in nickList:
-            index = nickList.index(message.from_user.id)
-            dataBase.set_nickname(message)
-            bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
-                             text='<i>Ваш никнейм</i> <b>' + message.text + '</b>')
-            nickList.pop(index)
         else:
-            cursor.execute("SELECT Spec FROM Users WHERE ID=" + str(message.from_user.id))
-            spec = cursor.fetchall()
-            if spec[0][0] == 'None':
-                print('ggg')
+            if dataBase.get_spec(message.from_user.id) == 'None':
                 if message.text == "6":
                     bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                      text='<b>Поздравляем, вы-технарь</b>')
-                    cursor.execute("UPDATE Users SET Spec='tech' WHERE ID=" + str(message.from_user.id))
+                    dataBase.upd_spec(message.from_user.id, 'tech')
                     user_markup = telebot.types.ReplyKeyboardMarkup(True, False)
                     for i in args.techList:
                         user_markup.row(i)
@@ -242,7 +238,7 @@ def handler_text(message):
                 elif str(message.text).isnumeric():
                     bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                      text='<b>Соболезнуем, вы-гуманитарий</b>')
-                    cursor.execute("UPDATE Users SET Spec='gum' WHERE ID=" + str(message.from_user.id))
+                    dataBase.upd_spec(message.from_user.id, 'gum')
                     user_markup = telebot.types.ReplyKeyboardMarkup(True, False)
                     for i in args.gumList:
                         user_markup.row(i)
@@ -254,9 +250,10 @@ def handler_text(message):
                     except Exception as e:
                         print(e)
                 else:
+                    print('check')
                     bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                      text='<b>Походу у вас с головой проблемы</b>')
-                    cursor.execute("UPDATE Users SET Spec='low' WHERE ID=" + str(message.from_user.id))
+                    dataBase.upd_spec(message.from_user.id, "low")
                     user_markup = telebot.types.ReplyKeyboardMarkup(True, False)
                     for i in args.lowList:
                         user_markup.row(i)
@@ -267,11 +264,8 @@ def handler_text(message):
                         bot.send_sticker(message.from_user.id, args.choose)
                     except Exception as e:
                         print(e)
-                connect.commit()
             else:
                 bot.send_message(message.from_user.id, message.text)
-        cursor.close()
-        connect.close()
     except Exception as e:
         print(e)
 
