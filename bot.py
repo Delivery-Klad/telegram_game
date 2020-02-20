@@ -248,7 +248,11 @@ def handler_text(message):
                         user_markup.row(i)
                     bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                      text='<i>Теперь вы можете выбрать одну из предложенных профессий</i>',
-                                     reply_markup=user_markup)
+                                         reply_markup=user_markup)
+                    try:
+                        bot.send_sticker(message.from_user.id, args.choose)
+                    except Exception as e:
+                        print(e)
                 else:
                     bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                      text='<b>Походу у вас с головой проблемы</b>')
@@ -259,6 +263,10 @@ def handler_text(message):
                     bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                      text='<i>Теперь вы можете выбрать одну из предложенных профессий</i>',
                                      reply_markup=user_markup)
+                    try:
+                        bot.send_sticker(message.from_user.id, args.choose)
+                    except Exception as e:
+                        print(e)
                 connect.commit()
             else:
                 bot.send_message(message.from_user.id, message.text)
