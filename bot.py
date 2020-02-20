@@ -18,6 +18,7 @@ bot = telebot.TeleBot(args.token)
 dataBase.createTables()
 dataBase.UpdProf()
 dataBase.UpdQuests()
+functions.bot = bot
 
 nickList = []
 print(bot.get_me())

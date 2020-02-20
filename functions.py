@@ -2,7 +2,10 @@
 файл для всяких функций
 """
 from datetime import datetime
+import telebot
 import args
+
+bot = 0
 
 
 def log(message):  # запись лога сообщений
@@ -34,6 +37,11 @@ def notInLists(message):  # проверка есть ли пользовате�
         return True
     except Exception as e:
         print(e)
+
+
+def end_work(userID):
+    bot.send_message(parse_mode='HTML', chat_id=userID,
+                     text='<b>Вы закончили выполнение задания</b>')
 
 
 def send_task(userID, message, bot):  # отправка задания пользователю

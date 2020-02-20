@@ -4,6 +4,7 @@
 from datetime import datetime
 import dataBase
 import sqlite3
+import functions
 import args
 
 
@@ -26,8 +27,9 @@ def timer(bot):
                                     cursor.execute("SELECT ID FROM Users WHERE End_time=" + str(end_minutes))  # остановить выполнение работы
                                     userId = cursor.fetchall()
                                     for i in range(len(userId[0])):
-                                        dataBase.plus_count_works(userId[0][i])  # +1 к выполненным заданиям
-                                        dataBase.start_job(userId[0][i], args.waitStatus, 'None')  #  статус ожидания работы и установка времени на None
+                                        dataBase.plus_count_works(userId[i][0])  # +1 к выполненным заданиям
+                                        dataBase.start_job(userId[i][0], args.waitStatus, 'None')  #  статус ожидания работы и установка времени на None
+                                        functions.end_work(userId[i][0])
                         # bot.send_message(496537969, 'test')
                         # bot.send_message(441287694, 'test')
                         print('sending')
