@@ -236,7 +236,7 @@ def UpdQuests():
     connect.close()
 
 
-def UpdProf():
+def UpdProf():  #Оновление полного списка профессий и профессий для начинающих
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
     cursor.execute("SELECT * FROM Profs")
@@ -245,3 +245,17 @@ def UpdProf():
     connect.commit()
     cursor.close()
     connect.close()
+
+    args.techList = []
+    args.gumList = []
+    LowProfRank = 0
+    gumID = 0
+    techID = 1
+
+    for i in args.ProfArr:
+        if(i[2] == LowProfRank and i[1] == techID):  #Заполнение techList профессиями
+            args.techList.append(i[0])
+        elif(i[2] == LowProfRank and i[1] == gumID):  #Заполнение gumList профессиями
+            args.gumList.append(i[0])
+        elif(i[2] == LowProfRank and i[1] == 3):
+            args.lowList.append(i[0])
