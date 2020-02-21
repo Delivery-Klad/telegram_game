@@ -14,11 +14,13 @@ import time
 import args
 import os
 
+print("------------------------НАЧАЛАСЬ ЗАГРУЗКА БОТА------------------------")
 bot = telebot.TeleBot(args.token)
 dataBase.createTables()
 dataBase.UpdProf()
 dataBase.UpdQuests()
 functions.bot = bot
+print("------------------------ЗАКОНЧИЛАСЬ ЗАГРУЗКА БОТА------------------------")
 
 nickList = []
 print(bot.get_me())

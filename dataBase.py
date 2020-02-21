@@ -230,6 +230,7 @@ def UpdQuests():
     res = cursor.fetchall()
     for i in res:
         args.QuestsArr.append([i[0], i[1], i[2], i[3]])
+    print("Список всех поступивших квестов: ")
     print(args.QuestsArr)
     connect.commit()
     cursor.close()
@@ -241,6 +242,7 @@ def UpdProf():  #Оновление полного списка професси
     cursor = connect.cursor()
     cursor.execute("SELECT * FROM Profs")
     args.ProfArr = cursor.fetchall()
+    print("Список всех поступивших профессий: ")
     print(args.ProfArr)
     connect.commit()
     cursor.close()
