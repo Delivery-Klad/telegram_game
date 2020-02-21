@@ -210,7 +210,7 @@ def get_workers(message):
         cursor.execute("SELECT ID,NickName,Profession FROM Users WHERE Status='{0}'".format(str(args.waitStatus)))
         users = cursor.fetchall()
         msg_text = ''
-        for i in range(len(users[0])-1):
+        for i in range(len(users[0])):
             if users[i][0] != message.from_user.id:
                 print(i)
                 msg_text += str(users[i][1]) + ' ' + str(users[i][2]) + ' /task' + str(users[i][0])
@@ -237,7 +237,7 @@ def UpdQuests():
     connect.close()
 
 
-def UpdProf():  #Оновление полного списка профессий и профессий для начинающих
+def UpdProf():  # Обновление полного списка профессий и профессий для начинающих
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
     cursor.execute("SELECT * FROM Profs")
@@ -255,9 +255,9 @@ def UpdProf():  #Оновление полного списка професси
     techID = 1
 
     for i in args.ProfArr:
-        if(i[2] == LowProfRank and i[1] == techID):  #Заполнение techList профессиями
+        if i[2] == LowProfRank and i[1] == techID:  # Заполнение techList профессиями
             args.techList.append(i[0])
-        elif(i[2] == LowProfRank and i[1] == gumID):  #Заполнение gumList профессиями
+        elif i[2] == LowProfRank and i[1] == gumID:  # Заполнение gumList профессиями
             args.gumList.append(i[0])
-        elif(i[2] == LowProfRank and i[1] == 3):
+        elif i[2] == LowProfRank and i[1] == 3:
             args.lowList.append(i[0])

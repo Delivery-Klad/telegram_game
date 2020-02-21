@@ -152,7 +152,7 @@ def handler_accept(message):
     try:
         if dataBase.isFree(message.from_user.id):
             job_timer = 3
-            dataBase.start_job(message.from_user.id, args.workStatus, int(datetime.now().strftime('%M')) + job_timer)
+            dataBase.start_job(message.from_user.id, args.workStatus, (int(datetime.now().strftime('%M')) + job_timer) % 60)
             bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                              text='<i>Вы Начали выполнение здания это займет примерно</i> <b>' + str(job_timer) + '</b> <i> мин</i>')
         else:
