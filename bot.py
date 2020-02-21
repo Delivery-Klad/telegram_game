@@ -9,10 +9,7 @@ import loopWork
 import dataBase
 import sqlite3
 import telebot
-import random
-import time
 import args
-import os
 
 print("------------------------НАЧАЛАСЬ ЗАГРУЗКА БОТА------------------------")
 bot = telebot.TeleBot(args.token)
@@ -52,9 +49,8 @@ def handler_start(message):
             bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text='<i>Для того, чтобы определить ваш '
                                                                                    'склад ума, скажите чему '
                                                                                    'равно</i> <b>2+2*2</b>')
-            data = [message.from_user.id, message.from_user.username, "None", "None", "None", str(args.waitStatus), "None",
-                    0,
-                    str(datetime.now().strftime('%d-%m-%Y %H:%M:%S')), 0, "0"]
+            data = [message.from_user.id, message.from_user.username, "None", "None", "None", str(args.waitStatus),
+                    "None", 0, str(datetime.now().strftime('%d-%m-%Y %H:%M:%S')), 0, "0"]
             cursor.execute('INSERT INTO Users VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', data)
         connect.commit()
     except Exception as e:
@@ -96,27 +92,30 @@ def handler_add_quest(message):
 def handler_help(message):
     try:
         functions.log(message)
-        bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text='Меню помощи\n'
-                                                                               '/start - Начать ользоваться ботом\n'
-                                                                               '/help - Меню помощи\n'
-                                                                               '/accept - Согласиться на выполнение работы\n'
-                                                                               '/cancel - Отказаться от выполнения работы\n'
-                                                                               '/give_task - Дать задание другому игроку\n'
-                                                                               '-\n'
-                                                                               '-\n'
-                                                                               '-\n'
-                                                                               '-')
+        bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                         text='Меню помощи\n'
+                              '/start - Начать ользоваться ботом\n'
+                              '/help - Меню помощи\n'
+                              '/accept - Согласиться на выполнение работы\n'
+                              '/cancel - Отказаться от выполнения работы\n'
+                              '/give_task - Дать задание другому игроку\n'
+                              '-\n'
+                              '-\n'
+                              '-\n'
+                              '-')
         if functions.isAdmin(message.from_user.id):
-            bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text='Меню помощи\n'
-                                                                                   '/log - Запросить логи\n'
-                                                                                   '/db - Запросить базу данных\n'
-                                                                                   '/add_quest - (по формату /add_quest , профессия , задание , ранг , время)\n'
-                                                                                   '-\n'
-                                                                                   '-\n'
-                                                                                   '-\n'
-                                                                                   '-\n'
-                                                                                   '-\n'
-                                                                                   '-')
+            bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                             text='Меню помощи\n'
+                                  '/log - Запросить логи\n'
+                                  '/db - Запросить базу данных\n'
+                                  '/add_quest - (по формату '
+                                  '/add_quest , профессия , задание , ранг , время)\n '
+                                  '-\n'
+                                  '-\n'
+                                  '-\n'
+                                  '-\n'
+                                  '-\n'
+                                  '-')
     except Exception as e:
         print(e)
 
@@ -124,6 +123,7 @@ def handler_help(message):
 @bot.message_handler(commands=['quest'])  # функция обработки всех квестов
 def handler_quest(message):
     try:
+        functions.log(message)
         dataBase.UpdProf()
         dataBase.UpdQuests()
         functions.log(message)
@@ -141,6 +141,7 @@ def handler_quest(message):
 @bot.message_handler(commands=['give_task'])  # функция выдачи задания
 def handler_giveTask(message):
     try:
+        functions.log(message)
         bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                          text='<b>Выберете кому дать дать задание:\n</b>' + str(dataBase.get_workers(message)))
     except Exception as e:
@@ -150,11 +151,14 @@ def handler_giveTask(message):
 @bot.message_handler(commands=['accept'])  # функция выдачи задания
 def handler_accept(message):
     try:
+        functions.log(message)
         if dataBase.isFree(message.from_user.id):
-            job_timer = 3
-            dataBase.start_job(message.from_user.id, args.workStatus, (int(datetime.now().strftime('%M')) + job_timer) % 60)
+            job_timer = 1
+            dataBase.start_job(message.from_user.id, args.workStatus,
+                               (int(datetime.now().strftime('%M')) + job_timer) % 60)
             bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
-                             text='<i>Вы Начали выполнение здания это займет примерно</i> <b>' + str(job_timer) + '</b> <i> мин</i>')
+                             text='<i>Вы Начали выполнение здания это займет примерно</i> <b>' + str(
+                                 job_timer) + '</b> <i> мин</i>')
         else:
             bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                              text='<b>OOPS\nВы заняты чем-то другим</b>')
@@ -165,6 +169,7 @@ def handler_accept(message):
 @bot.message_handler(commands=['cancel'])  # функция выдачи задания
 def handler_cancel(message):
     try:
+        functions.log(message)
         bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                          text='<b>Вы отказались от выполнения задания</b>')
     except Exception as e:
@@ -186,15 +191,21 @@ def handler_text(message):
         functions.log(message)
         if len(message.text) > 5:
             if str(message.text[1] + message.text[2] + message.text[3] + message.text[4]) == 'task':
-                workerID = message.text[5:]
-                if dataBase.isFree(workerID):
-                    functions.send_task(workerID, message, bot)
-                    bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
-                                     text='<i>Вы отправили задание пользователю</i> <b>' + str(
-                                         dataBase.get_nickname(workerID)) + '</b>')
+                workerID = int(message.text[5:])
+                if workerID != message.from_user.id:
+                    if dataBase.isFree(workerID):
+                        functions.send_task(workerID, dataBase.get_nickname(message.from_user.id),
+                                            dataBase.get_task(message.from_user.id))
+                        bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                                         text='<i>Вы отправили задание пользователю</i> <b>' + str(
+                                             dataBase.get_nickname(workerID)) + '</b>')
+                    else:
+                        bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                                         text='<b>OOPS\nКажется пользователь занят</b>')
                 else:
                     bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
-                                     text='<b>OOPS\nКажется пользователь занят</b>')
+                                     text='<b>А ты хитрый жук, не делай так больше</b>')
+                return
         if message.text == args.acceptWorkButton or message.text == args.cancelWorkButton:
             if message.text == args.acceptWorkButton:
                 handler_accept(message)
@@ -272,13 +283,82 @@ def handler_text(message):
         print(e)
 
 
+@bot.message_handler(content_types=['photo'])  # функция обработки фото
+def handler_photo(message):
+    try:
+        functions.wrong_input(message.from_user.id, dataBase.get_spec(message.from_user.id))
+    except Exception as e:
+        print(e)
+
+
+@bot.message_handler(content_types=['contact'])  # функция обработки фото
+def handler_photo(message):
+    try:
+        functions.wrong_input(message.from_user.id, dataBase.get_spec(message.from_user.id))
+    except Exception as e:
+        print(e)
+
+
+@bot.message_handler(content_types=['sticker'])  # функция обработки фото
+def handler_photo(message):
+    try:
+        if not functions.isAdmin(message.from_user.id):
+            functions.wrong_input(message.from_user.id, dataBase.get_spec(message.from_user.id))
+        else:
+            file_info = bot.get_file(message.sticker.file_id)
+            downloaded_file = bot.download_file(file_info.file_path)
+            print(downloaded_file)
+    except Exception as e:
+        print(e)
+
+
+@bot.message_handler(content_types=['voice'])  # функция обработки фото
+def handler_photo(message):
+    try:
+        functions.wrong_input(message.from_user.id, dataBase.get_spec(message.from_user.id))
+    except Exception as e:
+        print(e)
+
+
+@bot.message_handler(content_types=['location'])  # функция обработки фото
+def handler_photo(message):
+    try:
+        functions.wrong_input(message.from_user.id, dataBase.get_spec(message.from_user.id))
+    except Exception as e:
+        print(e)
+
+
+@bot.message_handler(content_types=['audio'])  # функция обработки фото
+def handler_photo(message):
+    try:
+        functions.wrong_input(message.from_user.id, dataBase.get_spec(message.from_user.id))
+    except Exception as e:
+        print(e)
+
+
+@bot.message_handler(content_types=['video'])  # функция обработки фото
+def handler_photo(message):
+    try:
+        functions.wrong_input(message.from_user.id, dataBase.get_spec(message.from_user.id))
+    except Exception as e:
+        print(e)
+
+
+@bot.message_handler(content_types=['document'])  # функция обработки фото
+def handler_photo(message):
+    try:
+        functions.wrong_input(message.from_user.id, dataBase.get_spec(message.from_user.id))
+    except Exception as e:
+        print(e)
+
+
 try:  # максимально странная конструкция
     while True:
         t = threading.Thread(target=loopWork.timer, name='timer', args=[bot])  # создание потока для функции timer
         t.start()  # запуск потока
         try:
             bot.polling(none_stop=True, interval=0)  # получение обновлений
-        except Exception as e:
-            print(e)
-except Exception as e:
-    print(e)
+        except Exception as er:
+            print(er)
+except Exception as er:
+    print(er)

@@ -2,7 +2,6 @@
 файл для всяких функций
 """
 from datetime import datetime
-import dataBase
 import args
 
 bot = None
@@ -40,16 +39,19 @@ def notInLists(message):  # проверка есть ли пользовате�
 
 
 def end_work(userID):
-    bot.send_message(parse_mode='HTML', chat_id=userID,
-                     text='<b>Вы закончили выполнение задания</b>')
+    try:
+        bot.send_message(parse_mode='HTML', chat_id=userID,
+                         text='<b>Вы закончили выполнение задания</b>')
+    except Exception as e:
+        print(e)
 
 
-def send_task(userID, message, bot):  # отправка задания пользователю
+def send_task(userID, name, task):  # отправка задания пользователю
     try:
         bot.send_message(parse_mode='HTML', chat_id=userID,
                          text='<i>Пользователь</i> <b>{0}</b> <i>отправил вам задание {1}\n/accept - '
-                              'Согласиться\n/cancel - Отказаться</i>'.format(str(dataBase.get_nickname(
-                             message.from_user.id)), dataBase.get_task(userID)))
+                              'Согласиться\n/cancel - Отказаться</i>'.
+                         format(str(name), str(task)))
     except Exception as e:
         print(e)
 
@@ -60,5 +62,24 @@ def isAdmin(userId):  # проверка является ли пользова�
             return True
         else:
             return False
+    except Exception as e:
+        print(e)
+
+
+def wrong_input(userID, spec):
+    try:
+        if spec == 'tech':
+            bot.send_message(parse_mode='HTML', chat_id=userID,
+                             text='Ты вроде <b>умный</b> человек, но зачем ты отправляешь мне то, что я не должен '
+                                  'обрабатывать?')
+        elif spec == 'gym':
+            bot.send_message(parse_mode='HTML', chat_id=userID,
+                             text='Ты вроде <b>не глупый</b>, но зачем ты отправляешь мне то, что я не должен '
+                                  'обрабатывать?')
+        else:
+            bot.send_message(parse_mode='HTML', chat_id=userID,
+                             text='Я конечно понимаю, что у тебя <b>проблемы с головой</b>, но не надо мне отправлять '
+                                  'то, что я не должен обрабатывать!')
+        bot.send_sticker(userID, args.dyrka)
     except Exception as e:
         print(e)

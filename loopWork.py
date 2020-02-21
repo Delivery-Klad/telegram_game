@@ -7,6 +7,12 @@ import sqlite3
 import functions
 import args
 
+"""
+
+отдебажил функцию timer теперь выполнение, начисление очков и прочее работает корректно
+
+"""
+
 
 def timer(bot):
     try:
@@ -19,22 +25,24 @@ def timer(bot):
                     if can:
                         cursor.execute("SELECT End_time FROM Users")
                         end_time = cursor.fetchall()
-                        for i in range(len(end_time[0])):
-                            if end_time[0][i] != 'None':
-                                end_minutes = int(end_time[0][i])
+                        for i in range(len(end_time)):
+                            if end_time[i][0] != 'None':
+                                print(end_time[i][0])
+                                end_minutes = int(end_time[i][0])
                                 mitutes_now = int(datetime.now().strftime('%M'))
                                 if mitutes_now == end_minutes or mitutes_now > end_minutes:
                                     cursor.execute("SELECT ID FROM Users WHERE End_time=" + str(end_minutes))  # остановить выполнение работы
                                     userId = cursor.fetchall()
-                                    for i in range(len(userId[0])):
-                                        dataBase.plus_count_works(userId[0][i])  # +1 к выполненным заданиям
-                                        dataBase.start_job(userId[0][i], args.waitStatus, 'None')  # статус ожидания работы и установка времени на None
-                                        functions.end_work(userId[0][i])
-                                        dataBase.up_lvl(userId[0][i])  # повышение ранга(если выпонено условие)
+                                    for u in range(len(userId[0])):
+                                        print(userId[0][u])
+                                        dataBase.plus_count_works(userId[0][u])  # +1 к выполненным заданиям
+                                        dataBase.start_job(userId[0][u], args.waitStatus, 'None')  # статус ожидания работы и установка времени на None
+                                        functions.end_work(userId[0][u])
+                                        dataBase.up_lvl(userId[0][u])  # повышение ранга(если выпонено условие)
                         # bot.send_message(496537969, 'test')
                         # bot.send_message(441287694, 'test')
-                        print('sending')
-                    can = False  # чтобы не выполнялось несколько раз в секунду
+                        print('checking')
+                        can = False  # чтобы не выполнялось несколько раз в секунду
                 else:
                     can = True
             except Exception as e:
