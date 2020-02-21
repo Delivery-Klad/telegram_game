@@ -2,6 +2,7 @@
 файл для всяких функций
 """
 from datetime import datetime
+import dataBase
 import args
 
 bot = None
@@ -46,13 +47,9 @@ def end_work(userID):
 def send_task(userID, message, bot):  # отправка задания пользователю
     try:
         bot.send_message(parse_mode='HTML', chat_id=userID,
-                         text='<i>Пользователь</i> <b>{0}</b> <i>отправил вам задание\n/accept - Согласиться\n/cancel '
-                              '- Отказаться</i>'.format(str(message.from_user.id)))
-        """
-        
-        тут сделать рандомную выдачу задания
-        
-        """
+                         text='<i>Пользователь</i> <b>{0}</b> <i>отправил вам задание {1}\n/accept - '
+                              'Согласиться\n/cancel - Отказаться</i>'.format(str(dataBase.get_nickname(
+                             message.from_user.id)), dataBase.get_task(userID)))
     except Exception as e:
         print(e)
 

@@ -34,31 +34,6 @@ def createTables():  # создание таблиц в sql если их нет
         print(e)
 
 
-def start_job(userID, status, time):  # замена статуса и указание времени начала
-    try:
-        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
-        cursor = connect.cursor()
-        cursor.execute("UPDATE Users SET Status='{0}' WHERE ID='{1}'".format(str(status), str(userID)))
-        cursor.execute("UPDATE Users SET End_time='{0}' WHERE ID='{1}'".format(str(time), str(userID)))
-        connect.commit()
-        cursor.close()
-        connect.close()
-    except Exception as e:
-        print(e)
-
-
-def plus_count_works(userId):  # указание количества выполненных работ
-    try:
-        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
-        cursor = connect.cursor()
-        cursor.execute("UPDATE Users SET Count_Works=Count_Works+1 WHERE ID='{0}'".format(str(userId)))
-        connect.commit()
-        cursor.close()
-        connect.close()
-    except Exception as e:
-        print(e)
-
-
 def set_nickname(nickName):
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
@@ -128,6 +103,33 @@ def get_spec(userID):
         cursor.close()
         connect.close()
         return spec[0][0]
+    except Exception as e:
+        print(e)
+
+
+def get_task(userID):
+    """
+
+     тут сделать проверку профессии у userID и рандомно выдать задание
+
+    """
+
+
+def get_workers(message):
+    try:
+        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+        cursor = connect.cursor()
+        cursor.execute("SELECT ID,NickName,Profession FROM Users WHERE Status='{0}'".format(str(args.waitStatus)))
+        users = cursor.fetchall()
+        msg_text = ''
+        for i in range(len(users[0])-1):
+            if users[i][0] != message.from_user.id:
+                print(i)
+                msg_text += str(users[i][1]) + ' ' + str(users[i][2]) + ' /task' + str(users[i][0])
+        connect.commit()
+        cursor.close()
+        connect.close()
+        return msg_text
     except Exception as e:
         print(e)
 
@@ -204,21 +206,27 @@ def give_new_prof(userID):
         print(e)
 
 
-def get_workers(message):
+def start_job(userID, status, time):  # замена статуса и указание времени начала
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
-        cursor.execute("SELECT ID,NickName,Profession FROM Users WHERE Status='{0}'".format(str(args.waitStatus)))
-        users = cursor.fetchall()
-        msg_text = ''
-        for i in range(len(users[0])-1):
-            if users[i][0] != message.from_user.id:
-                print(i)
-                msg_text += str(users[i][1]) + ' ' + str(users[i][2]) + ' /task' + str(users[i][0])
+        cursor.execute("UPDATE Users SET Status='{0}' WHERE ID='{1}'".format(str(status), str(userID)))
+        cursor.execute("UPDATE Users SET End_time='{0}' WHERE ID='{1}'".format(str(time), str(userID)))
         connect.commit()
         cursor.close()
         connect.close()
-        return msg_text
+    except Exception as e:
+        print(e)
+
+
+def plus_count_works(userId):  # указание количества выполненных работ
+    try:
+        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+        cursor = connect.cursor()
+        cursor.execute("UPDATE Users SET Count_Works=Count_Works+1 WHERE ID='{0}'".format(str(userId)))
+        connect.commit()
+        cursor.close()
+        connect.close()
     except Exception as e:
         print(e)
 
