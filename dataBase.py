@@ -18,7 +18,8 @@ def createTables():  # создание таблиц в sql если их нет
                        'End_time TEXT,'  # время начала выполнения задания
                        'Count_Works INTEGER,'  # количество выполненных заданий
                        'Reg_Date TEXT,'
-                       'UserRank TEXT)')  # дата регистрации
+                       'UserRank TEXT,'
+                       'Comp TEXT)')  # дата регистрации
         cursor.execute('CREATE TABLE IF NOT EXISTS Quests(Profession TEXT,'  # профессия 
                        'Quest TEXT,'  # задание
                        'Rank INTEGER,'  # ранг/сложность задания
@@ -46,11 +47,11 @@ def start_job(userID, status, time):  # замена статуса и указ�
         print(e)
 
 
-def plus_count_works(message):  # указание количества выполненных работ
+def plus_count_works(userId):  # указание количества выполненных работ
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
-        cursor.execute("UPDATE Users SET Count_Works=Count_Works+1 WHERE ID='{0}'".format(str(message.from_user.id)))
+        cursor.execute("UPDATE Users SET Count_Works=Count_Works+1 WHERE ID='{0}'".format(str(userId)))
         connect.commit()
         cursor.close()
         connect.close()
@@ -210,7 +211,7 @@ def get_workers(message):
         cursor.execute("SELECT ID,NickName,Profession FROM Users WHERE Status='{0}'".format(str(args.waitStatus)))
         users = cursor.fetchall()
         msg_text = ''
-        for i in range(len(users[0])):
+        for i in range(len(users[0])-1):
             if users[i][0] != message.from_user.id:
                 print(i)
                 msg_text += str(users[i][1]) + ' ' + str(users[i][2]) + ' /task' + str(users[i][0])
