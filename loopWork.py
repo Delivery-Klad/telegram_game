@@ -35,10 +35,10 @@ def timer(bot):
                                     userId = cursor.fetchall()
                                     for u in range(len(userId[0])):
                                         print(userId[0][u])
+                                        args.bot.send_message(parse_mode='HTML', chat_id=userId[0][u],
+                                                              text='<b>Вы закончили выполнение задания</b>')
                                         dataBase.plus_count_works(userId[0][u])  # +1 к выполненным заданиям
                                         dataBase.start_job(userId[0][u], args.waitStatus, 'None')  # статус ожидания работы и установка времени на None
-                                        functions.end_work(userId[0][u])
-                                        dataBase.up_lvl(userId[0][u])  # повышение ранга(если выпонено условие)
                         # bot.send_message(496537969, 'test')
                         # bot.send_message(441287694, 'test')
                         print('checking')

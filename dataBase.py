@@ -2,6 +2,7 @@
 файл для работы с базой данных
 """
 import sqlite3
+import telebot
 import args
 
 
@@ -38,7 +39,8 @@ def set_nickname(nickName):
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
-        cursor.execute("UPDATE Users SET NickName='{0}' WHERE ID='{1}'".format(str(nickName.text), str(nickName.from_user.id)))
+        cursor.execute(
+            "UPDATE Users SET NickName='{0}' WHERE ID='{1}'".format(str(nickName.text), str(nickName.from_user.id)))
         connect.commit()
         cursor.close()
         connect.close()
@@ -46,7 +48,7 @@ def set_nickname(nickName):
         print(e)
 
 
-def set_profession(message):
+def set_profession(message, in_profArr):
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
@@ -64,6 +66,10 @@ def set_profession(message):
                 cursor.execute(
                     "UPDATE Users SET Profession='{0}' WHERE ID='{1}'".format(str(message.text),
                                                                               str(message.from_user.id)))
+        elif in_profArr:
+            cursor.execute(
+                "UPDATE Users SET Profession='{0}' WHERE ID='{1}'".format(str(message.text),
+                                                                          str(message.from_user.id)))
         else:
             cursor.execute("SELECT Spec FROM Users WHERE ID=" + str(message.from_user.id))
             spec = cursor.fetchall()
@@ -122,7 +128,7 @@ def get_workers(message):
         cursor.execute("SELECT ID,NickName,Profession FROM Users WHERE Status='{0}'".format(str(args.waitStatus)))
         users = cursor.fetchall()
         msg_text = ''
-        for i in range(len(users[0])-1):
+        for i in range(len(users[0]) - 1):
             if users[i][0] != message.from_user.id:
                 print(i)
                 msg_text += str(users[i][1]) + ' ' + str(users[i][2]) + ' /task' + str(users[i][0])
@@ -134,11 +140,49 @@ def get_workers(message):
         print(e)
 
 
+def get_user_rank(userID):
+    connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+    cursor = connect.cursor()
+    cursor.execute("SELECT UserRank FROM Users WHERE ID=" + str(userID))
+    rank = cursor.fetchall()[0][0]
+    connect.commit()
+    cursor.close()
+    connect.close()
+    print(rank)
+    return rank
+
+
 def upd_spec(userID, spec):
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
         cursor.execute("UPDATE Users SET Spec='{0}' WHERE ID={1}".format(spec, str(userID)))
+        connect.commit()
+        cursor.close()
+        connect.close()
+    except Exception as e:
+        print(e)
+
+
+def change_spec(userID):
+    connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+    cursor = connect.cursor()
+    cursor.execute("UPDATE Users SET Spec='None',Profession='None',Count_Works='0',Status={0},End_time='None' WHERE "
+                   "ID={1}".format(str(args.waitStatus), str(userID)))
+    connect.commit()
+    cursor.close()
+    connect.close()
+
+
+def up_lvl(userID):
+    try:
+        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+        cursor = connect.cursor()
+        cursor.execute("SELECT Count_Works FROM Users WHERE ID=" + str(userID))
+        jobs = cursor.fetchall()
+        if jobs[0][0] in args.jobs_to_lvl_up:
+            cursor.execute("UPDATE Users SET UserRank=UserRank+1 WHERE ID=" + str(userID))
+            give_new_prof(userID)
         connect.commit()
         cursor.close()
         connect.close()
@@ -178,30 +222,34 @@ def isFree(userID):  # проверить выполняет ли пользов
         print(e)
 
 
-def up_lvl(userID):
+def give_new_prof(userID):
     try:
+        user_markup = telebot.types.ReplyKeyboardMarkup(True, False)
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
-        cursor.execute("SELECT Count_Works FROM Users WHERE ID=" + str(userID))
-        jobs = cursor.fetchall()
-        if jobs[0][0] in args.jobs_to_lvl_up:
-            cursor.execute("UPDATE Users SET UserRank=UserRank+1 WHERE ID=" + str(userID))
-            give_new_prof(userID)
+        cursor.execute("SELECT Spec FROM Users WHERE ID=" + str(userID))
+        profID = cursor.fetchall()
+        profID = profID[0][0]
+        if profID == 'low':
+            profID = 3
+        elif profID == 'gym':
+            profID = 0
+        else:
+            profID = 1
+        print("gh" + str(profID))
+        cursor.execute("SELECT Prof FROM Profs WHERE ProfRank={0} AND ProfCheck={1}".format(str(get_user_rank(userID)), profID))
+        profs = cursor.fetchall()
+        print(profs)
+        for i in range(len(profs)):
+            print(i)
+            user_markup.row(profs[i][0])
         connect.commit()
         cursor.close()
         connect.close()
-    except Exception as e:
-        print(e)
-
-
-def give_new_prof(userID):
-    try:
-        pass
-        """
-        
-        отправлять список новых профессий, СНАЧАЛА ДОДЕЛАТЬ СПИСКИ
-        
-        """
+        args.bot.send_message(parse_mode='HTML', chat_id=userID,
+                              text='<i>Вы получили новый ранг, теперь вы можете выбрать новую профессию</i>',
+                              reply_markup=user_markup)
+        args.new_frof_list.append(userID)
     except Exception as e:
         print(e)
 
@@ -227,6 +275,7 @@ def plus_count_works(userId):  # указание количества выпо�
         connect.commit()
         cursor.close()
         connect.close()
+        up_lvl(userId)  # повышение ранга
     except Exception as e:
         print(e)
 

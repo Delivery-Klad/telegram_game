@@ -16,7 +16,7 @@ bot = telebot.TeleBot(args.token)
 dataBase.createTables()
 dataBase.UpdProf()
 dataBase.UpdQuests()
-functions.bot = bot
+args.bot = bot
 print("------------------------ЗАКОНЧИЛАСЬ ЗАГРУЗКА БОТА------------------------")
 
 nickList = []
@@ -176,6 +176,18 @@ def handler_cancel(message):
         print(e)
 
 
+@bot.message_handler(commands=['change_spec'])  # функция выдачи задания
+def handler_cancel(message):
+    try:
+        functions.log(message)
+        bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text='<i>Для того, чтобы определить ваш '
+                                                                               'склад ума, скажите чему '
+                                                                               'равно</i> <b>2+2*2</b>')
+        dataBase.change_spec(message.from_user.id)
+    except Exception as e:
+        print(e)
+
+
 @bot.callback_query_handler(func=lambda c: True)  # функция обработки inline кнопок
 def func(c):
     try:
@@ -223,7 +235,7 @@ def handler_text(message):
         elif message.text in args.techList or message.text in args.gumList or message.text in args.lowList:
             user_markup = telebot.types.ReplyKeyboardMarkup(True, False)
             user_markup.row(args.helpButtonName)
-            if dataBase.set_profession(message):
+            if dataBase.set_profession(message, False):
                 bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                  text='<i>Ваша профессия</i> <b>' + message.text + '</b>', reply_markup=user_markup)
                 bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
@@ -232,6 +244,12 @@ def handler_text(message):
             else:
                 bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                  text='<b>Произошла ошибка, повторите попытку позже</b>')
+        elif message.from_user.id in args.new_frof_list:
+            user_markup = telebot.types.ReplyKeyboardMarkup(True, False)
+            user_markup.row(args.helpButtonName)
+            dataBase.set_profession(message, functions.in_profArr(message.text))
+            bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                             text='<i>Ваша новая профессия</i> <b>' + message.text + '</b>', reply_markup=user_markup)
         else:
             if dataBase.get_spec(message.from_user.id) == 'None':
                 if message.text == "6":
