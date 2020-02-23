@@ -205,7 +205,7 @@ def handler_text(message):
         if len(message.text) > 5:
             if str(message.text[1] + message.text[2] + message.text[3] + message.text[4]) == 'task':
                 workerID = int(message.text[5:])
-                if workerID != 0:  # message.from_user.id:
+                if workerID != message.from_user.id:
                     if dataBase.isFree(workerID):
                         functions.send_task(workerID, dataBase.get_nickname(message.from_user.id),
                                             dataBase.get_task(workerID))
@@ -240,9 +240,10 @@ def handler_text(message):
             if dataBase.set_profession(message, False):
                 bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                  text='<i>Ваша профессия</i> <b>' + message.text + '</b>', reply_markup=user_markup)
-                bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
-                                 text='<i>Теперь укажите ваш никнейм </i>', reply_markup=user_markup)
-                nickList.append(message.from_user.id)
+                if dataBase.get_nickname(message.from_user.id) != "None":
+                    bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                                     text='<i>Теперь укажите ваш никнейм </i>', reply_markup=user_markup)
+                    nickList.append(message.from_user.id)
             else:
                 bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                  text='<b>Произошла ошибка, повторите попытку позже</b>')

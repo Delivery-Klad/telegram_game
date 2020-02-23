@@ -115,20 +115,47 @@ def get_spec(userID):
         print(e)
 
 
-def get_task(userID):
+def get_prof(userID):
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
-    cursor.execute("SELECT Quest FROM Quests WHERE Profession=(SELECT Profession FROM Users WHERE ID={0})".format(str(userID)))
-    quests = cursor.fetchall()
-    print(quests)
-    print(len(quests))
-    task = random.randint(0, len(quests)-1)
-    print(task)
-    print(quests[task][0])
+    cursor.execute("SELECT Profession FROM Users WHERE ID=" + str(userID))
+    prof = cursor.fetchall()
+    print(prof[0][0])
     connect.commit()
     cursor.close()
     connect.close()
-    return quests[task][0]
+    return prof[0][0]
+
+
+def get_rank(userID):
+    connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+    cursor = connect.cursor()
+    cursor.execute("SELECT UserRank FROM Users WHERE ID=" + str(userID))
+    rank = cursor.fetchall()
+    print(rank[0][0])
+    connect.commit()
+    cursor.close()
+    connect.close()
+    return rank[0][0]
+
+
+def get_task(userID):
+    try:
+        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+        cursor = connect.cursor()
+        cursor.execute("SELECT Quest FROM Quests WHERE Profession='{0}' AND Rank<='{1}'".format(str(get_prof(userID)), str(get_rank(userID))))
+        quests = cursor.fetchall()
+        if len(quests) > 1:
+            task = random.randint(0, len(quests)-1)
+        else:
+            task = 0
+        print(quests[task][0])
+        connect.commit()
+        cursor.close()
+        connect.close()
+        return quests[task][0]
+    except Exception as e:
+        return "Сходи отдохни"
 
 
 def get_workers(message):
