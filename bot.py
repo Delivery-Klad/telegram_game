@@ -48,8 +48,8 @@ def handler_start(message):
         if not contain:
             bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text=args.test_question)
             data = [message.from_user.id, message.from_user.username, "None", "None", "None", str(args.waitStatus),
-                    "None", 0, str(datetime.now().strftime('%d-%m-%Y %H:%M:%S')), 0, "0"]
-            cursor.execute('INSERT INTO Users VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', data)
+                    "None", 0, str(datetime.now().strftime('%d-%m-%Y %H:%M:%S')), 0, "0", "0"]
+            cursor.execute('INSERT INTO Users VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', data)
         connect.commit()
     except Exception as e:
         print(e)
@@ -150,16 +150,20 @@ def handler_giveTask(message):
 def handler_accept(message):
     try:
         functions.log(message)
-        if dataBase.isFree(message.from_user.id):
-            job_timer = 1
-            dataBase.start_job(message.from_user.id, args.workStatus,
-                               (int(datetime.now().strftime('%M')) + job_timer) % 60)
-            bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
-                             text='<i>Вы Начали выполнение здания это займет примерно</i> <b>' + str(
-                                 job_timer) + '</b> <i> мин</i>')
+        if dataBase.can_accept(message.from_user.id):
+            if dataBase.isFree(message.from_user.id):
+                job_timer = 1
+                dataBase.start_job(message.from_user.id, args.workStatus,
+                                   (int(datetime.now().strftime('%M')) + job_timer) % 60)
+                bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                                 text='<i>Вы Начали выполнение здания это займет примерно</i> <b>' + str(
+                                     job_timer) + '</b> <i> мин</i>')
+            else:
+                bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                                 text='<b>OOPS\nВы заняты чем-то другим</b>')
         else:
             bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
-                             text='<b>OOPS\nВы заняты чем-то другим</b>')
+                             text='<b>OOPS</b>\nКажется у вас нет задания, которое можно принять')
     except Exception as e:
         print(e)
 
@@ -168,6 +172,7 @@ def handler_accept(message):
 def handler_cancel(message):
     try:
         functions.log(message)
+        dataBase.upd_can_accept(message.from_user.id, 0)
         bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                          text='<b>Вы отказались от выполнения задания</b>')
     except Exception as e:
@@ -200,13 +205,14 @@ def handler_text(message):
         if len(message.text) > 5:
             if str(message.text[1] + message.text[2] + message.text[3] + message.text[4]) == 'task':
                 workerID = int(message.text[5:])
-                if workerID != message.from_user.id:
+                if workerID != 0:  # message.from_user.id:
                     if dataBase.isFree(workerID):
                         functions.send_task(workerID, dataBase.get_nickname(message.from_user.id),
-                                            dataBase.get_task(message.from_user.id))
+                                            dataBase.get_task(workerID))
                         bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                          text='<i>Вы отправили задание пользователю</i> <b>' + str(
                                              dataBase.get_nickname(workerID)) + '</b>')
+                        dataBase.upd_can_accept(workerID, 1)
                     else:
                         bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                          text='<b>OOPS\nКажется пользователь занят</b>')

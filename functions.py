@@ -36,10 +36,10 @@ def notInLists(message):  # проверка есть ли пользовате�
         print(e)
 
 
-def send_task(userID, name, task):  # отправка задания пользователю
+def send_task(workerID, name, task):  # отправка задания пользователю
     try:
-        args.bot.send_message(parse_mode='HTML', chat_id=userID,
-                              text='<i>Пользователь</i> <b>{0}</b> <i>отправил вам задание {1}\n/accept - '
+        args.bot.send_message(parse_mode='HTML', chat_id=workerID,
+                              text='<i>Пользователь</i> <b>{0}</b> <i>отправил вам задание "{1}"\n/accept - '
                                    'Согласиться\n/cancel - Отказаться</i>'.
                               format(str(name), str(task)))
     except Exception as e:

@@ -3,6 +3,7 @@
 """
 import sqlite3
 import telebot
+import random
 import args
 
 
@@ -20,7 +21,8 @@ def createTables():  # создание таблиц в sql если их нет
                        'Count_Works INTEGER,'  # количество выполненных заданий
                        'Reg_Date TEXT,'
                        'UserRank TEXT,'
-                       'Comp TEXT)')  # дата регистрации
+                       'Comp TEXT,'
+                       'task TEXT)')  # дата регистрации
         cursor.execute('CREATE TABLE IF NOT EXISTS Quests(Profession TEXT,'  # профессия 
                        'Quest TEXT,'  # задание
                        'Rank INTEGER,'  # ранг/сложность задания
@@ -114,11 +116,19 @@ def get_spec(userID):
 
 
 def get_task(userID):
-    """
-
-     тут сделать проверку профессии у userID и рандомно выдать задание
-
-    """
+    connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+    cursor = connect.cursor()
+    cursor.execute("SELECT Quest FROM Quests WHERE Profession=(SELECT Profession FROM Users WHERE ID={0})".format(str(userID)))
+    quests = cursor.fetchall()
+    print(quests)
+    print(len(quests))
+    task = random.randint(0, len(quests)-1)
+    print(task)
+    print(quests[task][0])
+    connect.commit()
+    cursor.close()
+    connect.close()
+    return quests[task][0]
 
 
 def get_workers(message):
@@ -164,6 +174,15 @@ def upd_spec(userID, spec):
         print(e)
 
 
+def upd_can_accept(userID, check):
+    connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+    cursor = connect.cursor()
+    cursor.execute("UPDATE Users SET task={0} WHERE ID={1}".format(str(check), str(userID)))
+    connect.commit()
+    cursor.close()
+    connect.close()
+
+
 def change_spec(userID):
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
@@ -172,6 +191,21 @@ def change_spec(userID):
     connect.commit()
     cursor.close()
     connect.close()
+
+
+def can_accept(userID):
+    connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+    cursor = connect.cursor()
+    cursor.execute("SELECT task FROM Users WHERE ID=" + str(userID))
+    can = cursor.fetchall()
+    connect.commit()
+    cursor.close()
+    connect.close()
+    if can[0][0] == "1":
+        upd_can_accept(userID, 0)
+        return True
+    else:
+        return False
 
 
 def up_lvl(userID):
