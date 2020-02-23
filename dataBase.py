@@ -167,8 +167,8 @@ def upd_spec(userID, spec):
 def change_spec(userID):
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
-    cursor.execute("UPDATE Users SET Spec='None',Profession='None',Count_Works='0',Status={0},End_time='None' WHERE "
-                   "ID={1}".format(str(args.waitStatus), str(userID)))
+    cursor.execute("UPDATE Users SET Spec='None',Profession='None',Count_Works='0',Status='{0}',End_time='None',"
+                   "UserRank='0' WHERE ID={1}".format(str(args.waitStatus), str(userID)))
     connect.commit()
     cursor.close()
     connect.close()

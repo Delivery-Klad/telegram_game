@@ -46,9 +46,7 @@ def handler_start(message):
                 contain = True
                 break
         if not contain:
-            bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text='<i>Для того, чтобы определить ваш '
-                                                                                   'склад ума, скажите чему '
-                                                                                   'равно</i> <b>2+2*2</b>')
+            bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text=args.test_question)
             data = [message.from_user.id, message.from_user.username, "None", "None", "None", str(args.waitStatus),
                     "None", 0, str(datetime.now().strftime('%d-%m-%Y %H:%M:%S')), 0, "0"]
             cursor.execute('INSERT INTO Users VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', data)
@@ -99,7 +97,7 @@ def handler_help(message):
                               '/accept - Согласиться на выполнение работы\n'
                               '/cancel - Отказаться от выполнения работы\n'
                               '/give_task - Дать задание другому игроку\n'
-                              '-\n'
+                              '/change_spec - Изменить специализацию\n'
                               '-\n'
                               '-\n'
                               '-')
@@ -180,9 +178,7 @@ def handler_cancel(message):
 def handler_cancel(message):
     try:
         functions.log(message)
-        bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text='<i>Для того, чтобы определить ваш '
-                                                                               'склад ума, скажите чему '
-                                                                               'равно</i> <b>2+2*2</b>')
+        bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text=args.test_question)
         dataBase.change_spec(message.from_user.id)
     except Exception as e:
         print(e)
@@ -254,7 +250,7 @@ def handler_text(message):
             if dataBase.get_spec(message.from_user.id) == 'None':
                 if message.text == "6":
                     bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
-                                     text='<b>Поздравляем, вы-технарь</b>')
+                                     text='<i>Поздравляем, вы — </i><b>технарь</b>')
                     dataBase.upd_spec(message.from_user.id, 'tech')
                     user_markup = telebot.types.ReplyKeyboardMarkup(True, False)
                     for i in args.techList:
@@ -268,7 +264,7 @@ def handler_text(message):
                         print(e)
                 elif str(message.text).isnumeric():
                     bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
-                                     text='<b>Соболезнуем, вы-гуманитарий</b>')
+                                     text='<i>Соболезнуем, вы — </i><b>гуманитарий</b>')
                     dataBase.upd_spec(message.from_user.id, 'gum')
                     user_markup = telebot.types.ReplyKeyboardMarkup(True, False)
                     for i in args.gumList:
