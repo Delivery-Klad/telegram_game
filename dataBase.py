@@ -189,6 +189,83 @@ def get_user_rank(userID):
     return rank
 
 
+def get_company(userID):
+    connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+    cursor = connect.cursor()
+    cursor.execute("SELECT CompName FROM Company WHERE OwnerID=" + str(userID))
+    corpName = cursor.fetchall()[0][0]
+    connect.commit()
+    cursor.close()
+    connect.close()
+    return corpName
+
+
+def can_accept_corp(userID):
+    connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+    cursor = connect.cursor()
+    cursor.execute("SELECT Comp FROM Users WHERE ID=" + str(userID))
+    corpName = cursor.fetchall()[0][0]
+    connect.commit()
+    cursor.close()
+    connect.close()
+    if corpName == args.accept_invite_text:
+        return True
+    else:
+        return False
+
+
+def inCorp(userID):
+    connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+    cursor = connect.cursor()
+    cursor.execute("SELECT Comp FROM Users WHERE ID=" + str(userID))
+    corpName = cursor.fetchall()[0][0]
+    connect.commit()
+    cursor.close()
+    connect.close()
+    if corpName == "0":
+        print('0')
+        return False
+    else:
+        return True
+
+
+def corp_members(userID):
+    """
+
+    дописать
+
+    """
+    pass
+
+
+def isOwner(userID):
+    try:
+        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+        cursor = connect.cursor()
+        cursor.execute("SELECT CompName FROM Company WHERE OwnerID=" + str(userID))
+        corpName = cursor.fetchall()[0][0]
+        print(corpName)
+        connect.commit()
+        cursor.close()
+        connect.close()
+        return True
+    except Exception as e:
+        print(e)
+        return False
+
+
+def upd_corp(userID, company):
+    try:
+        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+        cursor = connect.cursor()
+        cursor.execute("UPDATE Users SET Comp='{0}' WHERE ID={1}".format(str(company), str(userID)))
+        connect.commit()
+        cursor.close()
+        connect.close()
+    except Exception as e:
+        print(e)
+
+
 def upd_spec(userID, spec):
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)

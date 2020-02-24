@@ -161,6 +161,10 @@ def handler_accept(message):
             else:
                 bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                  text='<b>OOPS\nВы заняты чем-то другим</b>')
+        elif dataBase.can_accept_corp(message.from_user.id):
+            dataBase.upd_corp(message.from_user.id, 'Какая-то компания')
+            bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                             text='<b>Вы приняли приглос в организацию</b>')
         else:
             bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                              text='<b>OOPS</b>\nКажется у вас нет задания, которое можно принять')
@@ -172,19 +176,91 @@ def handler_accept(message):
 def handler_cancel(message):
     try:
         functions.log(message)
-        dataBase.upd_can_accept(message.from_user.id, 0)
-        bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
-                         text='<b>Вы отказались от выполнения задания</b>')
+        if dataBase.can_accept(message.from_user.id):
+            dataBase.upd_can_accept(message.from_user.id, 0)
+            bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                             text='<b>Вы отказались от выполнения задания</b>')
+        elif dataBase.can_accept_corp(message.from_user.id):
+            dataBase.upd_corp(message.from_user.id, 0)
+            bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                             text='<b>Вы отказались от вступления в организацию</b>')
     except Exception as e:
         print(e)
 
 
 @bot.message_handler(commands=['change_spec'])  # функция выдачи задания
-def handler_cancel(message):
+def handler_changeSpec(message):
     try:
         functions.log(message)
         bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text=args.test_question)
         dataBase.change_spec(message.from_user.id)
+    except Exception as e:
+        print(e)
+
+
+@bot.message_handler(commands=['invite_to_org'])  # функция инвайта в орг
+def handler_invite(message):
+    try:
+        functions.log(message)
+        if dataBase.isOwner(message.from_user.id):
+            company = dataBase.get_company(message.from_user.id)
+            userID = message.text.split(maxsplit=1)
+            userID = userID[1]
+            if not dataBase.inCorp(message.from_user.id):
+                bot.send_message(parse_mode='HTML', chat_id=int(userID), text='Пользователь {0} пригласил вас в '
+                                                                              'организацию {1}'.format(str(dataBase.
+                                                                                get_nickname(message.from_user.id)), company))
+                dataBase.upd_corp(userID, args.accept_invite_text)
+                print(userID)
+            else:
+                bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                                 text='<b>Пользователь уже состоит в организации</b>')
+        else:
+            bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                             text='<b>Кажется вы не глава организации</b>')
+    except Exception as e:
+        print(e)
+
+
+@bot.message_handler(commands=['kick_from_org'])  # функция инвайта в орг
+def handler_kick(message):
+    try:
+        functions.log(message)
+        userID = message.text.split(maxsplit=1)
+        userID = userID[1]
+        print(userID)
+        """
+        
+        дописать
+        
+        """
+    except Exception as e:
+        print(e)
+
+
+@bot.message_handler(commands=['corp_members'])  # функция инвайта в орг
+def handler_members(message):
+    try:
+        functions.log(message)
+        userID = message.text.split(maxsplit=1)
+        userID = userID[1]
+        print(userID)
+        """
+
+        дописать
+
+        """
+    except Exception as e:
+        print(e)
+
+
+@bot.message_handler(commands=['create_corp'])  # функция инвайта в орг
+def handler_create_corp(message):
+    try:
+        functions.log(message)
+        name = message.text.split(maxsplit=1)
+        name = name[1]
+        print(name)
     except Exception as e:
         print(e)
 
