@@ -192,7 +192,7 @@ def get_user_rank(userID):
 def get_company(userID):
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
-    cursor.execute("SELECT CompName FROM Company WHERE OwnerID=" + str(userID))
+    cursor.execute("SELECT Comp FROM Users WHERE ID=" + str(userID))
     corpName = cursor.fetchall()[0][0]
     connect.commit()
     cursor.close()
@@ -251,7 +251,7 @@ def isOwner(userID):
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
-        cursor.execute("SELECT CompName FROM Company WHERE OwnerID=" + str(userID))
+        cursor.execute("SELECT Comp FROM Users WHERE isOwner=1 AND ID=" + str(userID))
         corpName = cursor.fetchall()[0][0]
         print(corpName)
         connect.commit()
@@ -335,6 +335,10 @@ def up_lvl(userID):
         connect.close()
     except Exception as e:
         print(e)
+
+
+def add_money(userID, money):
+    pass
 
 
 def add_Quest(message):
@@ -425,6 +429,28 @@ def plus_count_works(userId):  # указание количества выпо�
         up_lvl(userId)  # повышение ранга
     except Exception as e:
         print(e)
+
+
+def newReq(toID, fromWho):
+    connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+    cursor = connect.cursor()
+    cursor.execute("INSERT INTO Requests VALUES ({}, '{}', 0)".format(toID, str(fromWho)))
+    connect.commit()
+    getReq(toID)
+    cursor.close()
+    connect.close()
+
+
+def getReq(toID):
+    connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+    cursor = connect.cursor()
+    cursor.execute("SELECT * FROM Requests WHERE toUserID = {}".format(toID))
+    res = cursor.fetchall()
+    print(res)
+    connect.commit()
+    cursor.close()
+    connect.close()
+
 
 
 def UpdQuests():

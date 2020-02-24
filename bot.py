@@ -48,8 +48,8 @@ def handler_start(message):
         if not contain:
             bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text=args.test_question)
             data = [message.from_user.id, message.from_user.username, "None", "None", "None", str(args.waitStatus),
-                    "None", 0, str(datetime.now().strftime('%d-%m-%Y %H:%M:%S')), 0, "0", "0"]
-            cursor.execute('INSERT INTO Users VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', data)
+                    "None", 0, str(datetime.now().strftime('%d-%m-%Y %H:%M:%S')), 0, "0", 0, "0", 0]
+            cursor.execute('INSERT INTO Users VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', data)
         connect.commit()
     except Exception as e:
         print(e)
@@ -124,17 +124,16 @@ def handler_quest(message):
         functions.log(message)
         dataBase.UpdQuests()
         functions.log(message)
-        bot.send_message(message.from_user.id, str(res))
     except Exception as e:
         print(e)
-        
-        @bot.message_handler(commands=['upd_profs'])  # функция обработки всех квестов
+
+
+@bot.message_handler(commands=['upd_profs'])  # функция обработки всех квестов
 def handler_quest(message):
     try:
         functions.log(message)
         dataBase.UpdProf()
         functions.log(message)
-        bot.send_message(message.from_user.id, str(res))
     except Exception as e:
         print(e)
 
@@ -201,7 +200,7 @@ def handler_changeSpec(message):
         print(e)
 
 
-@bot.message_handler(commands=['invite_to_org'])  # функция инвайта в орг
+@bot.message_handler(commands=['invite_to_corp'])  # функция инвайта в орг
 def handler_invite(message):
     try:
         functions.log(message)
@@ -209,11 +208,12 @@ def handler_invite(message):
             company = dataBase.get_company(message.from_user.id)
             userID = message.text.split(maxsplit=1)
             userID = userID[1]
-            if not dataBase.inCorp(message.from_user.id):
-                bot.send_message(parse_mode='HTML', chat_id=int(userID), text='Пользователь {0} пригласил вас в '
+            if not dataBase.inCorp(userID):
+                '''bot.send_message(parse_mode='HTML', chat_id=int(userID), text='Пользователь {0} пригласил вас в '
                                                                               'организацию {1}'.format(str(dataBase.
-                                                                                get_nickname(message.from_user.id)), company))
-                dataBase.upd_corp(userID, args.accept_invite_text)
+                                                                                get_nickname(message.from_user.id)), company))'''
+                bot.send_message(chat_id=int(userID), text='Вы были приглашены в организацию "{}"'.format(company))
+                dataBase.newReq(userID, company)
                 print(userID)
             else:
                 bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
@@ -293,9 +293,13 @@ def handler_corp_help(message):
 def handler_create_corp(message):
     try:
         functions.log(message)
-        name = message.text.split(maxsplit=1)
-        name = name[1]
-        print(name)
+        if dataBase.get_rank(message.from_user.id) == args.maxrank:
+            name = message.text.split(maxsplit=1)
+            name = name[1]
+            print(name)
+        else:
+            bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                             text='<b>Организацию может создать только пользователь достигший дзена</b>')
     except Exception as e:
         print(e)
 
@@ -351,7 +355,8 @@ def handler_text(message):
             if dataBase.set_profession(message, False):
                 bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                  text='<i>Ваша профессия</i> <b>' + message.text + '</b>', reply_markup=user_markup)
-                if dataBase.get_nickname(message.from_user.id) != "None":
+                if dataBase.get_nickname(message.from_user.id) == "None":
+                    print('2')
                     bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                      text='<i>Теперь укажите ваш никнейм </i>', reply_markup=user_markup)
                     nickList.append(message.from_user.id)
