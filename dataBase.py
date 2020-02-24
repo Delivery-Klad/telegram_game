@@ -238,6 +238,15 @@ def corp_members(userID):
     pass
 
 
+def leave_corp(userID):
+    """
+
+    дописать
+
+    """
+    pass
+
+
 def isOwner(userID):
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)

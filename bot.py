@@ -98,7 +98,7 @@ def handler_help(message):
                               '/cancel - Отказаться от выполнения работы\n'
                               '/give_task - Дать задание другому игроку\n'
                               '/change_spec - Изменить специализацию\n'
-                              '-\n'
+                              '/corp_help - Информация об организациях\n'
                               '-\n'
                               '-')
         if functions.isAdmin(message.from_user.id):
@@ -250,6 +250,38 @@ def handler_members(message):
         дописать
 
         """
+    except Exception as e:
+        print(e)
+
+
+@bot.message_handler(commands=['leave_corp'])  # функция инвайта в орг
+def handler_leave(message):
+    try:
+        functions.log(message)
+        """
+
+        дописать
+
+        """
+    except Exception as e:
+        print(e)
+
+
+@bot.message_handler(commands=['corp_help'])  # функция инвайта в орг
+def handler_corp_help(message):
+    try:
+        functions.log(message)
+        bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                         text='Меню помощи\n'
+                              '/create_corp - Создать организацию\n'
+                              '/leave_corp - Покинуть организацию\n'
+                              '/accept - Согласиться вступить в организацию\n'
+                              '/cancel - Отказаться от вступления в организацию\n'
+                              '/kick_from_corp + id - Выгнать из организации\n'
+                              '/invite_to_corp + id - Приглос в организацию\n'
+                              '/corp_members - Информация о членах организации\n'
+                              '-\n'
+                              '-')
     except Exception as e:
         print(e)
 
