@@ -108,7 +108,7 @@ def handler_help(message):
                                   '/db - Запросить базу данных\n'
                                   '/add_quest - (по формату '
                                   '/add_quest , профессия , задание , ранг , время)\n '
-                                  '-\n'
+                                  '/upd_quests and /upd_profs обновляют массивы'
                                   '-\n'
                                   '-\n'
                                   '-\n'
@@ -118,19 +118,22 @@ def handler_help(message):
         print(e)
 
 
-@bot.message_handler(commands=['quest'])  # функция обработки всех квестов
+@bot.message_handler(commands=['upd_quests'])  # функция обработки всех квестов
+def handler_quest(message):
+    try:
+        functions.log(message)
+        dataBase.UpdQuests()
+        functions.log(message)
+        bot.send_message(message.from_user.id, str(res))
+    except Exception as e:
+        print(e)
+        
+        @bot.message_handler(commands=['upd_profs'])  # функция обработки всех квестов
 def handler_quest(message):
     try:
         functions.log(message)
         dataBase.UpdProf()
-        dataBase.UpdQuests()
         functions.log(message)
-        quests = args.QuestsArr
-        res = ""
-        for Qest in quests:
-            for i in Qest:
-                res += str(i) + " "
-            res += "\n"
         bot.send_message(message.from_user.id, str(res))
     except Exception as e:
         print(e)
