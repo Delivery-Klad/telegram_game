@@ -163,10 +163,6 @@ def handler_accept(message):
             else:
                 bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                  text='<b>OOPS\nВы заняты чем-то другим</b>')
-        elif dataBase.can_accept_corp(message.from_user.id):
-            dataBase.upd_corp(message.from_user.id, 'Какая-то компания')
-            bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
-                             text='<b>Вы приняли приглос в организацию</b>')
         else:
             bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                              text='<b>OOPS</b>\nКажется у вас нет задания, которое можно принять')
@@ -182,10 +178,6 @@ def handler_cancel(message):
             dataBase.upd_can_accept(message.from_user.id, 0)
             bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                              text='<b>Вы отказались от выполнения задания</b>')
-        elif dataBase.can_accept_corp(message.from_user.id):
-            dataBase.upd_corp(message.from_user.id, 0)
-            bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
-                             text='<b>Вы отказались от вступления в организацию</b>')
     except Exception as e:
         print(e)
 
@@ -200,24 +192,32 @@ def handler_changeSpec(message):
         print(e)
 
 
-@bot.message_handler(commands=['invite_to_corp'])  # функция инвайта в орг
+# @bot.message_handler(commands=['invite'])  # функция инвайта в орг
 def handler_invite(message):
     try:
         functions.log(message)
         if dataBase.isOwner(message.from_user.id):
             company = dataBase.get_company(message.from_user.id)
-            userID = message.text.split(maxsplit=1)
-            userID = userID[1]
-            if not dataBase.inCorp(userID):
-                '''bot.send_message(parse_mode='HTML', chat_id=int(userID), text='Пользователь {0} пригласил вас в '
-                                                                              'организацию {1}'.format(str(dataBase.
-                                                                                get_nickname(message.from_user.id)), company))'''
-                bot.send_message(chat_id=int(userID), text='Вы были приглашены в организацию "{}"'.format(company))
-                dataBase.newReq(userID, company)
-                print(userID)
+            userID = int(message.text[7:])
+            print(userID)
+            if dataBase.check_requests(userID, company):
+                if not dataBase.inCorp(userID):
+                    '''bot.send_message(parse_mode='HTML', chat_id=int(userID), text='Пользователь {0} пригласил вас в '
+                                                                                  'организацию {1}'.format(str(dataBase.
+                                                                                    get_nickname(message.from_user.id)), company))'''
+                    bot.send_message(parse_mode='HTML', chat_id=int(userID), text='Вы были приглашены в организацию "{}"'.format(company))
+                    bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text='Вы пригласили <b>{}</b> в организацию '.format(dataBase.get_nickname(userID)))
+                    dataBase.newReq(userID, company)
+                    invites = dataBase.getReq(userID)
+                    bot.send_message(parse_mode='HTML', chat_id=int(userID),
+                                     text='<b>Список ваших приглашений:\n</b>' + str(invites))
+                    print(userID)
+                else:
+                    bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                                     text='<b>Пользователь уже состоит в организации</b>')
             else:
                 bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
-                                 text='<b>Пользователь уже состоит в организации</b>')
+                                 text='<b>У пользователя уже есть приглашение в данную организацию</b>')
         else:
             bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                              text='<b>Кажется вы не глава организации</b>')
@@ -225,7 +225,7 @@ def handler_invite(message):
         print(e)
 
 
-@bot.message_handler(commands=['kick'])  # функция инвайта в орг
+# @bot.message_handler(commands=['kick'])  # функция кика из орг
 def handler_kick(message):
     try:
         functions.log(message)
@@ -253,7 +253,7 @@ def handler_kick(message):
         print(e)
 
 
-@bot.message_handler(commands=['corp_members'])  # функция инвайта в орг
+@bot.message_handler(commands=['corp_members'])  # члены компании
 def handler_members(message):
     try:
         functions.log(message)
@@ -265,7 +265,7 @@ def handler_members(message):
         print(e)
 
 
-@bot.message_handler(commands=['leave_corp'])  # функция инвайта в орг
+@bot.message_handler(commands=['leave_corp'])  # функция ухода из орг
 def handler_leave(message):
     try:
         functions.log(message)
@@ -295,7 +295,7 @@ def handler_corp_help(message):
                               '/accept - Согласиться вступить в организацию\n'
                               '/cancel - Отказаться от вступления в организацию\n'
                               '/kick + id - Выгнать из организации\n'
-                              '/invite_to_corp + id - Приглос в организацию\n'
+                              '/invite + id - Приглос в организацию\n'
                               '/corp_members - Информация о членах организации\n'
                               '-\n'
                               '-')
@@ -351,6 +351,20 @@ def handler_text(message):
                 return
             elif str(message.text[1] + message.text[2] + message.text[3] + message.text[4]) == 'kick':
                 handler_kick(message)
+                return
+            elif str(message.text[1:7]) == 'invite':
+                handler_invite(message)
+                return
+            elif str(message.text[1:7]) == 'accept':
+                ownerID = int(message.text[7:])
+                print(ownerID)
+                company = dataBase.get_company(ownerID)
+                dataBase.upd_corp(message.from_user.id, company)
+                dataBase.delete_request(message.from_user.id)
+                bot.send_message(parse_mode='HTML', chat_id=ownerID, text='<b>{0} присоединился к организации</b>'.
+                                 format(str(dataBase.get_nickname(message.from_user.id))))
+                bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                                 text='<b>Вы присоединились к организации </b>' + str(company))
                 return
         if message.text == args.acceptWorkButton or message.text == args.cancelWorkButton:
             if message.text == args.acceptWorkButton:

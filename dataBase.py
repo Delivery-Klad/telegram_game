@@ -181,6 +181,19 @@ def get_workers(message):
         print(e)
 
 
+def get_free_users():
+    connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+    cursor = connect.cursor()
+    cursor.execute("SELECT ID,NickName FROM Users WHERE Comp='0'")
+    users = cursor.fetchall()
+    msg = ''
+    print(len(users))
+    connect.commit()
+    cursor.close()
+    connect.close()
+    return msg
+
+
 def get_user_rank(userID):
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
@@ -204,32 +217,33 @@ def get_company(userID):
     return corpName
 
 
-def can_accept_corp(userID):
+def get_owner(company):
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
-    cursor.execute("SELECT Comp FROM Users WHERE ID=" + str(userID))
-    corpName = cursor.fetchall()[0][0]
+    cursor.execute("SELECT ID FROM Users WHERE Comp='{0}' AND isOwner=1".format(str(company)))
+    ID = cursor.fetchall()
+    ID = ID[0][0]
     connect.commit()
     cursor.close()
     connect.close()
-    if corpName == args.accept_invite_text:
-        return True
-    else:
-        return False
+    return ID
 
 
 def inCorp(userID):
-    connect = sqlite3.connect(args.filesFolderName + args.databaseName)
-    cursor = connect.cursor()
-    cursor.execute("SELECT Comp FROM Users WHERE ID=" + str(userID))
-    corpName = cursor.fetchall()[0][0]
-    connect.commit()
-    cursor.close()
-    connect.close()
-    if corpName == "0":
-        print('0')
-        return False
-    else:
+    try:
+        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+        cursor = connect.cursor()
+        cursor.execute("SELECT Comp FROM Users WHERE ID=" + str(userID))
+        corpName = cursor.fetchall()[0][0]
+        connect.commit()
+        cursor.close()
+        connect.close()
+        if corpName == "0":
+            print('0')
+            return False
+        else:
+            return True
+    except Exception as e:
         return True
 
 
@@ -459,6 +473,15 @@ def plus_count_works(userId):  # указание количества выпо�
         print(e)
 
 
+def check_requests(userID, company):
+    """
+
+    Проверка на уникальность запроса
+
+    """
+    return True
+
+
 def newReq(toID, fromWho):
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
@@ -472,13 +495,27 @@ def newReq(toID, fromWho):
 def getReq(toID):
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
-    cursor.execute("SELECT * FROM Requests WHERE toUserID = {}".format(toID))
+    cursor.execute("SELECT DISTINCT * FROM Requests WHERE toUserID = {}".format(toID))
     res = cursor.fetchall()
     print(res)
+    print(len(res))
+    msg = ''
+    for i in range(len(res)):
+        msg += str(res[i][1]) + ' /accept' + str(get_owner(res[i][1]))
+        msg += '\n'
     connect.commit()
     cursor.close()
     connect.close()
+    return msg
 
+
+def delete_request(userID):
+    """
+
+    при нажатии /accept********
+
+    """
+    pass
 
 
 def UpdQuests():
