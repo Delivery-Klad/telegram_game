@@ -46,9 +46,9 @@ def send_task(workerID, name, task):  # отправка задания поль
         print(e)
 
 
-def isAdmin(userId):  # проверка является ли пользователь админом
+def isAdmin(userID):  # проверка является ли пользователь админом
     try:
-        if int(userId) in args.admins_list:
+        if int(userID) in args.admins_list:
             return True
         else:
             return False

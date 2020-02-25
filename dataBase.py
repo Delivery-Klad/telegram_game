@@ -165,10 +165,14 @@ def get_workers(message):
         cursor.execute("SELECT ID,NickName,Profession FROM Users WHERE Status='{0}'".format(str(args.waitStatus)))
         users = cursor.fetchall()
         msg_text = ''
-        for i in range(len(users[0]) - 1):
+        print('check')
+        print(len(users[0]))
+        print(len(users))
+        for i in range(len(users[0])):
             if users[i][0] != message.from_user.id:
                 print(i)
                 msg_text += str(users[i][1]) + ' ' + str(users[i][2]) + ' /task' + str(users[i][0])
+                msg_text += '\n'
         connect.commit()
         cursor.close()
         connect.close()
@@ -229,22 +233,46 @@ def inCorp(userID):
         return True
 
 
+def kick_from_corp(userID):
+    connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+    cursor = connect.cursor()
+    cursor.execute("UPDATE Users SET Comp='0' WHERE ID={0}".format(str(userID)))
+    connect.commit()
+    cursor.close()
+    connect.close()
+
+
 def corp_members(userID):
-    """
-
-    дописать
-
-    """
-    pass
+    connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+    cursor = connect.cursor()
+    cursor.execute("SELECT ID,NickName FROM Users WHERE Comp='{}'".format(str(get_company(userID))))
+    members = cursor.fetchall()
+    print(len(members))
+    print(members)
+    msg = ''
+    for i in range(len(members)):
+        msg += '<i>' + str(members[i][1]) + '</i>  /kick' + str(members[i][0])
+        msg += '\n'
+    connect.commit()
+    cursor.close()
+    connect.close()
+    return msg
 
 
 def leave_corp(userID):
-    """
-
-    дописать
-
-    """
-    pass
+    try:
+        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+        cursor = connect.cursor()
+        if not isOwner(userID):
+            cursor.execute("UPDATE Users SET Comp='0' WHERE ID={0}".format(str(userID)))
+            connect.commit()
+            cursor.close()
+            connect.close()
+            return True
+        else:
+            return False
+    except Exception as e:
+        print(e)
 
 
 def isOwner(userID):

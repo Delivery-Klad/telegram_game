@@ -225,18 +225,30 @@ def handler_invite(message):
         print(e)
 
 
-@bot.message_handler(commands=['kick_from_org'])  # функция инвайта в орг
+@bot.message_handler(commands=['kick'])  # функция инвайта в орг
 def handler_kick(message):
     try:
         functions.log(message)
-        userID = message.text.split(maxsplit=1)
-        userID = userID[1]
-        print(userID)
-        """
-        
-        дописать
-        
-        """
+        if dataBase.isOwner(message.from_user.id):
+            userID = int(message.text[5:])
+            print(userID)
+            try:
+                if int(userID) != int(message.from_user.id):
+                    if dataBase.inCorp(userID):
+                        bot.send_message(parse_mode='HTML', chat_id=userID,
+                                         text='<b>Вас выгнали из организации</b>')
+                        bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                                         text='<b>Пользователь исключен из организации</b>')
+                        dataBase.kick_from_corp(userID)
+                    else:
+                        bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                                         text='<b>Пользователь не состоит в организации</b>')
+            except Exception as e:
+                bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                                 text='<bВы не можете исключить сами себя из организации</b>')
+        else:
+            bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                             text='<b>Вы не глава организации</b>')
     except Exception as e:
         print(e)
 
@@ -245,14 +257,10 @@ def handler_kick(message):
 def handler_members(message):
     try:
         functions.log(message)
-        userID = message.text.split(maxsplit=1)
-        userID = userID[1]
-        print(userID)
-        """
-
-        дописать
-
-        """
+        members = dataBase.corp_members(message.from_user.id)
+        msg = '<b>Члены организации:</b>\n' + members
+        bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                         text=msg)
     except Exception as e:
         print(e)
 
@@ -261,11 +269,17 @@ def handler_members(message):
 def handler_leave(message):
     try:
         functions.log(message)
-        """
-
-        дописать
-
-        """
+        if dataBase.inCorp(message.from_user.id):
+            company = dataBase.get_company(message.from_user.id)
+            if dataBase.leave_corp(message.from_user.id):
+                bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                                 text='<b>Вы покинули организацию</b> <i>{0}</i>'.format(str(company)))
+            else:
+                bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                                 text='<b>Владелец не может покинуть организацию</b>')
+        else:
+            bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                             text='<b>Вы не состоите в организации</b>')
     except Exception as e:
         print(e)
 
@@ -280,7 +294,7 @@ def handler_corp_help(message):
                               '/leave_corp - Покинуть организацию\n'
                               '/accept - Согласиться вступить в организацию\n'
                               '/cancel - Отказаться от вступления в организацию\n'
-                              '/kick_from_corp + id - Выгнать из организации\n'
+                              '/kick + id - Выгнать из организации\n'
                               '/invite_to_corp + id - Приглос в организацию\n'
                               '/corp_members - Информация о членах организации\n'
                               '-\n'
@@ -334,6 +348,9 @@ def handler_text(message):
                 else:
                     bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                      text='<b>А ты хитрый жук, не делай так больше</b>')
+                return
+            elif str(message.text[1] + message.text[2] + message.text[3] + message.text[4]) == 'kick':
+                handler_kick(message)
                 return
         if message.text == args.acceptWorkButton or message.text == args.cancelWorkButton:
             if message.text == args.acceptWorkButton:
