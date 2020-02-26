@@ -168,7 +168,7 @@ def get_workers(message):
         print('check')
         print(len(users[0]))
         print(len(users))
-        for i in range(len(users[0])):
+        for i in range(len(users)):
             if users[i][0] != message.from_user.id:
                 print(i)
                 msg_text += str(users[i][1]) + ' ' + str(users[i][2]) + ' /task' + str(users[i][0])
@@ -177,6 +177,18 @@ def get_workers(message):
         cursor.close()
         connect.close()
         return msg_text
+    except Exception as e:
+        print(e)
+
+
+def get_balance(userID):
+    try:
+        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+        cursor = connect.cursor()
+        cursor.execute("SELECT Money FROM Users WHERE ID=" + str(userID))
+        money = str(cursor.fetchall()[0][0])
+        money += str(args.currency)
+        return money
     except Exception as e:
         print(e)
 
@@ -227,6 +239,24 @@ def get_owner(company):
     cursor.close()
     connect.close()
     return ID
+
+
+def get_taskCost(userID):
+    try:
+        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+        cursor = connect.cursor()
+        cursor.execute("SELECT TaskNow FROM Users WHERE ID={0}".format(str(userID)))
+        task = cursor.fetchall()[0][0]
+        print(task)
+        cursor.execute("SELECT Cost FROM Quests WHERE Quest='{0}'".format(task))
+        cost = cursor.fetchall()[0][0]
+        print(cost)
+        connect.commit()
+        cursor.close()
+        connect.close()
+        return cost
+    except Exception as e:
+        print(e)
 
 
 def inCorp(userID):
@@ -338,6 +368,18 @@ def upd_can_accept(userID, check):
     connect.close()
 
 
+def upd_taskNow(userID, task):
+    try:
+        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+        cursor = connect.cursor()
+        cursor.execute("UPDATE Users SET TaskNow='{0}' WHERE ID={1}".format(task, str(userID)))
+        connect.commit()
+        cursor.close()
+        connect.close()
+    except Exception as e:
+        print(e)
+
+
 def change_spec(userID):
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
@@ -380,7 +422,16 @@ def up_lvl(userID):
 
 
 def add_money(userID, money):
-    pass
+    try:
+        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+        cursor = connect.cursor()
+        cursor.execute("UPDATE Users SET Money=Money+{} WHERE ID={}".format(money, userID))
+        connect.commit()
+        cursor.close()
+        connect.close()
+        upd_taskNow(userID, "None")
+    except Exception as e:
+        print(e)
 
 
 def add_Quest(message):
@@ -429,8 +480,7 @@ def give_new_prof(userID):
             profID = 0
         else:
             profID = 1
-        print("gh" + str(profID))
-        cursor.execute("SELECT Prof FROM Profs WHERE ProfRank={0} AND ProfCheck={1}".format(str(get_user_rank(userID)), profID))
+        cursor.execute("SELECT Prof FROM Profs WHERE ProfRank<={0} AND ProfCheck={1}".format(str(get_user_rank(userID)), profID))
         profs = cursor.fetchall()
         print(profs)
         for i in range(len(profs)):

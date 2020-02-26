@@ -35,9 +35,12 @@ def timer(bot):
                                     userId = cursor.fetchall()
                                     for u in range(len(userId[0])):
                                         print(userId[0][u])
+                                        money = dataBase.get_taskCost(userId[0][u])
                                         args.bot.send_message(parse_mode='HTML', chat_id=userId[0][u],
-                                                              text='<b>Вы закончили выполнение задания</b>')
+                                                              text='<b>Вы закончили выполнение задания</b>\nВаш '
+                                                                   'заработок: ' + str(money))
                                         dataBase.plus_count_works(userId[0][u])  # +1 к выполненным заданиям
+                                        dataBase.add_money(userId[0][u], money)
                                         dataBase.start_job(userId[0][u], args.waitStatus, 'None')  # статус ожидания работы и установка времени на None
                         # bot.send_message(496537969, 'test')
                         # bot.send_message(441287694, 'test')

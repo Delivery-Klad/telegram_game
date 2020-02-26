@@ -42,6 +42,7 @@ def send_task(workerID, name, task):  # отправка задания поль
                               text='<i>Пользователь</i> <b>{0}</b> <i>отправил вам задание "{1}"\n/accept - '
                                    'Согласиться\n/cancel - Отказаться</i>'.
                               format(str(name), str(task)))
+        return task
     except Exception as e:
         print(e)
 
