@@ -368,7 +368,7 @@ def handler_text(message):
         if len(message.text) > 5:
             if str(message.text[1] + message.text[2] + message.text[3] + message.text[4]) == 'task':
                 workerID = int(message.text[5:])
-                if workerID != 0:  # message.from_user.id:
+                if workerID != message.from_user.id:
                     if dataBase.isFree(workerID):
                         dataBase.upd_taskNow(workerID, functions.send_task(workerID,
                                                                            dataBase.get_nickname(message.from_user.id),
