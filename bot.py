@@ -99,7 +99,7 @@ def handler_help(message):
                               '/give_task - Дать задание другому игроку\n'
                               '/change_spec - Изменить специализацию\n'
                               '/corp_help - Информация об организациях\n'
-                              '-\n'
+                              '/balance - Узнать баланс\n'
                               '-')
         if functions.isAdmin(message.from_user.id):
             bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
@@ -123,7 +123,6 @@ def handler_quest(message):
     try:
         functions.log(message)
         dataBase.UpdQuests()
-        functions.log(message)
     except Exception as e:
         print(e)
 
