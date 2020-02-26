@@ -87,6 +87,18 @@ def set_profession(message, in_profArr):
         print(e)
 
 
+def setOwner(userID):
+    try:
+        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+        cursor = connect.cursor()
+        cursor.execute("UPDATE Users SET isOwner=1 WHERE ID={0}".format(str(userID)))
+        connect.commit()
+        cursor.close()
+        connect.close()
+    except Exception as e:
+        print(e)
+
+
 def get_nickname(userID):
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
@@ -247,14 +259,29 @@ def get_taskCost(userID):
         cursor = connect.cursor()
         cursor.execute("SELECT TaskNow FROM Users WHERE ID={0}".format(str(userID)))
         task = cursor.fetchall()[0][0]
-        print(task)
         cursor.execute("SELECT Cost FROM Quests WHERE Quest='{0}'".format(task))
         cost = cursor.fetchall()[0][0]
-        print(cost)
         connect.commit()
         cursor.close()
         connect.close()
         return cost
+    except Exception as e:
+        print(e)
+
+
+def get_job_timer(userID):
+    try:
+        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+        cursor = connect.cursor()
+        cursor.execute("SELECT TaskNow FROM Users WHERE ID={0}".format(str(userID)))
+        task = cursor.fetchall()[0][0]
+        cursor.execute("SELECT Time FROM Quests WHERE Quest='{0}'".format(task))
+        time = cursor.fetchall()[0][0]
+        print(time)
+        connect.commit()
+        cursor.close()
+        connect.close()
+        return time
     except Exception as e:
         print(e)
 
@@ -510,32 +537,51 @@ def start_job(userID, status, time):  # замена статуса и указ�
         print(e)
 
 
-def plus_count_works(userId):  # указание количества выполненных работ
+def plus_count_works(userID):  # указание количества выполненных работ
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
-        cursor.execute("UPDATE Users SET Count_Works=Count_Works+1 WHERE ID='{0}'".format(str(userId)))
+        cursor.execute("UPDATE Users SET Count_Works=Count_Works+1 WHERE ID='{0}'".format(str(userID)))
         connect.commit()
         cursor.close()
         connect.close()
-        up_lvl(userId)  # повышение ранга
+        up_lvl(userID)  # повышение ранга
+    except Exception as e:
+        print(e)
+
+
+def minus_money(userID, money):
+    try:
+        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+        cursor = connect.cursor()
+        cursor.execute("UPDATE Users SET Money=Money-{0} WHERE ID='{1}'".format(money, userID))
+        connect.commit()
+        cursor.close()
+        connect.close()
     except Exception as e:
         print(e)
 
 
 def check_requests(userID, company):
-    """
-
-    Проверка на уникальность запроса
-
-    """
+    connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+    cursor = connect.cursor()
+    cursor.execute("SELECT toUserID,fromWho FROM Requests")
+    reqs = cursor.fetchall()
+    print(reqs)
+    print(len(reqs))
+    for i in range(len(reqs)):
+        if reqs[i][0] == userID and reqs[i][1] == company:
+            return False
+    connect.commit()
+    cursor.close()
+    connect.close()
     return True
 
 
 def newReq(toID, fromWho):
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
-    cursor.execute("INSERT INTO Requests VALUES ({}, '{}', 0)".format(toID, str(fromWho)))
+    cursor.execute("INSERT INTO Requests VALUES ({},'{}',0)".format(toID, str(fromWho)))
     connect.commit()
     getReq(toID)
     cursor.close()
@@ -545,7 +591,7 @@ def newReq(toID, fromWho):
 def getReq(toID):
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
-    cursor.execute("SELECT DISTINCT * FROM Requests WHERE toUserID = {}".format(toID))
+    cursor.execute("SELECT DISTINCT * FROM Requests WHERE toUserID={}".format(toID))
     res = cursor.fetchall()
     print(res)
     print(len(res))
@@ -560,12 +606,12 @@ def getReq(toID):
 
 
 def delete_request(userID):
-    """
-
-    при нажатии /accept********
-
-    """
-    pass
+    connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+    cursor = connect.cursor()
+    cursor.execute("DELETE FROM Requests WHERE toUserID={}".format(userID))
+    connect.commit()
+    cursor.close()
+    connect.close()
 
 
 def UpdQuests():

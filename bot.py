@@ -164,7 +164,8 @@ def handler_accept(message):
         functions.log(message)
         if dataBase.can_accept(message.from_user.id):
             if dataBase.isFree(message.from_user.id):
-                job_timer = 1
+                job_timer = dataBase.get_job_timer(message.from_user.id)
+                print(job_timer)
                 dataBase.start_job(message.from_user.id, args.workStatus,
                                    (int(datetime.now().strftime('%M')) + job_timer) % 60)
                 bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
@@ -303,12 +304,12 @@ def handler_corp_help(message):
         functions.log(message)
         bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                          text='Меню помощи\n'
-                              '/create_corp - Создать организацию\n'
+                              '/create_corp (+название) - Создать организацию\n'
                               '/leave_corp - Покинуть организацию\n'
                               '/accept - Согласиться вступить в организацию\n'
                               '/cancel - Отказаться от вступления в организацию\n'
-                              '/kick + id - Выгнать из организации\n'
-                              '/invite + id - Приглос в организацию\n'
+                              '/kick (+id) - Выгнать из организации\n'
+                              '/invite (+id) - Приглос в организацию\n'
                               '/corp_members - Информация о членах организации\n'
                               '-\n'
                               '-')
@@ -321,9 +322,30 @@ def handler_create_corp(message):
     try:
         functions.log(message)
         if dataBase.get_rank(message.from_user.id) == args.maxrank:
-            name = message.text.split(maxsplit=1)
-            name = name[1]
-            print(name)
+            if not dataBase.inCorp(message.from_user.id):
+                if int(dataBase.get_balance(message.from_user.id)[:-1]) >= args.corp_cost:
+                    try:
+                        if len(message.text) == 12:
+                            bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                                             text='<b>Вы не указали название организации</b>')
+                        else:
+                            name = message.text.split(maxsplit=1)
+                            name = name[1]
+                            print(name)
+                            dataBase.upd_corp(message.from_user.id, name)
+                            dataBase.setOwner(message.from_user.id)
+                            dataBase.minus_money(message.from_user.id, args.corp_cost)
+                            bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                                             text='<i>Организация</i> <b>' + name + '</b> <i>успешно создана</i>')
+                    except Exception as e:
+                        print(e)
+                else:
+                    bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                                     text='<i>Для создания организации требуется</i> <b>' + str(args.corp_cost) +
+                                          str(args.currency) + '</b>')
+            else:
+                bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                                 text='<b>OOPS\nВы уже состоите в организации</b>')
         else:
             bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                              text='<b>Организацию может создать только пользователь достигший дзена</b>')
