@@ -47,9 +47,16 @@ def handler_start(message):
                 break
         if not contain:
             bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text=args.test_question)
+            referal = True
+            res = 0
+            try:
+                mess = message.text.split()
+                res = mess[1]
+            except Exception:
+                res = 0
             data = [message.from_user.id, message.from_user.username, "None", "None", "None", str(args.waitStatus),
-                    "None", 0, str(datetime.now().strftime('%d-%m-%Y %H:%M:%S')), 0, "0", 0, "0", 0, "None"]
-            cursor.execute('INSERT INTO Users VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', data)
+                    "None", 0, str(datetime.now().strftime('%d-%m-%Y %H:%M:%S')), 0, "0", 0, "0", 0, "None", res]
+            cursor.execute('INSERT INTO Users VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', data)
         connect.commit()
     except Exception as e:
         print(e)
@@ -84,6 +91,11 @@ def handler_add_quest(message):
         dataBase.add_Quest(message)
     except Exception as e:
         print(e)
+
+@bot.message_handler(commands=['ref'])
+def handler_referal(message):
+    functions.log(message)
+    bot.send_message(chat_id=message.from_user.id, text="Реферальная ссылка для помощи проекту и себе: https://telegram.me/Lonely_parnisha_bot?start={}".format(message.from_user.id))
 
 
 @bot.message_handler(commands=['help'])  # обработка команды помощи
