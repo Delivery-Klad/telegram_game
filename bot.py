@@ -92,10 +92,13 @@ def handler_add_quest(message):
     except Exception as e:
         print(e)
 
+
 @bot.message_handler(commands=['ref'])
 def handler_referal(message):
     functions.log(message)
-    bot.send_message(chat_id=message.from_user.id, text="Реферальная ссылка для помощи проекту и себе: https://telegram.me/Lonely_parnisha_bot?start={}".format(message.from_user.id))
+    bot.send_message(chat_id=message.from_user.id, text="Реферальная ссылка для помощи проекту и себе: "
+                                                        "https://telegram.me/Lonely_parnisha_bot?start={}"
+                                                        .format(message.from_user.id))
 
 
 @bot.message_handler(commands=['help'])  # обработка команды помощи

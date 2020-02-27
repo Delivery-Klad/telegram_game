@@ -453,10 +453,13 @@ def add_money(userID, money):
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
         cursor.execute("UPDATE Users SET Money=Money+{} WHERE ID={}".format(money, userID))
+        upd_taskNow(userID, "None")
+        ownerID = get_referal_owner(userID)
+        if str(ownerID) != 'none':
+            cursor.execute("UPDATE Users SET Money=Money+{} WHERE ID={}".format((money/args.referal_procent), ownerID))
         connect.commit()
         cursor.close()
         connect.close()
-        upd_taskNow(userID, "None")
     except Exception as e:
         print(e)
 
@@ -612,6 +615,22 @@ def delete_request(userID):
     connect.commit()
     cursor.close()
     connect.close()
+
+
+def get_referal_owner(userID):
+    try:
+        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+        cursor = connect.cursor()
+        cursor.execute("SELECT InviteID FROM Users WHERE ID=" + str(userID))
+        ownerID = cursor.fetchall()[0][0]
+        if len(str(ownerID)) > 1:
+            connect.commit()
+            cursor.close()
+            connect.close()
+            return int(ownerID)
+    except Exception as e:
+        print(e)
+        return str('none')
 
 
 def UpdQuests():
