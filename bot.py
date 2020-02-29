@@ -217,13 +217,22 @@ def handler_changeSpec(message):
         print(e)
 
 
+@bot.message_handler(commands=['exit'])  # функция выдачи задания
+def handler_changeSpec(message):
+    try:
+        functions.log(message)
+        bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text='<i>Выход только в окно</i>')
+    except Exception as e:
+        print(e)
+
+
 @bot.message_handler(commands=['invite'])  # функция инвайта в орг
 def handler_org(message):
     try:
         if dataBase.isOwner(message.from_user.id):
             functions.log(message)
             bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
-                             text='<b>Выберете кому кинуть приглос:\n</b>' + str(dataBase.get_workers(message)))
+                             text='<b>Выберете кому кинуть приглос:\n</b>' + str(dataBase.get_noInCorpUsers(message)))
         else:
             bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text='<b>Вы не владеле компании</b>')
     except Exception as e:
@@ -283,6 +292,9 @@ def handler_kick(message):
                     else:
                         bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                          text='<b>Пользователь не состоит в организации</b>')
+                else:
+                    bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                                     text='<bВы не можете исключить сами себя из организации</b>')
             except Exception as e:
                 bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                  text='<bВы не можете исключить сами себя из организации</b>')

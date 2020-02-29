@@ -31,8 +31,6 @@ def createTables():  # создание таблиц в sql если их нет
                        'ProfCheck INTEGER,'
                        'ProfRank INTEGER)')  # 0/1/3 - гум/технарь/доступен всем
         connect.commit()
-        cursor.close()
-        connect.close()
     except Exception as e:
         print(e)
 
@@ -44,8 +42,6 @@ def set_nickname(nickName):
         cursor.execute(
             "UPDATE Users SET NickName='{0}' WHERE ID='{1}'".format(str(nickName.text), str(nickName.from_user.id)))
         connect.commit()
-        cursor.close()
-        connect.close()
     except Exception as e:
         print(e)
 
@@ -80,8 +76,6 @@ def set_profession(message, in_profArr):
                     "UPDATE Users SET Profession='{0}' WHERE ID='{1}'".format(str(message.text),
                                                                               str(message.from_user.id)))
         connect.commit()
-        cursor.close()
-        connect.close()
         return True
     except Exception as e:
         print(e)
@@ -93,8 +87,6 @@ def setOwner(userID):
         cursor = connect.cursor()
         cursor.execute("UPDATE Users SET isOwner=1 WHERE ID={0}".format(str(userID)))
         connect.commit()
-        cursor.close()
-        connect.close()
     except Exception as e:
         print(e)
 
@@ -105,9 +97,6 @@ def get_nickname(userID):
         cursor = connect.cursor()
         cursor.execute("SELECT NickName FROM Users WHERE ID=" + str(userID))
         name = cursor.fetchall()
-        connect.commit()
-        cursor.close()
-        connect.close()
         return name[0][0]
     except Exception as e:
         print(e)
@@ -119,9 +108,6 @@ def get_spec(userID):
         cursor = connect.cursor()
         cursor.execute("SELECT Spec FROM Users WHERE ID=" + str(userID))
         spec = cursor.fetchall()
-        connect.commit()
-        cursor.close()
-        connect.close()
         return spec[0][0]
     except Exception as e:
         print(e)
@@ -133,9 +119,6 @@ def get_prof(userID):
     cursor.execute("SELECT Profession FROM Users WHERE ID=" + str(userID))
     prof = cursor.fetchall()
     print(prof[0][0])
-    connect.commit()
-    cursor.close()
-    connect.close()
     return prof[0][0]
 
 
@@ -145,9 +128,6 @@ def get_rank(userID):
     cursor.execute("SELECT UserRank FROM Users WHERE ID=" + str(userID))
     rank = cursor.fetchall()
     print(rank[0][0])
-    connect.commit()
-    cursor.close()
-    connect.close()
     return rank[0][0]
 
 
@@ -162,9 +142,6 @@ def get_task(userID):
         else:
             task = 0
         print(quests[task][0])
-        connect.commit()
-        cursor.close()
-        connect.close()
         return quests[task][0]
     except Exception as e:
         return "Сходи отдохни"
@@ -174,7 +151,8 @@ def get_workers(message):
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
-        cursor.execute("SELECT ID,NickName,Profession FROM Users WHERE Status='{0}'".format(str(args.waitStatus)))
+        cursor.execute("SELECT ID,NickName,Profession FROM Users WHERE Status='{0}' ORDER BY RANDOM() LIMIT 7"
+                       .format(str(args.waitStatus)))
         users = cursor.fetchall()
         msg_text = ''
         print('check')
@@ -185,9 +163,6 @@ def get_workers(message):
                 print(i)
                 msg_text += str(users[i][1]) + ' ' + str(users[i][2]) + ' /task' + str(users[i][0])
                 msg_text += '\n'
-        connect.commit()
-        cursor.close()
-        connect.close()
         return msg_text
     except Exception as e:
         print(e)
@@ -212,9 +187,6 @@ def get_free_users():
     users = cursor.fetchall()
     msg = ''
     print(len(users))
-    connect.commit()
-    cursor.close()
-    connect.close()
     return msg
 
 
@@ -223,9 +195,6 @@ def get_user_rank(userID):
     cursor = connect.cursor()
     cursor.execute("SELECT UserRank FROM Users WHERE ID=" + str(userID))
     rank = cursor.fetchall()[0][0]
-    connect.commit()
-    cursor.close()
-    connect.close()
     print(rank)
     return rank
 
@@ -235,9 +204,6 @@ def get_company(userID):
     cursor = connect.cursor()
     cursor.execute("SELECT Comp FROM Users WHERE ID=" + str(userID))
     corpName = cursor.fetchall()[0][0]
-    connect.commit()
-    cursor.close()
-    connect.close()
     return corpName
 
 
@@ -247,9 +213,6 @@ def get_owner(company):
     cursor.execute("SELECT ID FROM Users WHERE Comp='{0}' AND isOwner=1".format(str(company)))
     ID = cursor.fetchall()
     ID = ID[0][0]
-    connect.commit()
-    cursor.close()
-    connect.close()
     return ID
 
 
@@ -261,9 +224,6 @@ def get_taskCost(userID):
         task = cursor.fetchall()[0][0]
         cursor.execute("SELECT Cost FROM Quests WHERE Quest='{0}'".format(task))
         cost = cursor.fetchall()[0][0]
-        connect.commit()
-        cursor.close()
-        connect.close()
         return cost
     except Exception as e:
         print(e)
@@ -275,13 +235,11 @@ def get_job_timer(userID):
         cursor = connect.cursor()
         cursor.execute("SELECT TaskNow FROM Users WHERE ID={0}".format(str(userID)))
         task = cursor.fetchall()[0][0]
+        print(task)
         cursor.execute("SELECT Time FROM Quests WHERE Quest='{0}'".format(task))
         time = cursor.fetchall()[0][0]
         print(time)
-        connect.commit()
-        cursor.close()
-        connect.close()
-        return time
+        return int(time)
     except Exception as e:
         print(e)
 
@@ -292,9 +250,6 @@ def inCorp(userID):
         cursor = connect.cursor()
         cursor.execute("SELECT Comp FROM Users WHERE ID=" + str(userID))
         corpName = cursor.fetchall()[0][0]
-        connect.commit()
-        cursor.close()
-        connect.close()
         if corpName == "0":
             print('0')
             return False
@@ -309,8 +264,6 @@ def kick_from_corp(userID):
     cursor = connect.cursor()
     cursor.execute("UPDATE Users SET Comp='0' WHERE ID={0}".format(str(userID)))
     connect.commit()
-    cursor.close()
-    connect.close()
 
 
 def corp_members(userID):
@@ -324,9 +277,6 @@ def corp_members(userID):
     for i in range(len(members)):
         msg += '<i>' + str(members[i][1]) + '</i>  /kick' + str(members[i][0])
         msg += '\n'
-    connect.commit()
-    cursor.close()
-    connect.close()
     return msg
 
 
@@ -337,8 +287,6 @@ def leave_corp(userID):
         if not isOwner(userID):
             cursor.execute("UPDATE Users SET Comp='0' WHERE ID={0}".format(str(userID)))
             connect.commit()
-            cursor.close()
-            connect.close()
             return True
         else:
             return False
@@ -353,9 +301,6 @@ def isOwner(userID):
         cursor.execute("SELECT Comp FROM Users WHERE isOwner=1 AND ID=" + str(userID))
         corpName = cursor.fetchall()[0][0]
         print(corpName)
-        connect.commit()
-        cursor.close()
-        connect.close()
         return True
     except Exception as e:
         print(e)
@@ -368,8 +313,6 @@ def upd_corp(userID, company):
         cursor = connect.cursor()
         cursor.execute("UPDATE Users SET Comp='{0}' WHERE ID={1}".format(str(company), str(userID)))
         connect.commit()
-        cursor.close()
-        connect.close()
     except Exception as e:
         print(e)
 
@@ -380,8 +323,6 @@ def upd_spec(userID, spec):
         cursor = connect.cursor()
         cursor.execute("UPDATE Users SET Spec='{0}' WHERE ID={1}".format(spec, str(userID)))
         connect.commit()
-        cursor.close()
-        connect.close()
     except Exception as e:
         print(e)
 
@@ -391,8 +332,6 @@ def upd_can_accept(userID, check):
     cursor = connect.cursor()
     cursor.execute("UPDATE Users SET task={0} WHERE ID={1}".format(str(check), str(userID)))
     connect.commit()
-    cursor.close()
-    connect.close()
 
 
 def upd_taskNow(userID, task):
@@ -401,8 +340,6 @@ def upd_taskNow(userID, task):
         cursor = connect.cursor()
         cursor.execute("UPDATE Users SET TaskNow='{0}' WHERE ID={1}".format(task, str(userID)))
         connect.commit()
-        cursor.close()
-        connect.close()
     except Exception as e:
         print(e)
 
@@ -413,8 +350,6 @@ def change_spec(userID):
     cursor.execute("UPDATE Users SET Spec='None',Profession='None',Count_Works='0',Status='{0}',End_time='None',"
                    "UserRank='0' WHERE ID={1}".format(str(args.waitStatus), str(userID)))
     connect.commit()
-    cursor.close()
-    connect.close()
 
 
 def can_accept(userID):
@@ -422,9 +357,6 @@ def can_accept(userID):
     cursor = connect.cursor()
     cursor.execute("SELECT task FROM Users WHERE ID=" + str(userID))
     can = cursor.fetchall()
-    connect.commit()
-    cursor.close()
-    connect.close()
     if can[0][0] == "1":
         upd_can_accept(userID, 0)
         return True
@@ -442,8 +374,6 @@ def up_lvl(userID):
             cursor.execute("UPDATE Users SET UserRank=UserRank+1 WHERE ID=" + str(userID))
             give_new_prof(userID)
         connect.commit()
-        cursor.close()
-        connect.close()
     except Exception as e:
         print(e)
 
@@ -458,8 +388,6 @@ def add_money(userID, money):
         if str(ownerID) != 'none':
             cursor.execute("UPDATE Users SET Money=Money+{} WHERE ID={}".format((money/args.referal_procent), ownerID))
         connect.commit()
-        cursor.close()
-        connect.close()
     except Exception as e:
         print(e)
 
@@ -473,8 +401,6 @@ def add_Quest(message):
         print(data)
         cursor.execute("INSERT INTO Quests VALUES(?, ?, ?, ?)", data)
         connect.commit()
-        cursor.close()
-        connect.close()
     except Exception as e:
         print(e)
 
@@ -485,9 +411,6 @@ def isFree(userID):  # проверить выполняет ли пользов
         cursor = connect.cursor()
         cursor.execute("SELECT Status FROM Users WHERE ID=" + str(userID))
         status = cursor.fetchall()
-        connect.commit()
-        cursor.close()
-        connect.close()
         if status[0][0] == args.waitStatus:
             return True
         else:
@@ -516,9 +439,6 @@ def give_new_prof(userID):
         for i in range(len(profs)):
             print(i)
             user_markup.row(profs[i][0])
-        connect.commit()
-        cursor.close()
-        connect.close()
         args.bot.send_message(parse_mode='HTML', chat_id=userID,
                               text='<i>Вы получили новый ранг, теперь вы можете выбрать новую профессию</i>',
                               reply_markup=user_markup)
@@ -534,8 +454,6 @@ def start_job(userID, status, time):  # замена статуса и указ�
         cursor.execute("UPDATE Users SET Status='{0}' WHERE ID='{1}'".format(str(status), str(userID)))
         cursor.execute("UPDATE Users SET End_time='{0}' WHERE ID='{1}'".format(str(time), str(userID)))
         connect.commit()
-        cursor.close()
-        connect.close()
     except Exception as e:
         print(e)
 
@@ -546,8 +464,6 @@ def plus_count_works(userID):  # указание количества выпо�
         cursor = connect.cursor()
         cursor.execute("UPDATE Users SET Count_Works=Count_Works+1 WHERE ID='{0}'".format(str(userID)))
         connect.commit()
-        cursor.close()
-        connect.close()
         up_lvl(userID)  # повышение ранга
     except Exception as e:
         print(e)
@@ -559,8 +475,6 @@ def minus_money(userID, money):
         cursor = connect.cursor()
         cursor.execute("UPDATE Users SET Money=Money-{0} WHERE ID='{1}'".format(money, userID))
         connect.commit()
-        cursor.close()
-        connect.close()
     except Exception as e:
         print(e)
 
@@ -575,9 +489,6 @@ def check_requests(userID, company):
     for i in range(len(reqs)):
         if reqs[i][0] == userID and reqs[i][1] == company:
             return False
-    connect.commit()
-    cursor.close()
-    connect.close()
     return True
 
 
@@ -587,8 +498,6 @@ def newReq(toID, fromWho):
     cursor.execute("INSERT INTO Requests VALUES ({},'{}',0)".format(toID, str(fromWho)))
     connect.commit()
     getReq(toID)
-    cursor.close()
-    connect.close()
 
 
 def getReq(toID):
@@ -602,9 +511,6 @@ def getReq(toID):
     for i in range(len(res)):
         msg += str(res[i][1]) + ' /accept' + str(get_owner(res[i][1]))
         msg += '\n'
-    connect.commit()
-    cursor.close()
-    connect.close()
     return msg
 
 
@@ -613,8 +519,6 @@ def delete_request(userID):
     cursor = connect.cursor()
     cursor.execute("DELETE FROM Requests WHERE toUserID={}".format(userID))
     connect.commit()
-    cursor.close()
-    connect.close()
 
 
 def get_referal_owner(userID):
@@ -624,9 +528,6 @@ def get_referal_owner(userID):
         cursor.execute("SELECT InviteID FROM Users WHERE ID=" + str(userID))
         ownerID = cursor.fetchall()[0][0]
         if len(str(ownerID)) > 1:
-            connect.commit()
-            cursor.close()
-            connect.close()
             return int(ownerID)
     except Exception as e:
         print(e)
@@ -637,7 +538,7 @@ def get_noInCorpUsers(message):
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
-        cursor.execute("SELECT ID,NickName,Profession FROM Users WHERE Comp='0'")
+        cursor.execute("SELECT ID,NickName,Profession FROM Users WHERE Comp='0' ORDER BY RANDOM() LIMIT 7")
         users = cursor.fetchall()
         msg_text = ''
         print('check')
@@ -648,9 +549,6 @@ def get_noInCorpUsers(message):
                 print(i)
                 msg_text += str(users[i][1]) + ' ' + str(users[i][2]) + ' /invite' + str(users[i][0])
                 msg_text += '\n'
-        connect.commit()
-        cursor.close()
-        connect.close()
         return msg_text
     except Exception as e:
         print(e)
@@ -666,9 +564,6 @@ def UpdQuests():
         args.QuestsArr.append([i[0], i[1], i[2], i[3]])
     print("Список всех поступивших квестов: ")
     print(args.QuestsArr)
-    connect.commit()
-    cursor.close()
-    connect.close()
 
 
 def UpdProf():  # Обновление полного списка профессий и профессий для начинающих
@@ -678,9 +573,6 @@ def UpdProf():  # Обновление полного списка профес�
     args.ProfArr = cursor.fetchall()
     print("Список всех поступивших профессий: ")
     print(args.ProfArr)
-    connect.commit()
-    cursor.close()
-    connect.close()
 
     args.techList = []
     args.gumList = []
