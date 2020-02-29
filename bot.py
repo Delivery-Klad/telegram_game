@@ -217,7 +217,19 @@ def handler_changeSpec(message):
         print(e)
 
 
-# @bot.message_handler(commands=['invite'])  # функция инвайта в орг
+@bot.message_handler(commands=['invite'])  # функция инвайта в орг
+def handler_org(message):
+    try:
+        if dataBase.isOwner(message.from_user.id):
+            functions.log(message)
+            bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                             text='<b>Выберете кому кинуть приглос:\n</b>' + str(dataBase.get_workers(message)))
+        else:
+            bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text='<b>Вы не владеле компании</b>')
+    except Exception as e:
+        print(e)
+
+
 def handler_invite(message):
     try:
         functions.log(message)
@@ -323,7 +335,7 @@ def handler_corp_help(message):
                               '/accept - Согласиться вступить в организацию\n'
                               '/cancel - Отказаться от вступления в организацию\n'
                               '/kick (+id) - Выгнать из организации\n'
-                              '/invite (+id) - Приглос в организацию\n'
+                              '/invite - Выбрать кому отправить приглос в орг\n'
                               '/corp_members - Информация о членах организации\n'
                               '-\n'
                               '-')

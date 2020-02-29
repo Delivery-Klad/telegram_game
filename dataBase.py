@@ -633,6 +633,29 @@ def get_referal_owner(userID):
         return str('none')
 
 
+def get_noInCorpUsers(message):
+    try:
+        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+        cursor = connect.cursor()
+        cursor.execute("SELECT ID,NickName,Profession FROM Users WHERE Comp='0'")
+        users = cursor.fetchall()
+        msg_text = ''
+        print('check')
+        print(len(users[0]))
+        print(len(users))
+        for i in range(len(users)):
+            if users[i][0] != message.from_user.id:
+                print(i)
+                msg_text += str(users[i][1]) + ' ' + str(users[i][2]) + ' /invite' + str(users[i][0])
+                msg_text += '\n'
+        connect.commit()
+        cursor.close()
+        connect.close()
+        return msg_text
+    except Exception as e:
+        print(e)
+
+
 def UpdQuests():
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
