@@ -135,7 +135,8 @@ def get_task(userID):
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
-        cursor.execute("SELECT Quest FROM Quests WHERE Profession='{0}' AND Rank<='{1}'".format(str(get_prof(userID)), str(get_rank(userID))))
+        cursor.execute("SELECT Quest FROM Quests WHERE Profession='{0}' AND Rank<='{1}'".
+                       format(str(get_prof(userID)), str(get_rank(userID))))
         quests = cursor.fetchall()
         if len(quests) > 1:
             task = random.randint(0, len(quests)-1)
@@ -144,7 +145,7 @@ def get_task(userID):
         print(quests[task][0])
         return quests[task][0]
     except Exception as e:
-        return "Сходи отдохни"
+        print(e)
 
 
 def get_workers(message):
@@ -256,6 +257,7 @@ def inCorp(userID):
         else:
             return True
     except Exception as e:
+        print(e)
         return True
 
 
@@ -269,7 +271,7 @@ def kick_from_corp(userID):
 def corp_members(userID):
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
-    cursor.execute("SELECT ID,NickName FROM Users WHERE Comp='{}'".format(str(get_company(userID))))
+    cursor.execute("SELECT ID,NickName FROM Users WHERE Comp='{0}'".format(str(get_company(userID))))
     members = cursor.fetchall()
     print(len(members))
     print(members)
@@ -338,7 +340,7 @@ def upd_taskNow(userID, task):
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
-        cursor.execute("UPDATE Users SET TaskNow='{0}' WHERE ID={1}".format(task, str(userID)))
+        cursor.execute("UPDATE Users SET TaskNow='{0}' WHERE ID={1}".format(str(task), str(userID)))
         connect.commit()
     except Exception as e:
         print(e)
@@ -382,11 +384,13 @@ def add_money(userID, money):
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
-        cursor.execute("UPDATE Users SET Money=Money+{} WHERE ID={}".format(money, userID))
+        cursor.execute("UPDATE Users SET Money=Money+{0} WHERE ID={1}".format(money, userID))
+        connect.commit()
         upd_taskNow(userID, "None")
         ownerID = get_referal_owner(userID)
-        if str(ownerID) != 'none':
-            cursor.execute("UPDATE Users SET Money=Money+{} WHERE ID={}".format((money/args.referal_procent), ownerID))
+        if str(ownerID) != 'none' and ownerID != 0:
+            cursor.execute("UPDATE Users SET Money=Money+{0} WHERE ID={1}".
+                           format((money/args.referal_procent), ownerID))
         connect.commit()
     except Exception as e:
         print(e)
@@ -433,7 +437,8 @@ def give_new_prof(userID):
             profID = 0
         else:
             profID = 1
-        cursor.execute("SELECT Prof FROM Profs WHERE ProfRank<={0} AND ProfCheck={1}".format(str(get_user_rank(userID)), profID))
+        cursor.execute("SELECT Prof FROM Profs WHERE ProfRank<={0} AND ProfCheck={1}".
+                       format(str(get_user_rank(userID)), profID))
         profs = cursor.fetchall()
         print(profs)
         for i in range(len(profs)):
@@ -495,7 +500,7 @@ def check_requests(userID, company):
 def newReq(toID, fromWho):
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
-    cursor.execute("INSERT INTO Requests VALUES ({},'{}',0)".format(toID, str(fromWho)))
+    cursor.execute("INSERT INTO Requests VALUES ({0},'{1}',0)".format(toID, str(fromWho)))
     connect.commit()
     getReq(toID)
 
@@ -503,7 +508,7 @@ def newReq(toID, fromWho):
 def getReq(toID):
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
-    cursor.execute("SELECT DISTINCT * FROM Requests WHERE toUserID={}".format(toID))
+    cursor.execute("SELECT DISTINCT * FROM Requests WHERE toUserID={0}".format(toID))
     res = cursor.fetchall()
     print(res)
     print(len(res))
@@ -517,7 +522,7 @@ def getReq(toID):
 def delete_request(userID):
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
-    cursor.execute("DELETE FROM Requests WHERE toUserID={}".format(userID))
+    cursor.execute("DELETE FROM Requests WHERE toUserID={0}".format(userID))
     connect.commit()
 
 
@@ -529,6 +534,8 @@ def get_referal_owner(userID):
         ownerID = cursor.fetchall()[0][0]
         if len(str(ownerID)) > 1:
             return int(ownerID)
+        else:
+            return 0
     except Exception as e:
         print(e)
         return str('none')
@@ -557,7 +564,7 @@ def get_noInCorpUsers(message):
 def UpdQuests():
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
-    cursor.execute("SELECT * FROM {}".format("Quests"))
+    cursor.execute("SELECT * FROM {0}".format("Quests"))
     args.QuestsArr = []
     res = cursor.fetchall()
     for i in res:

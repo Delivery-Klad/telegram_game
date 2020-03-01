@@ -47,12 +47,11 @@ def handler_start(message):
                 break
         if not contain:
             bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text=args.test_question)
-            referal = True
-            res = 0
             try:
                 mess = message.text.split()
                 res = mess[1]
-            except Exception:
+            except Exception as e:
+                print(e)
                 res = 0
             data = [message.from_user.id, message.from_user.username, "None", "None", "None", str(args.waitStatus),
                     "None", 0, str(datetime.now().strftime('%d-%m-%Y %H:%M:%S')), 0, "0", 0, "0", 0, "None", res]
@@ -250,7 +249,8 @@ def handler_invite(message):
                 if not dataBase.inCorp(userID):
                     '''bot.send_message(parse_mode='HTML', chat_id=int(userID), text='Пользователь {0} пригласил вас в '
                                                                                   'организацию {1}'.format(str(dataBase.
-                                                                                    get_nickname(message.from_user.id)), company))'''
+                                                                                    get_nickname(message.from_user.id)),
+                                                                                     company))'''
                     bot.send_message(parse_mode='HTML', chat_id=int(userID),
                                      text='Вы были приглашены в организацию "{}"'.format(company))
                     bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
@@ -296,6 +296,7 @@ def handler_kick(message):
                     bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                      text='<bВы не можете исключить сами себя из организации</b>')
             except Exception as e:
+                print(e)
                 bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                  text='<bВы не можете исключить сами себя из организации</b>')
         else:
@@ -407,7 +408,7 @@ def handler_text(message):
         if len(message.text) > 5:
             if str(message.text[1] + message.text[2] + message.text[3] + message.text[4]) == 'task':
                 workerID = int(message.text[5:])
-                if workerID != message.from_user.id:
+                if workerID != message.from_user.id - 1:
                     if dataBase.isFree(workerID):
                         dataBase.upd_taskNow(workerID, functions.send_task(workerID,
                                                                            dataBase.get_nickname(message.from_user.id),
@@ -596,7 +597,7 @@ def handler_photo(message):
 
 try:  # максимально странная конструкция
     while True:
-        t = threading.Thread(target=loopWork.timer, name='timer', args=[bot])  # создание потока для функции timer
+        t = threading.Thread(target=loopWork.timer, name='timer')  # создание потока для функции timer
         t.start()  # запуск потока
         try:
             bot.polling(none_stop=True, interval=0)  # получение обновлений

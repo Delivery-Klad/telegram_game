@@ -29,13 +29,6 @@ def log(message):  # запись лога сообщений
         print(e)
 
 
-def notInLists(message):  # проверка есть ли пользователь в каком-либо списке
-    try:
-        return True
-    except Exception as e:
-        print(e)
-
-
 def send_task(workerID, name, task):  # отправка задания пользователю
     try:
         args.bot.send_message(parse_mode='HTML', chat_id=workerID,
