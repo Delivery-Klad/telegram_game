@@ -37,7 +37,7 @@ def timer():
                                         money = dataBase.get_taskCost(userId[0][u])
                                         args.bot.send_message(parse_mode='HTML', chat_id=userId[0][u],
                                                               text='<b>Вы закончили выполнение задания</b>\nВаш '
-                                                                   'заработок: ' + str(money))
+                                                                   'заработок: ' + str(money) + args.currency)
                                         dataBase.plus_count_works(userId[0][u])  # +1 к выполненным заданиям
                                         dataBase.add_money(userId[0][u], money)
                                         dataBase.start_job(userId[0][u], args.waitStatus, 'None')

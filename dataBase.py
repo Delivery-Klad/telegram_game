@@ -122,7 +122,7 @@ def get_prof(userID):
     return prof[0][0]
 
 
-def get_rank(userID):
+def get_userRank(userID):
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
     cursor.execute("SELECT UserRank FROM Users WHERE ID=" + str(userID))
@@ -131,12 +131,20 @@ def get_rank(userID):
     return rank[0][0]
 
 
+def get_profRank(quest):
+    connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+    cursor = connect.cursor()
+    cursor.execute("SELECT Rank FROM Quest WHERE Quest=" + str(quest))
+    rank = cursor.fetchall()[0][0]
+    return rank
+
+
 def get_task(userID):
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
         cursor.execute("SELECT Quest FROM Quests WHERE Profession='{0}' AND Rank<='{1}'".
-                       format(str(get_prof(userID)), str(get_rank(userID))))
+                       format(str(get_prof(userID)), str(get_userRank(userID))))
         quests = cursor.fetchall()
         if len(quests) > 1:
             task = random.randint(0, len(quests)-1)
@@ -144,6 +152,32 @@ def get_task(userID):
             task = 0
         print(quests[task][0])
         return quests[task][0]
+    except Exception as e:
+        print(e)
+
+
+def get_corpTask(userID):
+    try:
+        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+        cursor = connect.cursor()
+        cursor.execute("SELECT Quest,Profession,Rank FROM Quests")
+        quests = cursor.fetchall()
+        msg = 'Вы можете распределеить задания между своими сотрудниками\nПрофессия: '
+        if len(quests) > 1:
+            for i in range(5):
+                task = random.randint(0, len(quests)-1)
+                print('00')
+                if quests[task][1] in args.all_techList:
+                    print('1')
+                    msg += '{0}\nТребуемый ранг: {1}\nЗадание: {2} /give_tech\n'.format(quests[task][1], quests[task][2], quests[task][0])
+                elif quests[task][1] in args.all_gumList:
+                    print('2')
+                    msg += '{0}\nТребуемый ранг: {1}\nЗадание: {2} /give_gum\n'.format(quests[task][1], quests[task][2], quests[task][0])
+                elif quests[task][1] in args.all_lowList:
+                    print('3')
+                    msg += '{0}\nТребуемый ранг: {1}\nЗадание: {2} /give_low\n'.format(quests[task][1], quests[task][2], quests[task][0])
+        print(msg)
+        return msg
     except Exception as e:
         print(e)
 
@@ -179,25 +213,6 @@ def get_balance(userID):
         return money
     except Exception as e:
         print(e)
-
-
-def get_free_users():
-    connect = sqlite3.connect(args.filesFolderName + args.databaseName)
-    cursor = connect.cursor()
-    cursor.execute("SELECT ID,NickName FROM Users WHERE Comp='0'")
-    users = cursor.fetchall()
-    msg = ''
-    print(len(users))
-    return msg
-
-
-def get_user_rank(userID):
-    connect = sqlite3.connect(args.filesFolderName + args.databaseName)
-    cursor = connect.cursor()
-    cursor.execute("SELECT UserRank FROM Users WHERE ID=" + str(userID))
-    rank = cursor.fetchall()[0][0]
-    print(rank)
-    return rank
 
 
 def get_company(userID):
@@ -438,7 +453,7 @@ def give_new_prof(userID):
         else:
             profID = 1
         cursor.execute("SELECT Prof FROM Profs WHERE ProfRank<={0} AND ProfCheck={1}".
-                       format(str(get_user_rank(userID)), profID))
+                       format(str(get_userRank(userID)), profID))
         profs = cursor.fetchall()
         print(profs)
         for i in range(len(profs)):
@@ -594,3 +609,11 @@ def UpdProf():  # Обновление полного списка профес�
             args.gumList.append(i[0])
         elif i[2] == LowProfRank and i[1] == 3:
             args.lowList.append(i[0])
+
+    for i in args.ProfArr:
+        if i[1] == techID:
+            args.all_techList.append(i[0])
+        elif i[1] == gumID:
+            args.all_gumList.append(i[0])
+        elif i[1] == 3:
+            args.all_lowList.append(i[0])
