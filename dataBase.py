@@ -260,6 +260,18 @@ def get_job_timer(userID):
         print(e)
 
 
+def get_Corp(userID):
+    try:
+        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+        cursor = connect.cursor()
+        cursor.execute("SELECT Comp FROM Users WHERE ID=" + str(userID))
+        corpName = cursor.fetchall()[0][0]
+        return corpName
+    except Exception as e:
+        print(e)
+        return True
+
+
 def inCorp(userID):
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
