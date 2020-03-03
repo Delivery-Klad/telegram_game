@@ -471,6 +471,18 @@ def handler_text(message):
                 bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                  text='<b>Вы присоединились к организации </b>' + str(company))
                 return
+            elif str(message.text[1:-1]) == 'give_tech':
+                ID = str(message.text[len(message.text)-1])
+                dataBase.get_tech(message.from_user.id, ID)
+                return
+            elif str(message.text[1:-1]) == 'give_gum':
+                ID = str(message.text[len(message.text)-1])
+                dataBase.get_gum(message.from_user.id, ID)
+                return
+            elif str(message.text[1:-1]) == 'give_low':
+                ID = str(message.text[len(message.text)-1])
+                dataBase.get_low(message.from_user.id, ID)
+                return
         if message.text == args.acceptWorkButton or message.text == args.cancelWorkButton:
             if message.text == args.acceptWorkButton:
                 handler_accept(message)

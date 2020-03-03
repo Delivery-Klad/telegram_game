@@ -55,20 +55,10 @@ def set_profession(message, in_profArr):
             spec = cursor.fetchall()
             if spec[0][0] == 'tech':
                 cursor.execute(
-<<<<<<< HEAD
-                    "UPDATE Users SET Profession='{0}' WHERE ID='{1}'".format(str(message.text),str(message.from_user.id)))
-            else:
-                return False
-=======
                     "UPDATE Users SET Profession='{0}' WHERE ID='{1}'".format(str(message.text),
                                                                               str(message.from_user.id)))
-<<<<<<< HEAD
             else:
                 return False
-=======
-            
->>>>>>> 9a196c6dc789b9f49afef43b6786018af5517049
->>>>>>> 397d2a27b1a2dbb9e413dc9a09ccb40d339cd318
         elif message.text in args.gumList:
             cursor.execute("SELECT Spec FROM Users WHERE ID=" + str(message.from_user.id))
             spec = cursor.fetchall()
@@ -163,7 +153,7 @@ def get_task(userID):
                        format(str(get_prof(userID)), str(get_userRank(userID))))
         quests = cursor.fetchall()
         if len(quests) > 1:
-            task = random.randint(0, len(quests)-1)
+            task = random.randint(0, len(quests) - 1)
         else:
             task = 0
         print(quests[task][0])
@@ -181,19 +171,73 @@ def get_corpTask(userID):
         msg = 'Вы можете распределеить задания между своими сотрудниками\nПрофессия: '
         if len(quests) > 1:
             for i in range(5):
-                task = random.randint(0, len(quests)-1)
-                print('00')
+                print(i)
+                task = random.randint(0, len(quests) - 1)
                 if quests[task][1] in args.all_techList:
-                    print('1')
-                    msg += '{0}\nТребуемый ранг: {1}\nЗадание: {2} /give_tech\n'.format(quests[task][1], quests[task][2], quests[task][0])
+                    msg += '{0}\nТребуемый ранг: {1}\nЗадание: {2} /give_tech{1}\n'.format(quests[task][1],
+                                                                                           quests[task][2],
+                                                                                           quests[task][0])
+                    data = [quests[task][0], "tech", quests[task][2], userID]
+                    cursor.execute("INSERT INTO CorpTasks VALUES (?,?,?,?)", data)
+                    connect.commit()
                 elif quests[task][1] in args.all_gumList:
-                    print('2')
-                    msg += '{0}\nТребуемый ранг: {1}\nЗадание: {2} /give_gum\n'.format(quests[task][1], quests[task][2], quests[task][0])
+                    msg += '{0}\nТребуемый ранг: {1}\nЗадание: {2} /give_gum{1}\n'.format(quests[task][1],
+                                                                                          quests[task][2],
+                                                                                          quests[task][0])
+                    data = [quests[task][0], "gum", quests[task][2], userID]
+                    cursor.execute("INSERT INTO CorpTasks VALUES (?,?,?,?)", data)
+                    connect.commit()
                 elif quests[task][1] in args.all_lowList:
-                    print('3')
-                    msg += '{0}\nТребуемый ранг: {1}\nЗадание: {2} /give_low\n'.format(quests[task][1], quests[task][2], quests[task][0])
+                    msg += '{0}\nТребуемый ранг: {1}\nЗадание: {2} /give_low{1}\n'.format(quests[task][1],
+                                                                                          quests[task][2],
+                                                                                          quests[task][0])
+                    data = [quests[task][0], "low", quests[task][2], userID]
+                    cursor.execute("INSERT INTO CorpTasks VALUES (?,?,?,?)", data)
+                    connect.commit()
         print(msg)
         return msg
+    except Exception as e:
+        print(e)
+
+
+def get_tech(userID, rank):
+    try:
+        company = get_company(userID)
+        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+        cursor = connect.cursor()
+        cursor.execute("SELECT NickName,ID FROM Users WHERE UserRank>={0} AND Spec='tech' AND Comp='{1}'".
+                       format(rank, company))
+        users = cursor.fetchall()
+        msg = ''
+        print(users)
+    except Exception as e:
+        print(e)
+
+
+def get_gum(userID, rank):
+    try:
+        company = get_company(userID)
+        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+        cursor = connect.cursor()
+        cursor.execute("SELECT NickName,ID FROM Users WHERE UserRank>={0} AND Spec='gum' AND Comp={1}".
+                       format(rank, company))
+        users = cursor.fetchall()
+        msg = ''
+        print(users)
+    except Exception as e:
+        print(e)
+
+
+def get_low(userID, rank):
+    try:
+        company = get_company(userID)
+        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+        cursor = connect.cursor()
+        cursor.execute("SELECT NickName,ID FROM Users WHERE UserRank>={0} AND Spec='low' AND Comp={1}".
+                       format(rank, company))
+        users = cursor.fetchall()
+        msg = ''
+        print(users)
     except Exception as e:
         print(e)
 
@@ -433,7 +477,7 @@ def add_money(userID, money):
         ownerID = get_referal_owner(userID)
         if str(ownerID) != 'none' and ownerID != 0:
             cursor.execute("UPDATE Users SET Money=Money+{0} WHERE ID={1}".
-                           format((money/args.referal_procent), ownerID))
+                           format((money / args.referal_procent), ownerID))
         connect.commit()
     except Exception as e:
         print(e)
