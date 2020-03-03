@@ -57,6 +57,7 @@ def set_profession(message, in_profArr):
                 cursor.execute(
                     "UPDATE Users SET Profession='{0}' WHERE ID='{1}'".format(str(message.text),
                                                                               str(message.from_user.id)))
+            
         elif message.text in args.gumList:
             cursor.execute("SELECT Spec FROM Users WHERE ID=" + str(message.from_user.id))
             spec = cursor.fetchall()
