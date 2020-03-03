@@ -4,7 +4,6 @@
 from datetime import datetime
 import dataBase
 import sqlite3
-import functions
 import args
 
 """
@@ -14,7 +13,7 @@ import args
 """
 
 
-def timer(bot):
+def timer():
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
@@ -31,17 +30,21 @@ def timer(bot):
                                 end_minutes = int(end_time[i][0])
                                 mitutes_now = int(datetime.now().strftime('%M'))
                                 if mitutes_now == end_minutes or mitutes_now > end_minutes:
-                                    cursor.execute("SELECT ID FROM Users WHERE End_time=" + str(end_minutes))  # остановить выполнение работы
+                                    cursor.execute("SELECT ID FROM Users WHERE End_time=" + str(end_minutes))
                                     userId = cursor.fetchall()
                                     for u in range(len(userId[0])):
                                         print(userId[0][u])
                                         money = dataBase.get_taskCost(userId[0][u])
                                         args.bot.send_message(parse_mode='HTML', chat_id=userId[0][u],
                                                               text='<b>Вы закончили выполнение задания</b>\nВаш '
-                                                                   'заработок: ' + str(money))
+                                                                   'заработок: ' + str(money) + args.currency)
                                         dataBase.plus_count_works(userId[0][u])  # +1 к выполненным заданиям
+                                        company = dataBase.get_Corp(userId[0][u])
+                                        if company != '0':
+                                            ownerID = dataBase.get_owner(company)
+                                            dataBase.add_money(ownerID, int(money)/10)
                                         dataBase.add_money(userId[0][u], money)
-                                        dataBase.start_job(userId[0][u], args.waitStatus, 'None')  # статус ожидания работы и установка времени на None
+                                        dataBase.start_job(userId[0][u], args.waitStatus, 'None')
                         # bot.send_message(496537969, 'test')
                         # bot.send_message(441287694, 'test')
                         print('checking')

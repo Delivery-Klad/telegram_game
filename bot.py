@@ -47,12 +47,11 @@ def handler_start(message):
                 break
         if not contain:
             bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text=args.test_question)
-            referal = True
-            res = 0
             try:
                 mess = message.text.split()
                 res = mess[1]
-            except Exception:
+            except Exception as e:
+                print(e)
                 res = 0
             data = [message.from_user.id, message.from_user.username, "None", "None", "None", str(args.waitStatus),
                     "None", 0, str(datetime.now().strftime('%d-%m-%Y %H:%M:%S')), 0, "0", 0, "0", 0, "None", res]
@@ -60,42 +59,6 @@ def handler_start(message):
         connect.commit()
     except Exception as e:
         print(e)
-
-
-@bot.message_handler(commands=['log'])  # функция обработки запроса логов
-def handler_log(message):
-    try:
-        functions.log(message)
-        if functions.isAdmin(message.from_user.id):
-            doc = open(args.filesFolderName + args.logFileName, 'rb')
-            bot.send_document(message.from_user.id, doc)
-    except Exception as e:
-        print(e)
-
-
-@bot.message_handler(commands=['db'])  # функция обработки запроса базы данных
-def handler_db(message):
-    try:
-        functions.log(message)
-        if functions.isAdmin(message.from_user.id):
-            doc = open(args.filesFolderName + args.databaseName, 'rb')
-            bot.send_document(message.from_user.id, doc)
-    except Exception as e:
-        print(e)
-
-
-@bot.message_handler(commands=['add_quest'])  # функция обработки запроса логов
-def handler_add_quest(message):
-    try:
-        functions.log(message)
-        dataBase.add_Quest(message)
-    except Exception as e:
-        print(e)
-
-@bot.message_handler(commands=['ref'])
-def handler_referal(message):
-    functions.log(message)
-    bot.send_message(chat_id=message.from_user.id, text="Реферальная ссылка для помощи проекту и себе: https://telegram.me/Lonely_parnisha_bot?start={}".format(message.from_user.id))
 
 
 @bot.message_handler(commands=['help'])  # обработка команды помощи
@@ -130,21 +93,72 @@ def handler_help(message):
         print(e)
 
 
-@bot.message_handler(commands=['upd_quests'])  # функция обработки всех квестов
-def handler_quest(message):
+@bot.message_handler(commands=['corp_help'])  # функция инвайта в орг
+def handler_corp_help(message):
     try:
         functions.log(message)
-        dataBase.UpdQuests()
+        bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                         text='Меню помощи\n'
+                              '/create_corp (+название) - Создать организацию\n'
+                              '/leave_corp - Покинуть организацию\n'
+                              '/accept - Согласиться вступить в организацию\n'
+                              '/cancel - Отказаться от вступления в организацию\n'
+                              '/kick (+id) - Выгнать из организации\n'
+                              '/invite - Выбрать кому отправить приглос в орг\n'
+                              '/corp_members - Информация о членах организации\n'
+                              '-\n'
+                              '-')
     except Exception as e:
         print(e)
 
 
-@bot.message_handler(commands=['upd_profs'])  # функция обработки всех квестов
-def handler_quest(message):
+@bot.message_handler(commands=['log'])  # функция обработки запроса логов
+def handler_log(message):
     try:
         functions.log(message)
-        dataBase.UpdProf()
+        if functions.isAdmin(message.from_user.id):
+            doc = open(args.filesFolderName + args.logFileName, 'rb')
+            bot.send_document(message.from_user.id, doc)
+    except Exception as e:
+        print(e)
+
+
+@bot.message_handler(commands=['db'])  # функция обработки запроса базы данных
+def handler_db(message):
+    try:
         functions.log(message)
+        if functions.isAdmin(message.from_user.id):
+            doc = open(args.filesFolderName + args.databaseName, 'rb')
+            bot.send_document(message.from_user.id, doc)
+    except Exception as e:
+        print(e)
+
+
+@bot.message_handler(commands=['add_quest'])  # функция обработки запроса логов
+def handler_add_quest(message):
+    try:
+        functions.log(message)
+        dataBase.add_Quest(message)
+        dataBase.UpdQuests()
+        dataBase.UpdProf()
+    except Exception as e:
+        print(e)
+
+
+@bot.message_handler(commands=['ref'])
+def handler_referal(message):
+    functions.log(message)
+    bot.send_message(chat_id=message.from_user.id, text="Реферальная ссылка для помощи проекту и себе: "
+                                                        "https://telegram.me/Lonely_parnisha_bot?start={}"
+                                                        .format(message.from_user.id))
+
+
+@bot.message_handler(commands=['balance'])
+def handler_balance(message):
+    try:
+        functions.log(message)
+        bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                         text='<i>Ваш баланс: </i>' + str(dataBase.get_balance(message.from_user.id)))
     except Exception as e:
         print(e)
 
@@ -159,17 +173,50 @@ def handler_giveTask(message):
         print(e)
 
 
-@bot.message_handler(commands=['balance'])  # функция выдачи задания
-def handler_balance(message):
+@bot.message_handler(commands=['give_tech'])  # функция выдачи задания
+def handler_giveTask(message):
     try:
         functions.log(message)
         bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
-                         text='<i>Ваш баланс: </i>' + str(dataBase.get_balance(message.from_user.id)))
+                         text='<b>Тут пока ничего нет</b>')
     except Exception as e:
         print(e)
 
 
-@bot.message_handler(commands=['accept'])  # функция выдачи задания
+@bot.message_handler(commands=['give_gum'])  # функция выдачи задания
+def handler_giveTask(message):
+    try:
+        functions.log(message)
+        bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                         text='<b>Тут пока ничего нет</b>')
+    except Exception as e:
+        print(e)
+
+
+@bot.message_handler(commands=['give_low'])  # функция выдачи задания
+def handler_giveTask(message):
+    try:
+        functions.log(message)
+        bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                         text='<b>Тут пока ничего нет</b>')
+    except Exception as e:
+        print(e)
+
+
+@bot.message_handler(commands=['invite'])  # функция инвайта в орг
+def handler_org(message):
+    try:
+        if dataBase.isOwner(message.from_user.id):
+            functions.log(message)
+            bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                             text='<b>Выберете кому кинуть приглос:\n</b>' + str(dataBase.get_noInCorpUsers(message)))
+        else:
+            bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text='<b>Вы не владеле компании</b>')
+    except Exception as e:
+        print(e)
+
+
+@bot.message_handler(commands=['accept'])
 def handler_accept(message):
     try:
         functions.log(message)
@@ -192,7 +239,7 @@ def handler_accept(message):
         print(e)
 
 
-@bot.message_handler(commands=['cancel'])  # функция выдачи задания
+@bot.message_handler(commands=['cancel'])
 def handler_cancel(message):
     try:
         functions.log(message)
@@ -204,7 +251,7 @@ def handler_cancel(message):
         print(e)
 
 
-@bot.message_handler(commands=['change_spec'])  # функция выдачи задания
+@bot.message_handler(commands=['change_spec'])
 def handler_changeSpec(message):
     try:
         functions.log(message)
@@ -214,7 +261,15 @@ def handler_changeSpec(message):
         print(e)
 
 
-# @bot.message_handler(commands=['invite'])  # функция инвайта в орг
+@bot.message_handler(commands=['exit'])
+def handler_changeSpec(message):
+    try:
+        functions.log(message)
+        bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text='<i>Выход только в окно</i>')
+    except Exception as e:
+        print(e)
+
+
 def handler_invite(message):
     try:
         functions.log(message)
@@ -226,7 +281,8 @@ def handler_invite(message):
                 if not dataBase.inCorp(userID):
                     '''bot.send_message(parse_mode='HTML', chat_id=int(userID), text='Пользователь {0} пригласил вас в '
                                                                                   'организацию {1}'.format(str(dataBase.
-                                                                                    get_nickname(message.from_user.id)), company))'''
+                                                                                    get_nickname(message.from_user.id)),
+                                                                                     company))'''
                     bot.send_message(parse_mode='HTML', chat_id=int(userID),
                                      text='Вы были приглашены в организацию "{}"'.format(company))
                     bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
@@ -250,7 +306,6 @@ def handler_invite(message):
         print(e)
 
 
-# @bot.message_handler(commands=['kick'])  # функция кика из орг
 def handler_kick(message):
     try:
         functions.log(message)
@@ -268,7 +323,11 @@ def handler_kick(message):
                     else:
                         bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                          text='<b>Пользователь не состоит в организации</b>')
+                else:
+                    bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                                     text='<bВы не можете исключить сами себя из организации</b>')
             except Exception as e:
+                print(e)
                 bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                  text='<bВы не можете исключить сами себя из организации</b>')
         else:
@@ -309,21 +368,20 @@ def handler_leave(message):
         print(e)
 
 
-@bot.message_handler(commands=['corp_help'])  # функция инвайта в орг
-def handler_corp_help(message):
+@bot.message_handler(commands=['get_task'])  # функция ухода из орг
+def handler_leave(message):
     try:
         functions.log(message)
-        bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
-                         text='Меню помощи\n'
-                              '/create_corp (+название) - Создать организацию\n'
-                              '/leave_corp - Покинуть организацию\n'
-                              '/accept - Согласиться вступить в организацию\n'
-                              '/cancel - Отказаться от вступления в организацию\n'
-                              '/kick (+id) - Выгнать из организации\n'
-                              '/invite (+id) - Приглос в организацию\n'
-                              '/corp_members - Информация о членах организации\n'
-                              '-\n'
-                              '-')
+        if dataBase.inCorp(message.from_user.id):
+            if dataBase.isOwner(message.from_user.id):
+                msg = dataBase.get_corpTask(message.from_user.id)
+                bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text=msg)
+            else:
+                bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                                 text='<b>Вы не глава организации</b>')
+        else:
+            bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                             text='<b>Вы не состоите в организации</b>')
     except Exception as e:
         print(e)
 
@@ -332,7 +390,7 @@ def handler_corp_help(message):
 def handler_create_corp(message):
     try:
         functions.log(message)
-        if dataBase.get_rank(message.from_user.id) == args.maxrank:
+        if dataBase.get_userRank(message.from_user.id) == args.maxrank:
             if not dataBase.inCorp(message.from_user.id):
                 if int(dataBase.get_balance(message.from_user.id)[:-1]) >= args.corp_cost:
                     try:
@@ -569,7 +627,7 @@ def handler_photo(message):
 
 try:  # максимально странная конструкция
     while True:
-        t = threading.Thread(target=loopWork.timer, name='timer', args=[bot])  # создание потока для функции timer
+        t = threading.Thread(target=loopWork.timer, name='timer')  # создание потока для функции timer
         t.start()  # запуск потока
         try:
             bot.polling(none_stop=True, interval=0)  # получение обновлений
