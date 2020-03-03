@@ -55,10 +55,20 @@ def set_profession(message, in_profArr):
             spec = cursor.fetchall()
             if spec[0][0] == 'tech':
                 cursor.execute(
-                    "UPDATE Users SET Profession='{0}' WHERE ID='{1}'".format(str(message.text),
-                                                                              str(message.from_user.id)))
+<<<<<<< HEAD
+                    "UPDATE Users SET Profession='{0}' WHERE ID='{1}'".format(str(message.text),str(message.from_user.id)))
             else:
                 return False
+=======
+                    "UPDATE Users SET Profession='{0}' WHERE ID='{1}'".format(str(message.text),
+                                                                              str(message.from_user.id)))
+<<<<<<< HEAD
+            else:
+                return False
+=======
+            
+>>>>>>> 9a196c6dc789b9f49afef43b6786018af5517049
+>>>>>>> 397d2a27b1a2dbb9e413dc9a09ccb40d339cd318
         elif message.text in args.gumList:
             cursor.execute("SELECT Spec FROM Users WHERE ID=" + str(message.from_user.id))
             spec = cursor.fetchall()
