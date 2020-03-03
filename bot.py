@@ -173,36 +173,6 @@ def handler_giveTask(message):
         print(e)
 
 
-@bot.message_handler(commands=['give_tech'])  # функция выдачи задания
-def handler_giveTask(message):
-    try:
-        functions.log(message)
-        bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
-                         text='<b>Тут пока ничего нет</b>')
-    except Exception as e:
-        print(e)
-
-
-@bot.message_handler(commands=['give_gum'])  # функция выдачи задания
-def handler_giveTask(message):
-    try:
-        functions.log(message)
-        bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
-                         text='<b>Тут пока ничего нет</b>')
-    except Exception as e:
-        print(e)
-
-
-@bot.message_handler(commands=['give_low'])  # функция выдачи задания
-def handler_giveTask(message):
-    try:
-        functions.log(message)
-        bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
-                         text='<b>Тут пока ничего нет</b>')
-    except Exception as e:
-        print(e)
-
-
 @bot.message_handler(commands=['invite'])  # функция инвайта в орг
 def handler_org(message):
     try:
@@ -436,7 +406,7 @@ def handler_text(message):
     try:
         functions.log(message)
         if len(message.text) > 5:
-            if str(message.text[1] + message.text[2] + message.text[3] + message.text[4]) == 'task':
+            if str(message.text[1:5]) == 'task':
                 workerID = int(message.text[5:])
                 if workerID != message.from_user.id:
                     if dataBase.isFree(workerID):
@@ -454,7 +424,7 @@ def handler_text(message):
                     bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                      text='<b>А ты хитрый жук, не делай так больше</b>')
                 return
-            elif str(message.text[1] + message.text[2] + message.text[3] + message.text[4]) == 'kick':
+            elif str(message.text[1:5]) == 'kick':
                 handler_kick(message)
                 return
             elif str(message.text[1:7]) == 'invite':
@@ -471,18 +441,51 @@ def handler_text(message):
                 bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                  text='<b>Вы присоединились к организации </b>' + str(company))
                 return
-            elif str(message.text[1:-1]) == 'give_tech':
-                ID = str(message.text[len(message.text)-1])
-                dataBase.get_tech(message.from_user.id, ID)
-                return
-            elif str(message.text[1:-1]) == 'give_gum':
-                ID = str(message.text[len(message.text)-1])
-                dataBase.get_gum(message.from_user.id, ID)
-                return
-            elif str(message.text[1:-1]) == 'give_low':
-                ID = str(message.text[len(message.text)-1])
-                dataBase.get_low(message.from_user.id, ID)
-                return
+            elif str(message.text[1:10]) == 'give_tech':
+                if dataBase.isOwner(message.from_user.id):
+                    ID = str(message.text[10:])
+                    msg = dataBase.get_tech(message.from_user.id, ID)
+                    bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text=msg)
+                    return
+                else:
+                    bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                                     text='<b>Кажется вы не глава организации</b>')
+            elif str(message.text[1:9]) == 'give_gum':
+                if dataBase.isOwner(message.from_user.id):
+                    ID = str(message.text[9:])
+                    msg = dataBase.get_gum(message.from_user.id, ID)
+                    bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text=msg)
+                    return
+                else:
+                    bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                                     text='<b>Кажется вы не глава организации</b>')
+            elif str(message.text[1:9]) == 'give_low':
+                if dataBase.isOwner(message.from_user.id):
+                    ID = str(message.text[9:])
+                    msg = dataBase.get_low(message.from_user.id, ID)
+                    bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text=msg)
+                    return
+                else:
+                    bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                                     text='<b>Кажется вы не глава организации</b>')
+            elif str(message.text[2:6]) == 'task':
+                if dataBase.isOwner(message.from_user.id):
+                    tmp = message.text.split('_')
+                    taskID = tmp[2]
+                    userID = tmp[1][4:]
+                    print(taskID)
+                    print(userID)
+                    if dataBase.isFree(userID):
+                        dataBase.upd_can_accept(userID, 1)
+                        msg = dataBase.give_corp_task(taskID, userID)
+                        bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                                         text='<i>Задание отправлено</i>')
+                        bot.send_message(parse_mode='HTML', chat_id=int(userID),
+                                         text=msg)
+                    return
+                else:
+                    bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                                     text='<b>Кажется вы не глава организации</b>')
         if message.text == args.acceptWorkButton or message.text == args.cancelWorkButton:
             if message.text == args.acceptWorkButton:
                 handler_accept(message)

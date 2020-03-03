@@ -174,70 +174,98 @@ def get_corpTask(userID):
                 print(i)
                 task = random.randint(0, len(quests) - 1)
                 if quests[task][1] in args.all_techList:
-                    msg += '{0}\nТребуемый ранг: {1}\nЗадание: {2} /give_tech{1}\n'.format(quests[task][1],
+                    cursor.execute("SELECT MAX(id) FROM CorpTasks")
+                    maxID = cursor.fetchall()[0][0]
+                    data = [quests[task][0], "tech", quests[task][2], userID, int(maxID) + 1]
+                    cursor.execute("INSERT INTO CorpTasks VALUES (?,?,?,?,?)", data)
+                    connect.commit()
+                    msg += '{0}\nТребуемый ранг: {1}\nЗадание: {2} /give_tech{3}\n'.format(quests[task][1],
                                                                                            quests[task][2],
-                                                                                           quests[task][0])
-                    data = [quests[task][0], "tech", quests[task][2], userID]
-                    cursor.execute("INSERT INTO CorpTasks VALUES (?,?,?,?)", data)
-                    connect.commit()
+                                                                                           quests[task][0],
+                                                                                           int(maxID) + 1)
                 elif quests[task][1] in args.all_gumList:
-                    msg += '{0}\nТребуемый ранг: {1}\nЗадание: {2} /give_gum{1}\n'.format(quests[task][1],
-                                                                                          quests[task][2],
-                                                                                          quests[task][0])
-                    data = [quests[task][0], "gum", quests[task][2], userID]
-                    cursor.execute("INSERT INTO CorpTasks VALUES (?,?,?,?)", data)
+                    cursor.execute("SELECT MAX(id) FROM CorpTasks")
+                    maxID = cursor.fetchall()[0][0]
+                    data = [quests[task][0], "gum", quests[task][2], userID, int(maxID) + 1]
+                    cursor.execute("INSERT INTO CorpTasks VALUES (?,?,?,?,?)", data)
                     connect.commit()
+                    msg += '{0}\nТребуемый ранг: {1}\nЗадание: {2} /give_gum{3}\n'.format(quests[task][1],
+                                                                                          quests[task][2],
+                                                                                          quests[task][0],
+                                                                                          int(maxID) + 1)
                 elif quests[task][1] in args.all_lowList:
-                    msg += '{0}\nТребуемый ранг: {1}\nЗадание: {2} /give_low{1}\n'.format(quests[task][1],
-                                                                                          quests[task][2],
-                                                                                          quests[task][0])
-                    data = [quests[task][0], "low", quests[task][2], userID]
-                    cursor.execute("INSERT INTO CorpTasks VALUES (?,?,?,?)", data)
+                    cursor.execute("SELECT MAX(id) FROM CorpTasks")
+                    maxID = cursor.fetchall()[0][0]
+                    data = [quests[task][0], "low", quests[task][2], userID, int(maxID) + 1]
+                    cursor.execute("INSERT INTO CorpTasks VALUES (?,?,?,?,?)", data)
                     connect.commit()
+                    msg += '{0}\nТребуемый ранг: {1}\nЗадание: {2} /give_low{3}\n'.format(quests[task][1],
+                                                                                          quests[task][2],
+                                                                                          quests[task][0],
+                                                                                          int(maxID) + 1)
         print(msg)
         return msg
     except Exception as e:
         print(e)
 
 
-def get_tech(userID, rank):
+def get_tech(userID, taskID):
     try:
         company = get_company(userID)
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
-        cursor.execute("SELECT NickName,ID FROM Users WHERE UserRank>={0} AND Spec='tech' AND Comp='{1}'".
-                       format(rank, company))
+        cursor.execute("SELECT Profession FROM Quests WHERE Quest=(SELECT Task FROM CorpTasks WHERE id=" +
+                       str(taskID) + ")")
+        prof = cursor.fetchall()[0][0]
+        cursor.execute("SELECT rank FROM CorpTasks WHERE ownerID={0} AND id={1}".format(userID, taskID))
+        rank = cursor.fetchall()[0][0]
+        cursor.execute("SELECT NickName,ID FROM Users WHERE UserRank>={0} AND Spec='tech' AND Profession='{1}' AND "
+                       "Comp='{2}' ORDER BY RANDOM() LIMIT 5".format(rank, prof, company))
         users = cursor.fetchall()
-        msg = ''
+        msg = 'Выберете кому дать задание:\n'
+        for i in range(len(users)):
+            msg += str(users[i][0]) + ' /_task' + str(users[i][1]) + '_' + str(taskID) + '\n'
         print(users)
+        return msg
+    except Exception as e:
+        print(e)
+        return 'Выберете кому дать задание:\nNone'
+
+
+def get_gum(userID, taskID):
+    try:
+        company = get_company(userID)
+        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+        cursor = connect.cursor()
+        cursor.execute("SELECT rank FROM CorpTasks WHERE ownerID={0} AND id={1}".format(userID, taskID))
+        rank = cursor.fetchall()[0][0]
+        cursor.execute("SELECT NickName,ID FROM Users WHERE UserRank>={0} AND Spec='gum' AND Comp='{1}' ORDER BY "
+                       "RANDOM() LIMIT 5".format(rank, company))
+        users = cursor.fetchall()
+        msg = 'Выберете кому дать задание:\n'
+        for i in range(len(users)):
+            msg += str(users[i][0]) + ' /_task' + str(users[i][1]) + '_' + str(taskID) + '\n'
+        print(users)
+        return msg
     except Exception as e:
         print(e)
 
 
-def get_gum(userID, rank):
+def get_low(userID, taskID):
     try:
         company = get_company(userID)
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
-        cursor.execute("SELECT NickName,ID FROM Users WHERE UserRank>={0} AND Spec='gum' AND Comp={1}".
-                       format(rank, company))
+        cursor.execute("SELECT rank FROM CorpTasks WHERE ownerID={0} AND id={1}".format(userID, taskID))
+        rank = cursor.fetchall()[0][0]
+        cursor.execute("SELECT NickName,ID FROM Users WHERE UserRank>={0} AND Spec='low' AND Comp='{1}' ORDER BY "
+                       "RANDOM() LIMIT 5".format(rank, company))
         users = cursor.fetchall()
-        msg = ''
+        msg = 'Выберете кому дать задание:\n'
+        for i in range(len(users)):
+            msg += str(users[i][0]) + ' /_task' + str(users[i][1]) + '_' + str(taskID) + '\n'
         print(users)
-    except Exception as e:
-        print(e)
-
-
-def get_low(userID, rank):
-    try:
-        company = get_company(userID)
-        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
-        cursor = connect.cursor()
-        cursor.execute("SELECT NickName,ID FROM Users WHERE UserRank>={0} AND Spec='low' AND Comp={1}".
-                       format(rank, company))
-        users = cursor.fetchall()
-        msg = ''
-        print(users)
+        return msg
     except Exception as e:
         print(e)
 
@@ -330,6 +358,26 @@ def get_Corp(userID):
     except Exception as e:
         print(e)
         return True
+
+
+def give_corp_task(taskID, userID):
+    try:
+        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+        cursor = connect.cursor()
+        cursor.execute("SELECT Task,spec,rank FROM CorpTasks WHERE id=" + str(taskID))
+        task = cursor.fetchall()
+        print(task[0][0])
+        if get_userRank(userID) >= int(task[0][2]) and get_spec(userID) == task[0][1]:
+            upd_taskNow(userID, task[0][0])
+        cursor.execute("DELETE FROM CorpTasks WHERE id=" + str(taskID))
+        connect.commit()
+        msg = '<b>Вы получили задание от главы организиции:</b>\n' + task[0][0] + '<i>\n/accept - ' \
+                                                                                  'Согласиться\n/cancel - ' \
+                                                                                  'Отказаться</i> '
+        return msg
+    except Exception as e:
+        print(e)
+        return 'None'
 
 
 def inCorp(userID):
@@ -425,6 +473,8 @@ def upd_can_accept(userID, check):
 
 def upd_taskNow(userID, task):
     try:
+        print(task)
+        print(userID)
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
         cursor.execute("UPDATE Users SET TaskNow='{0}' WHERE ID={1}".format(str(task), str(userID)))
