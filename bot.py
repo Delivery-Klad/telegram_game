@@ -20,6 +20,7 @@ args.bot = bot
 print("------------------------ЗАКОНЧИЛАСЬ ЗАГРУЗКА БОТА------------------------")
 
 nickList = []
+avatarList = []
 print(bot.get_me())
 
 
@@ -392,6 +393,18 @@ def handler_create_corp(message):
         print(e)
 
 
+@bot.message_handler(commands=['me'])  # функция инвайта в орг
+def handler_me(message):
+    try:
+        avatarList.append(message.from_user.id)
+        bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                         text='<b>send photo</b>')
+        print(type(args.choose))
+        pass
+    except Exception as e:
+        print(e)
+
+
 @bot.callback_query_handler(func=lambda c: True)  # функция обработки inline кнопок
 def func(c):
     try:
@@ -574,7 +587,19 @@ def handler_text(message):
 @bot.message_handler(content_types=['photo'])  # функция обработки фото
 def handler_photo(message):
     try:
-        functions.wrong_input(message.from_user.id, dataBase.get_spec(message.from_user.id))
+        ID = message.from_user.id
+        if ID in avatarList:
+            file_info = bot.get_file(message.photo[len(message.photo) - 1].file_id)
+            downloaded_file = bot.download_file(file_info.file_path)
+            print(downloaded_file)
+            dataBase.addAvatar(ID, downloaded_file)
+            index = avatarList.index(ID)
+            avatarList.pop(index)
+            photo = dataBase.getAvatar(ID)
+            print(photo)
+            bot.send_photo(chat_id=ID, photo=photo, caption='Ваш аватар')
+        else:
+            functions.wrong_input(ID, dataBase.get_spec(message.from_user.id))
     except Exception as e:
         print(e)
 

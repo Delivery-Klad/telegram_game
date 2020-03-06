@@ -1,6 +1,7 @@
 """
 файл для работы с базой данных
 """
+from base64 import b64encode
 import sqlite3
 import telebot
 import random
@@ -542,6 +543,29 @@ def add_Quest(message):
         print(data)
         cursor.execute("INSERT INTO Quests VALUES(?, ?, ?, ?)", data)
         connect.commit()
+    except Exception as e:
+        print(e)
+
+
+def addAvatar(ID, file):
+    try:
+        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+        cursor = connect.cursor()
+        data = [ID, r'{}'.format(str(file))]
+        cursor.execute("INSERT INTO userPhotos VALUES(?, ?)", data)
+        connect.commit()
+    except Exception as e:
+        print(e)
+
+
+def getAvatar(ID):
+    try:
+        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+        cursor = connect.cursor()
+        cursor.execute("SELECT photo FROM userPhotos WHERE ID=" + str(ID))
+        photo = cursor.fetchall()[0][0]
+        print(type(photo))
+        return photo
     except Exception as e:
         print(e)
 
