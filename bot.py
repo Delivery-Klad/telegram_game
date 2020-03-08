@@ -84,11 +84,6 @@ def handler_help(message):
                                   '/db - Запросить базу данных\n'
                                   '/add_quest - (по формату '
                                   '/add_quest , профессия , задание , ранг , время)\n '
-                                  '/upd_quests and /upd_profs обновляют массивы'
-                                  '-\n'
-                                  '-\n'
-                                  '-\n'
-                                  '-\n'
                                   '-')
     except Exception as e:
         print(e)
@@ -104,10 +99,9 @@ def handler_corp_help(message):
                               '/leave_corp - Покинуть организацию\n'
                               '/accept - Согласиться вступить в организацию\n'
                               '/cancel - Отказаться от вступления в организацию\n'
-                              '/kick (+id) - Выгнать из организации\n'
                               '/invite - Выбрать кому отправить приглос в орг\n'
                               '/corp_members - Информация о членах организации\n'
-                              '-\n'
+                              '/get_task - Получить задание на организацию\n'
                               '-')
     except Exception as e:
         print(e)
@@ -343,13 +337,13 @@ def handler_leave(message):
 
 
 @bot.message_handler(commands=['get_task'])  # функция ухода из орг
-def handler_leave(message):
+def handler_getTask(message):
     try:
         functions.log(message)
         if dataBase.inCorp(message.from_user.id):
             if dataBase.isOwner(message.from_user.id):
-                msg = dataBase.get_corpTask(message.from_user.id)
-                bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text=msg)
+                msg, markup = dataBase.get_corpTask(message.from_user.id)
+                bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text=msg, reply_markup=markup)
             else:
                 bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                  text='<b>Вы не глава организации</b>')
@@ -425,20 +419,65 @@ def handler_task(message):
         print(e)
 
 
+def handler_corp_task(message):
+    try:
+        if dataBase.isOwner(message.from_user.id):
+            tmp = message.data.split('_')
+            taskID = tmp[2]
+            userID = tmp[1][4:]
+            print(taskID)
+            print(userID)
+            if dataBase.isFree(userID):
+                markup = types.InlineKeyboardMarkup()
+                key1 = types.InlineKeyboardButton(args.acceptWorkButton, callback_data='1')
+                key2 = types.InlineKeyboardButton(args.cancelWorkButton, callback_data='2')
+                markup.add(key1)
+                markup.add(key2)
+                msg = dataBase.give_corp_task(taskID, userID)
+                if msg != 'None':
+                    dataBase.upd_can_accept(userID, 1)
+                    bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                                     text='<i>Задание отправлено</i>')
+                    bot.send_message(parse_mode='HTML', chat_id=int(userID),
+                                     text=msg, reply_markup=markup)
+                    return True
+                else:
+                    bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                                     text='<i>Задание не отправлено</i>')
+                    return False
+            else:
+                bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                                 text='<i>Пользователь занят</i>')
+            return False
+        else:
+            bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                             text='<b>Кажется вы не глава организации</b>')
+    except Exception as e:
+        print(e)
+
+
 @bot.message_handler(commands=['me'])  # функция инвайта в орг
 def handler_me(message):
     try:
         ID = message.from_user.id
+        markup = types.InlineKeyboardMarkup()
         if dataBase.isOwner(ID):
             who = 'Ген.дир.'
         else:
             who = 'Работник'
+        company = dataBase.get_Corp(ID)
+        if company == '0':
+            company = 'Отсутствует'
+            markup = None
+        else:
+            key = types.InlineKeyboardButton('Покинуть организацию', callback_data='/leave_corp')
+            markup.add(key)
         msg = '<i>Никнейм: </i> <b>{5}</b>\n<i>Профессия:</i> <b>{0}</b>\n<i>Ранг:</i> <b>{1}</b>\n<i>Баланс:</i> ' \
               '<b>{2}</b>\n<i>Организация:</i> <b>{3}</b>\n<i>Должность в орг.:</i> <b>{4}</b>'.\
-            format(dataBase.get_prof(ID), dataBase.get_userRank(ID), dataBase.get_balance(ID), dataBase.get_Corp(ID),
+            format(dataBase.get_prof(ID), dataBase.get_userRank(ID), dataBase.get_balance(ID), company,
                    who, dataBase.get_nickname(ID))
         bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
-                         text=msg)
+                         text=msg, reply_markup=markup)
     except Exception as e:
         print(e)
 
@@ -478,6 +517,39 @@ def func(c):
         elif c.data[1:5] == 'kick':
             handler_kick(c)
             bot.answer_callback_query(callback_query_id=c.id, show_alert=False, text='Пользователь исключен')
+        elif c.data[2:6] == 'task':
+            if handler_corp_task(c):
+                bot.answer_callback_query(callback_query_id=c.id, show_alert=False, text='Задание отправлено')
+        elif c.data[1:9] == 'give_low':
+            if dataBase.isOwner(c.from_user.id):
+                ID = str(c.data[9:])
+                msg, markup = dataBase.get_low(c.from_user.id, ID)
+                bot.send_message(parse_mode='HTML', chat_id=c.from_user.id, text=msg, reply_markup=markup)
+                return
+            else:
+                bot.send_message(parse_mode='HTML', chat_id=c.from_user.id,
+                                 text='<b>Кажется вы не глава организации</b>')
+        elif c.data[1:9] == 'give_gum':
+            if dataBase.isOwner(c.from_user.id):
+                ID = str(c.data[9:])
+                msg, markup = dataBase.get_gum(c.from_user.id, ID)
+                bot.send_message(parse_mode='HTML', chat_id=c.from_user.id, text=msg, reply_markup=markup)
+                return
+            else:
+                bot.send_message(parse_mode='HTML', chat_id=c.from_user.id,
+                                 text='<b>Кажется вы не глава организации</b>')
+        elif c.data[1:10] == 'give_tech':
+            if dataBase.isOwner(c.from_user.id):
+                ID = str(c.data[10:])
+                msg, markup = dataBase.get_tech(c.from_user.id, ID)
+                bot.send_message(parse_mode='HTML', chat_id=c.from_user.id, text=msg, reply_markup=markup)
+                return
+            else:
+                bot.send_message(parse_mode='HTML', chat_id=c.from_user.id,
+                                 text='<b>Кажется вы не глава организации</b>')
+        elif c.data[1:] == 'leave_corp':
+            handler_leave(c)
+            bot.answer_callback_query(callback_query_id=c.id, show_alert=False, text='Вы покинули орг')
     except Exception as e:
         print(e)
 
@@ -486,55 +558,6 @@ def func(c):
 def handler_text(message):
     try:
         functions.log(message)
-        if len(message.text) > 5:
-            if str(message.text[1:5]) == 'kick':
-                handler_kick(message)
-                return
-            elif str(message.text[1:10]) == 'give_tech':
-                if dataBase.isOwner(message.from_user.id):
-                    ID = str(message.text[10:])
-                    msg = dataBase.get_tech(message.from_user.id, ID)
-                    bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text=msg)
-                    return
-                else:
-                    bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
-                                     text='<b>Кажется вы не глава организации</b>')
-            elif str(message.text[1:9]) == 'give_gum':
-                if dataBase.isOwner(message.from_user.id):
-                    ID = str(message.text[9:])
-                    msg = dataBase.get_gum(message.from_user.id, ID)
-                    bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text=msg)
-                    return
-                else:
-                    bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
-                                     text='<b>Кажется вы не глава организации</b>')
-            elif str(message.text[1:9]) == 'give_low':
-                if dataBase.isOwner(message.from_user.id):
-                    ID = str(message.text[9:])
-                    msg = dataBase.get_low(message.from_user.id, ID)
-                    bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text=msg)
-                    return
-                else:
-                    bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
-                                     text='<b>Кажется вы не глава организации</b>')
-            elif str(message.text[2:6]) == 'task':
-                if dataBase.isOwner(message.from_user.id):
-                    tmp = message.text.split('_')
-                    taskID = tmp[2]
-                    userID = tmp[1][4:]
-                    print(taskID)
-                    print(userID)
-                    if dataBase.isFree(userID):
-                        dataBase.upd_can_accept(userID, 1)
-                        msg = dataBase.give_corp_task(taskID, userID)
-                        bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
-                                         text='<i>Задание отправлено</i>')
-                        bot.send_message(parse_mode='HTML', chat_id=int(userID),
-                                         text=msg)
-                    return
-                else:
-                    bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
-                                     text='<b>Кажется вы не глава организации</b>')
         if message.text == args.acceptWorkButton or message.text == args.cancelWorkButton:
             if message.text == args.acceptWorkButton:
                 handler_accept(message)

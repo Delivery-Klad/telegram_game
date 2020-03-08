@@ -170,7 +170,8 @@ def get_corpTask(userID):
         cursor = connect.cursor()
         cursor.execute("SELECT Quest,Profession,Rank FROM Quests")
         quests = cursor.fetchall()
-        msg = 'Вы можете распределеить задания между своими сотрудниками\nПрофессия: '
+        msg = 'Вы можете распределеить задания между своими сотрудниками\n----------\nПрофессия: '
+        markup = types.InlineKeyboardMarkup()
         if len(quests) > 1:
             for i in range(5):
                 print(i)
@@ -181,32 +182,42 @@ def get_corpTask(userID):
                     data = [quests[task][0], "tech", quests[task][2], userID, int(maxID) + 1]
                     cursor.execute("INSERT INTO CorpTasks VALUES (?,?,?,?,?)", data)
                     connect.commit()
-                    msg += '{0}\nТребуемый ранг: {1}\nЗадание: {2} /give_tech{3}\n'.format(quests[task][1],
-                                                                                           quests[task][2],
-                                                                                           quests[task][0],
-                                                                                           int(maxID) + 1)
+                    text = quests[task][1]
+                    call = '/give_tech' + str(int(maxID) + 1)
+                    key = types.InlineKeyboardButton(text, callback_data=call)
+                    markup.add(key)
+                    msg += '{0}\nТребуемый ранг: {1}\nЗадание: <i>{2}</i>\n----------\n'.format(quests[task][1],
+                                                                                                quests[task][2],
+                                                                                                quests[task][0])
                 elif quests[task][1] in args.all_gumList:
                     cursor.execute("SELECT MAX(id) FROM CorpTasks")
                     maxID = cursor.fetchall()[0][0]
                     data = [quests[task][0], "gum", quests[task][2], userID, int(maxID) + 1]
                     cursor.execute("INSERT INTO CorpTasks VALUES (?,?,?,?,?)", data)
                     connect.commit()
-                    msg += '{0}\nТребуемый ранг: {1}\nЗадание: {2} /give_gum{3}\n'.format(quests[task][1],
-                                                                                          quests[task][2],
-                                                                                          quests[task][0],
-                                                                                          int(maxID) + 1)
+                    text = quests[task][1]
+                    call = '/give_tech' + str(int(maxID) + 1)
+                    key = types.InlineKeyboardButton(text, callback_data=call)
+                    markup.add(key)
+                    msg += '{0}\nТребуемый ранг: {1}\nЗадание: <i>{2}</i>\n----------\n'.format(quests[task][1],
+                                                                                                quests[task][2],
+                                                                                                quests[task][0])
                 elif quests[task][1] in args.all_lowList:
                     cursor.execute("SELECT MAX(id) FROM CorpTasks")
                     maxID = cursor.fetchall()[0][0]
                     data = [quests[task][0], "low", quests[task][2], userID, int(maxID) + 1]
                     cursor.execute("INSERT INTO CorpTasks VALUES (?,?,?,?,?)", data)
                     connect.commit()
-                    msg += '{0}\nТребуемый ранг: {1}\nЗадание: {2} /give_low{3}\n'.format(quests[task][1],
-                                                                                          quests[task][2],
-                                                                                          quests[task][0],
-                                                                                          int(maxID) + 1)
+                    text = quests[task][1]
+                    call = '/give_tech' + str(int(maxID) + 1)
+                    key = types.InlineKeyboardButton(text, callback_data=call)
+                    markup.add(key)
+                    msg += '{0}\nТребуемый ранг: {1}\nЗадание: <i>{2}</i>\n----------\n'.format(quests[task][1],
+                                                                                                quests[task][2],
+                                                                                                quests[task][0])
+        msg += 'Выберете кому дать задание'
         print(msg)
-        return msg
+        return msg, markup
     except Exception as e:
         print(e)
 
@@ -221,17 +232,22 @@ def get_tech(userID, taskID):
         prof = cursor.fetchall()[0][0]
         cursor.execute("SELECT rank FROM CorpTasks WHERE ownerID={0} AND id={1}".format(userID, taskID))
         rank = cursor.fetchall()[0][0]
-        cursor.execute("SELECT NickName,ID FROM Users WHERE UserRank>={0} AND Spec='tech' AND Profession='{1}' AND "
-                       "Comp='{2}' ORDER BY RANDOM() LIMIT 5".format(rank, prof, company))
+        cursor.execute("SELECT NickName,ID,Profession,UserRank FROM Users WHERE UserRank>={0} AND Spec='tech' AND "
+                       "Profession='{1}' AND Comp='{2}' ORDER BY RANDOM() LIMIT 5".format(rank, prof, company))
         users = cursor.fetchall()
-        msg = 'Выберете кому дать задание:\n'
+        markup = types.InlineKeyboardMarkup()
+        msg = 'Выберете кому дать задание:\n----------\n'
         for i in range(len(users)):
-            msg += str(users[i][0]) + ' /_task' + str(users[i][1]) + '_' + str(taskID) + '\n'
+            text = str(users[i][0])
+            call = '/_task' + str(users[i][1]) + '_' + str(taskID)
+            key = types.InlineKeyboardButton(text, callback_data=call)
+            markup.add(key)
+            msg += str(users[i][0]) + ' ' + str(users[i][2]) + ' Ранг: ' + str(users[i][3]) + '\n'
         print(users)
-        return msg
+        return msg, markup
     except Exception as e:
         print(e)
-        return 'Выберете кому дать задание:\nNone'
+        return 'Выберете кому дать задание:\n----------\nNone'
 
 
 def get_gum(userID, taskID):
@@ -241,16 +257,22 @@ def get_gum(userID, taskID):
         cursor = connect.cursor()
         cursor.execute("SELECT rank FROM CorpTasks WHERE ownerID={0} AND id={1}".format(userID, taskID))
         rank = cursor.fetchall()[0][0]
-        cursor.execute("SELECT NickName,ID FROM Users WHERE UserRank>={0} AND Spec='gum' AND Comp='{1}' ORDER BY "
-                       "RANDOM() LIMIT 5".format(rank, company))
+        cursor.execute("SELECT NickName,ID,Profession,UserRank FROM Users WHERE UserRank>={0} AND Spec='gum' AND "
+                       "Comp='{1}' ORDER BY RANDOM() LIMIT 5".format(rank, company))
         users = cursor.fetchall()
-        msg = 'Выберете кому дать задание:\n'
+        markup = types.InlineKeyboardMarkup()
+        msg = 'Выберете кому дать задание:\n----------\n'
         for i in range(len(users)):
-            msg += str(users[i][0]) + ' /_task' + str(users[i][1]) + '_' + str(taskID) + '\n'
+            text = str(users[i][0])
+            call = '/_task' + str(users[i][1]) + '_' + str(taskID)
+            key = types.InlineKeyboardButton(text, callback_data=call)
+            markup.add(key)
+            msg += str(users[i][0]) + ' ' + str(users[i][2]) + ' Ранг: ' + str(users[i][3]) + '\n'
         print(users)
-        return msg
+        return msg, markup
     except Exception as e:
         print(e)
+        return 'Выберете кому дать задание:\n----------\nNone'
 
 
 def get_low(userID, taskID):
@@ -260,16 +282,22 @@ def get_low(userID, taskID):
         cursor = connect.cursor()
         cursor.execute("SELECT rank FROM CorpTasks WHERE ownerID={0} AND id={1}".format(userID, taskID))
         rank = cursor.fetchall()[0][0]
-        cursor.execute("SELECT NickName,ID FROM Users WHERE UserRank>={0} AND Spec='low' AND Comp='{1}' ORDER BY "
-                       "RANDOM() LIMIT 5".format(rank, company))
+        cursor.execute("SELECT NickName,ID,Profession,UserRank FROM Users WHERE UserRank>={0} AND Spec='low' AND "
+                       "Comp='{1}' ORDER BY RANDOM() LIMIT 5".format(rank, company))
         users = cursor.fetchall()
+        markup = types.InlineKeyboardMarkup()
         msg = 'Выберете кому дать задание:\n'
         for i in range(len(users)):
-            msg += str(users[i][0]) + ' /_task' + str(users[i][1]) + '_' + str(taskID) + '\n'
+            text = str(users[i][0])
+            call = '/_task' + str(users[i][1]) + '_' + str(taskID)
+            key = types.InlineKeyboardButton(text, callback_data=call)
+            markup.add(key)
+            msg += str(users[i][0]) + ' ' + str(users[i][2]) + ' Ранг: ' + str(users[i][3]) + '\n'
         print(users)
-        return msg
+        return msg, markup
     except Exception as e:
         print(e)
+        return 'Выберете кому дать задание:\n----------\nNone'
 
 
 def get_workers(message):
@@ -616,9 +644,7 @@ def give_corp_task(taskID, userID):
             upd_taskNow(userID, task[0][0])
         cursor.execute("DELETE FROM CorpTasks WHERE id=" + str(taskID))
         connect.commit()
-        msg = '<b>Вы получили задание от главы организиции:</b>\n' + task[0][0] + '<i>\n/accept - ' \
-                                                                                  'Согласиться\n/cancel - ' \
-                                                                                  'Отказаться</i> '
+        msg = '<b>Вы получили задание от главы организиции:</b> ' + task[0][0]
         return msg
     except Exception as e:
         print(e)
