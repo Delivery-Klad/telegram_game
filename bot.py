@@ -14,8 +14,8 @@ import args
 print("------------------------НАЧАЛАСЬ ЗАГРУЗКА БОТА------------------------")
 bot = telebot.TeleBot(args.token)
 dataBase.createTables()
-dataBase.UpdProf()
-dataBase.UpdQuests()
+dataBase.upd_prof()
+dataBase.upd_quests()
 args.bot = bot
 print("------------------------ЗАКОНЧИЛАСЬ ЗАГРУЗКА БОТА------------------------")
 
@@ -135,23 +135,12 @@ def handler_db(message):
         print(e)
 
 
-@bot.message_handler(commands=['add_quest'])  # функция обработки запроса логов
-def handler_add_quest(message):
-    try:
-        functions.log(message)
-        dataBase.add_Quest(message)
-        dataBase.UpdQuests()
-        dataBase.UpdProf()
-    except Exception as e:
-        print(e)
-
-
 @bot.message_handler(commands=['ref'])
-def handler_referal(message):
+def handler_ref(message):
     functions.log(message)
     bot.send_message(chat_id=message.from_user.id, text="Реферальная ссылка для помощи проекту и себе: "
-                                                        "https://telegram.me/Lonely_parnisha_bot?start={}"
-                                                        .format(message.from_user.id))
+                                                        "https://telegram.me/" + bot.get_me().username + "?start={}"
+                     .format(message.from_user.id))
 
 
 @bot.message_handler(commands=['balance'])
@@ -164,12 +153,24 @@ def handler_balance(message):
         print(e)
 
 
+@bot.message_handler(commands=['add_quest'])  # функция обработки запроса логов
+def handler_add_quest(message):
+    try:
+        functions.log(message)
+        dataBase.add_Quest(message)
+        dataBase.upd_quests()
+        dataBase.upd_prof()
+    except Exception as e:
+        print(e)
+
+
 @bot.message_handler(commands=['give_task'])  # функция выдачи задания
 def handler_giveTask(message):
     try:
         functions.log(message)
+        msg, markup = dataBase.get_workers(message)
         bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
-                         text='<b>Выберете кому дать дать задание:\n</b>' + str(dataBase.get_workers(message)))
+                         text='<b>Выберете кому дать дать задание:\n</b>' + msg, reply_markup=markup)
     except Exception as e:
         print(e)
 
@@ -179,10 +180,11 @@ def handler_org(message):
     try:
         if dataBase.isOwner(message.from_user.id):
             functions.log(message)
+            msg, markup = dataBase.get_noInCorpUsers(message)
             bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
-                             text='<b>Выберете кому кинуть приглос:\n</b>' + str(dataBase.get_noInCorpUsers(message)))
+                             text='<b>Выберете кому кинуть приглашение:\n</b>' + msg, reply_markup=markup)
         else:
-            bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text='<b>Вы не владеле компании</b>')
+            bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text='<b>Вы не владелец компании</b>')
     except Exception as e:
         print(e)
 
@@ -246,23 +248,22 @@ def handler_invite(message):
         functions.log(message)
         if dataBase.isOwner(message.from_user.id):
             company = dataBase.get_company(message.from_user.id)
-            userID = int(message.text[7:])
+            try:
+                userID = int(message.text[7:])
+            except AttributeError:
+                userID = int(message.data[7:])
             print(userID)
             if dataBase.check_requests(userID, company):
                 if not dataBase.inCorp(userID):
-                    '''bot.send_message(parse_mode='HTML', chat_id=int(userID), text='Пользователь {0} пригласил вас в '
-                                                                                  'организацию {1}'.format(str(dataBase.
-                                                                                    get_nickname(message.from_user.id)),
-                                                                                     company))'''
                     bot.send_message(parse_mode='HTML', chat_id=int(userID),
                                      text='Вы были приглашены в организацию "{}"'.format(company))
                     bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                      text='Вы пригласили <b>{}</b> в организацию '.format(
                                          dataBase.get_nickname(userID)))
                     dataBase.newReq(userID, company)
-                    invites = dataBase.getReq(userID)
+                    msg, markup = dataBase.getReq(userID)
                     bot.send_message(parse_mode='HTML', chat_id=int(userID),
-                                     text='<b>Список ваших приглашений:\n</b>' + str(invites))
+                                     text='<b>Список ваших приглашений:\n</b>' + msg, reply_markup=markup)
                     print(userID)
                 else:
                     bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
@@ -281,7 +282,10 @@ def handler_kick(message):
     try:
         functions.log(message)
         if dataBase.isOwner(message.from_user.id):
-            userID = int(message.text[5:])
+            try:
+                userID = int(message.text[5:])
+            except AttributeError:
+                userID = int(message.data[5:])
             print(userID)
             try:
                 if int(userID) != int(message.from_user.id):
@@ -312,10 +316,9 @@ def handler_kick(message):
 def handler_members(message):
     try:
         functions.log(message)
-        members = dataBase.corp_members(message.from_user.id)
-        msg = '<b>Члены организации:</b>\n' + members
+        msg, markup = dataBase.corp_members(message.from_user.id)
         bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
-                         text=msg)
+                         text=msg, reply_markup=markup)
     except Exception as e:
         print(e)
 
@@ -393,14 +396,49 @@ def handler_create_corp(message):
         print(e)
 
 
+def handler_task(message):
+    try:
+        workerID = int(message.data[5:])
+        if workerID != message.from_user.id:
+            if dataBase.isFree(workerID):
+                markup = types.InlineKeyboardMarkup()
+                key1 = types.InlineKeyboardButton(args.acceptWorkButton, callback_data='1')
+                key2 = types.InlineKeyboardButton(args.cancelWorkButton, callback_data='2')
+                markup.add(key1)
+                markup.add(key2)
+                task_ = dataBase.get_task(workerID)
+                dataBase.upd_taskNow(workerID, task_)
+                bot.send_message(parse_mode='HTML', chat_id=workerID,
+                                 text=functions.send_task(dataBase.get_nickname(message.from_user.id),
+                                                          task_), reply_markup=markup)
+                bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                                 text='<i>Вы отправили задание пользователю</i> <b>' + str(
+                                     dataBase.get_nickname(workerID)) + '</b>')
+                dataBase.upd_can_accept(workerID, 1)
+            else:
+                bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                                 text='<b>OOPS\nКажется пользователь занят</b>')
+        else:
+            bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+                             text='<b>А ты хитрый жук, не делай так больше</b>')
+    except Exception as e:
+        print(e)
+
+
 @bot.message_handler(commands=['me'])  # функция инвайта в орг
 def handler_me(message):
     try:
-        avatarList.append(message.from_user.id)
+        ID = message.from_user.id
+        if dataBase.isOwner(ID):
+            who = 'Ген.дир.'
+        else:
+            who = 'Работник'
+        msg = '<i>Никнейм: </i> <b>{5}</b>\n<i>Профессия:</i> <b>{0}</b>\n<i>Ранг:</i> <b>{1}</b>\n<i>Баланс:</i> ' \
+              '<b>{2}</b>\n<i>Организация:</i> <b>{3}</b>\n<i>Должность в орг.:</i> <b>{4}</b>'.\
+            format(dataBase.get_prof(ID), dataBase.get_userRank(ID), dataBase.get_balance(ID), dataBase.get_Corp(ID),
+                   who, dataBase.get_nickname(ID))
         bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
-                         text='<b>send photo</b>')
-        print(type(args.choose))
-        pass
+                         text=msg)
     except Exception as e:
         print(e)
 
@@ -408,8 +446,38 @@ def handler_me(message):
 @bot.callback_query_handler(func=lambda c: True)  # функция обработки inline кнопок
 def func(c):
     try:
+        print(c.message.text)
         if c.data == '0':
             handler_help(c)
+            bot.edit_message_text(parse_mode='HTML', chat_id=c.from_user.id, message_id=c.message.message_id,
+                                  text='<b>Узнать как пользоваться ботом</b>', reply_markup=None)
+            bot.answer_callback_query(callback_query_id=c.id, show_alert=False, text='Ты приемный')
+        elif c.data == '1':
+            handler_accept(c)
+            bot.answer_callback_query(callback_query_id=c.id, show_alert=True, text='Вы начали выполнение задания')
+        elif c.data == '2':
+            handler_cancel(c)
+            bot.answer_callback_query(callback_query_id=c.id, show_alert=True, text='Вы отказались выполнять задание')
+        elif c.data[1:7] == 'invite':
+            handler_invite(c)
+            bot.answer_callback_query(callback_query_id=c.id, show_alert=True, text='Пользователь приглашен')
+        elif c.data[1:5] == 'task':
+            handler_task(c)
+            bot.answer_callback_query(callback_query_id=c.id, show_alert=False, text='Задание отправлено')
+        elif c.data[1:7] == 'accept':
+            ownerID = int(c.data[7:])
+            print(ownerID)
+            company = dataBase.get_company(ownerID)
+            dataBase.upd_corp(c.from_user.id, company)
+            dataBase.delete_request(c.from_user.id)
+            bot.send_message(parse_mode='HTML', chat_id=ownerID, text='<b>{0} присоединился к организации</b>'.
+                             format(str(dataBase.get_nickname(c.from_user.id))))
+            bot.send_message(parse_mode='HTML', chat_id=c.from_user.id,
+                             text='<b>Вы присоединились к организации </b>' + str(company))
+            bot.answer_callback_query(callback_query_id=c.id, show_alert=False, text='Вы приняли приглашение')
+        elif c.data[1:5] == 'kick':
+            handler_kick(c)
+            bot.answer_callback_query(callback_query_id=c.id, show_alert=False, text='Пользователь исключен')
     except Exception as e:
         print(e)
 
@@ -419,40 +487,8 @@ def handler_text(message):
     try:
         functions.log(message)
         if len(message.text) > 5:
-            if str(message.text[1:5]) == 'task':
-                workerID = int(message.text[5:])
-                if workerID != message.from_user.id:
-                    if dataBase.isFree(workerID):
-                        dataBase.upd_taskNow(workerID, functions.send_task(workerID,
-                                                                           dataBase.get_nickname(message.from_user.id),
-                                                                           dataBase.get_task(workerID)))
-                        bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
-                                         text='<i>Вы отправили задание пользователю</i> <b>' + str(
-                                             dataBase.get_nickname(workerID)) + '</b>')
-                        dataBase.upd_can_accept(workerID, 1)
-                    else:
-                        bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
-                                         text='<b>OOPS\nКажется пользователь занят</b>')
-                else:
-                    bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
-                                     text='<b>А ты хитрый жук, не делай так больше</b>')
-                return
-            elif str(message.text[1:5]) == 'kick':
+            if str(message.text[1:5]) == 'kick':
                 handler_kick(message)
-                return
-            elif str(message.text[1:7]) == 'invite':
-                handler_invite(message)
-                return
-            elif str(message.text[1:7]) == 'accept':
-                ownerID = int(message.text[7:])
-                print(ownerID)
-                company = dataBase.get_company(ownerID)
-                dataBase.upd_corp(message.from_user.id, company)
-                dataBase.delete_request(message.from_user.id)
-                bot.send_message(parse_mode='HTML', chat_id=ownerID, text='<b>{0} присоединился к организации</b>'.
-                                 format(str(dataBase.get_nickname(message.from_user.id))))
-                bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
-                                 text='<b>Вы присоединились к организации </b>' + str(company))
                 return
             elif str(message.text[1:10]) == 'give_tech':
                 if dataBase.isOwner(message.from_user.id):

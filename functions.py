@@ -2,6 +2,7 @@
 файл для всяких функций
 """
 from datetime import datetime
+import random
 import args
 
 
@@ -29,15 +30,28 @@ def log(message):  # запись лога сообщений
         print(e)
 
 
-def send_task(workerID, name, task):  # отправка задания пользователю
+def send_task(name, task):  # отправка задания пользователю
     try:
-        args.bot.send_message(parse_mode='HTML', chat_id=workerID,
-                              text='<i>Пользователь</i> <b>{0}</b> <i>отправил вам задание "{1}"\n/accept - '
-                                   'Согласиться\n/cancel - Отказаться</i>'.
-                              format(str(name), str(task)))
-        return task
-    except Exception as e:
-        print(e)
+        if task == 'Перенести':
+            index = random.randint(0, len(args.props_arr) - 1)
+            task += ' ' + args.props_arr[index]
+        elif task.split()[0] == 'Перевести':
+            index = random.randint(0, len(args.languages_arr) - 1)
+            task += ' ' + args.languages_arr[index] + ' языка'
+        elif task.split()[0] == 'Провести':
+            index = random.randint(0, len(args.lessons_arr) - 1)
+            task += ' ' + args.lessons_arr[index]
+        elif task.split()[0] == 'Запустить':
+            index = random.randint(0, len(args.stream_reason_arr) - 1)
+            task += ' ' + args.stream_reason_arr[index]
+        elif task.split()[0] == 'Доставить':
+            index = random.randint(0, len(args.address_arr) - 1)
+            task += ' ' + args.address_arr[index]
+        msg = '<i>Пользователь</i> <b>' + str(name) + '</b> <i>отправил вам задание</i> "' + str(task) + '"'
+        return msg
+    except IndexError:
+        msg = '<i>Пользователь</i> <b>' + str(name) + '</b> <i>отправил вам задание</i> "' + str(task) + '"'
+        return msg
 
 
 def isAdmin(userID):  # проверка является ли пользователь админом

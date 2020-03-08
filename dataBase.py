@@ -1,7 +1,8 @@
 """
 файл для работы с базой данных
 """
-from base64 import b64encode
+# import base64
+from telebot import types
 import sqlite3
 import telebot
 import random
@@ -275,21 +276,26 @@ def get_workers(message):
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
-        cursor.execute("SELECT ID,NickName,Profession FROM Users WHERE Status='{0}' ORDER BY RANDOM() LIMIT 7"
+        cursor.execute("SELECT ID,NickName,Profession,UserRank FROM Users WHERE Status='{0}' ORDER BY RANDOM() LIMIT 5"
                        .format(str(args.waitStatus)))
         users = cursor.fetchall()
         msg_text = ''
         print('check')
         print(len(users[0]))
         print(len(users))
+        markup = types.InlineKeyboardMarkup()
         for i in range(len(users)):
             if users[i][0] != message.from_user.id:
                 print(i)
-                msg_text += str(users[i][1]) + ' ' + str(users[i][2]) + ' /task' + str(users[i][0])
+                call = '/task' + str(users[i][0])
+                msg = 'Дать задание  ' + str(users[i][1])
+                key = types.InlineKeyboardButton(msg, callback_data=call)
+                markup.add(key)
+                msg_text += str(users[i][1]) + ' ' + str(users[i][2]) + ' Ранг: ' + str(users[i][3])
                 msg_text += '\n'
-        return msg_text
-    except Exception as e:
-        print(e)
+        return msg_text, markup
+    except IndexError:
+        return 'Некому дать задание', None
 
 
 def get_balance(userID):
@@ -361,88 +367,117 @@ def get_Corp(userID):
         return True
 
 
-def give_corp_task(taskID, userID):
+def getAvatar(ID):
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
-        cursor.execute("SELECT Task,spec,rank FROM CorpTasks WHERE id=" + str(taskID))
-        task = cursor.fetchall()
-        print(task[0][0])
-        if get_userRank(userID) >= int(task[0][2]) and get_spec(userID) == task[0][1]:
-            upd_taskNow(userID, task[0][0])
-        cursor.execute("DELETE FROM CorpTasks WHERE id=" + str(taskID))
-        connect.commit()
-        msg = '<b>Вы получили задание от главы организиции:</b>\n' + task[0][0] + '<i>\n/accept - ' \
-                                                                                  'Согласиться\n/cancel - ' \
-                                                                                  'Отказаться</i> '
-        return msg
+        cursor.execute("SELECT photo FROM userPhotos WHERE ID=" + str(ID))
+        photo = cursor.fetchall()[0][0]
+        photo = photo.encode()[2:-1]
+        print(photo)
+        print(type(photo))
+        return photo
     except Exception as e:
         print(e)
-        return 'None'
 
 
-def inCorp(userID):
-    try:
-        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
-        cursor = connect.cursor()
-        cursor.execute("SELECT Comp FROM Users WHERE ID=" + str(userID))
-        corpName = cursor.fetchall()[0][0]
-        if corpName == "0":
-            print('0')
-            return False
-        else:
-            return True
-    except Exception as e:
-        print(e)
-        return True
-
-
-def kick_from_corp(userID):
+def getReq(toID):
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
-    cursor.execute("UPDATE Users SET Comp='0' WHERE ID={0}".format(str(userID)))
-    connect.commit()
-
-
-def corp_members(userID):
-    connect = sqlite3.connect(args.filesFolderName + args.databaseName)
-    cursor = connect.cursor()
-    cursor.execute("SELECT ID,NickName FROM Users WHERE Comp='{0}'".format(str(get_company(userID))))
-    members = cursor.fetchall()
-    print(len(members))
-    print(members)
+    cursor.execute("SELECT DISTINCT toUserID,fromWho,type FROM Requests WHERE toUserID={0}".format(toID))
+    res = cursor.fetchall()
+    print(res)
+    print(len(res))
     msg = ''
-    for i in range(len(members)):
-        msg += '<i>' + str(members[i][1]) + '</i>  /kick' + str(members[i][0])
+    markup = types.InlineKeyboardMarkup()
+    for i in range(len(res)):
+        text = 'Вступить в ' + str(res[i][1])
+        call = '/accept' + str(get_owner(res[i][1]))
+        key = types.InlineKeyboardButton(text, callback_data=call)
+        markup.add(key)
+        msg += str(i + 1) + ') ' + str(res[i][1])
         msg += '\n'
-    return msg
+    return msg, markup
 
 
-def leave_corp(userID):
+def get_refOwner(userID):
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
-        if not isOwner(userID):
-            cursor.execute("UPDATE Users SET Comp='0' WHERE ID={0}".format(str(userID)))
-            connect.commit()
-            return True
+        cursor.execute("SELECT InviteID FROM Users WHERE ID=" + str(userID))
+        ownerID = cursor.fetchall()[0][0]
+        if len(str(ownerID)) > 1:
+            return int(ownerID)
         else:
-            return False
+            return 0
     except Exception as e:
         print(e)
+        return str('none')
 
 
-def isOwner(userID):
+def get_noInCorpUsers(message):
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
-        cursor.execute("SELECT Comp FROM Users WHERE isOwner=1 AND ID=" + str(userID))
-        corpName = cursor.fetchall()[0][0]
-        print(corpName)
-        return True
+        cursor.execute("SELECT ID,NickName,Profession,UserRank FROM Users WHERE Comp='0' ORDER BY RANDOM() LIMIT 5")
+        users = cursor.fetchall()
+        msg_text = ''
+        print('check')
+        print(len(users[0]))
+        print(len(users))
+        markup = types.InlineKeyboardMarkup()
+        for i in range(len(users)):
+            if users[i][0] != message.from_user.id:
+                print(i)
+                call = '/invite' + str(users[i][0])
+                msg = 'Пригласить  ' + str(users[i][1])
+                key = types.InlineKeyboardButton(msg, callback_data=call)
+                markup.add(key)
+                msg_text += str(users[i][1]) + ' ' + str(users[i][2]) + ' Ранг: ' + str(users[i][3])
+                msg_text += '\n'
+        return msg_text, markup
+    except IndexError:
+        return 'Нет свободных людей', None
+
+
+def add_money(userID, money):
+    try:
+        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+        cursor = connect.cursor()
+        cursor.execute("UPDATE Users SET Money=Money+{0} WHERE ID={1}".format(money, userID))
+        connect.commit()
+        upd_taskNow(userID, "None")
+        ownerID = get_refOwner(userID)
+        if str(ownerID) != 'none' and ownerID != 0:
+            cursor.execute("UPDATE Users SET Money=Money+{0} WHERE ID={1}".
+                           format((money / args.referal_procent), ownerID))
+        connect.commit()
     except Exception as e:
         print(e)
-        return False
+
+
+def add_Quest(message):
+    try:
+        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+        cursor = connect.cursor()
+        data = message.text.split(' , ')
+        data.pop(0)
+        print(data)
+        cursor.execute("INSERT INTO Quests VALUES(?, ?, ?, ?)", data)
+        connect.commit()
+    except Exception as e:
+        print(e)
+
+
+def addAvatar(ID, file):
+    try:
+        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+        cursor = connect.cursor()
+        data = [ID, r'{}'.format(str(file))]
+        cursor.execute("INSERT INTO userPhotos VALUES(?, ?)", data)
+        connect.commit()
+    except Exception as e:
+        print(e)
 
 
 def upd_corp(userID, company):
@@ -484,12 +519,152 @@ def upd_taskNow(userID, task):
         print(e)
 
 
-def change_spec(userID):
+def upd_quests():
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
-    cursor.execute("UPDATE Users SET Spec='None',Profession='None',Count_Works='0',Status='{0}',End_time='None',"
-                   "UserRank='0' WHERE ID={1}".format(str(args.waitStatus), str(userID)))
+    cursor.execute("SELECT * FROM {0}".format("Quests"))
+    args.QuestsArr = []
+    res = cursor.fetchall()
+    for i in res:
+        args.QuestsArr.append([i[0], i[1], i[2], i[3]])
+    print("Список всех поступивших квестов: ")
+    print(args.QuestsArr)
+
+
+def upd_prof():  # Обновление полного списка профессий и профессий для начинающих
+    connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+    cursor = connect.cursor()
+    cursor.execute("SELECT * FROM Profs")
+    args.ProfArr = cursor.fetchall()
+    print("Список всех поступивших профессий: ")
+    print(args.ProfArr)
+
+    args.techList = []
+    args.gumList = []
+    LowProfRank = 0
+    gumID = 0
+    techID = 1
+
+    for i in args.ProfArr:
+        if i[2] == LowProfRank and i[1] == techID:  # Заполнение techList профессиями
+            args.techList.append(i[0])
+        elif i[2] == LowProfRank and i[1] == gumID:  # Заполнение gumList профессиями
+            args.gumList.append(i[0])
+        elif i[2] == LowProfRank and i[1] == 3:
+            args.lowList.append(i[0])
+
+    for i in args.ProfArr:
+        if i[1] == techID:
+            args.all_techList.append(i[0])
+        elif i[1] == gumID:
+            args.all_gumList.append(i[0])
+        elif i[1] == 3:
+            args.all_lowList.append(i[0])
+
+
+def inCorp(userID):
+    try:
+        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+        cursor = connect.cursor()
+        cursor.execute("SELECT Comp FROM Users WHERE ID=" + str(userID))
+        corpName = cursor.fetchall()[0][0]
+        if corpName == "0":
+            print('0')
+            return False
+        else:
+            return True
+    except Exception as e:
+        print(e)
+        return True
+
+
+def isOwner(userID):
+    try:
+        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+        cursor = connect.cursor()
+        cursor.execute("SELECT Comp FROM Users WHERE isOwner=1 AND ID=" + str(userID))
+        corpName = cursor.fetchall()[0][0]
+        print(corpName)
+        return True
+    except Exception as e:
+        print(e)
+        return False
+
+
+def isFree(userID):  # проверить выполняет ли пользователь какую-либо работу
+    try:
+        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+        cursor = connect.cursor()
+        cursor.execute("SELECT Status FROM Users WHERE ID=" + str(userID))
+        status = cursor.fetchall()
+        if status[0][0] == args.waitStatus:
+            return True
+        else:
+            return False
+    except Exception as e:
+        print(e)
+
+
+def give_corp_task(taskID, userID):
+    try:
+        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+        cursor = connect.cursor()
+        cursor.execute("SELECT Task,spec,rank FROM CorpTasks WHERE id=" + str(taskID))
+        task = cursor.fetchall()
+        print(task[0][0])
+        if get_userRank(userID) >= int(task[0][2]) and get_spec(userID) == task[0][1]:
+            upd_taskNow(userID, task[0][0])
+        cursor.execute("DELETE FROM CorpTasks WHERE id=" + str(taskID))
+        connect.commit()
+        msg = '<b>Вы получили задание от главы организиции:</b>\n' + task[0][0] + '<i>\n/accept - ' \
+                                                                                  'Согласиться\n/cancel - ' \
+                                                                                  'Отказаться</i> '
+        return msg
+    except Exception as e:
+        print(e)
+        return 'None'
+
+
+def kick_from_corp(userID):
+    connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+    cursor = connect.cursor()
+    cursor.execute("UPDATE Users SET Comp='0' WHERE ID={0}".format(str(userID)))
     connect.commit()
+
+
+def corp_members(userID):
+    connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+    cursor = connect.cursor()
+    cursor.execute("SELECT ID,NickName,Profession,UserRank FROM Users WHERE Comp='{0}'".
+                   format(str(get_company(userID))))
+    members = cursor.fetchall()
+    print(len(members))
+    print(members)
+    msg = '<b>Члены организации:</b>\n'
+    markup = types.InlineKeyboardMarkup()
+    for i in range(len(members)):
+        if userID != members[i][0]:
+            text = 'Выгнать ' + str(members[i][1])
+            call = '/kick' + str(members[i][0])
+            key = types.InlineKeyboardButton(text, callback_data=call)
+            markup.add(key)
+        msg += '<b>' + str(members[i][1]) + '</b> <i>' + str(members[i][2]) + ' Ранг: ' + str(members[i][3]) + '</i>'
+        msg += '\n'
+    return msg, markup
+
+
+def leave_corp(userID):
+    try:
+        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+        cursor = connect.cursor()
+        if not isOwner(userID):
+            cursor.execute("UPDATE Users SET Comp='0' WHERE ID={0}".format(str(userID)))
+            connect.commit()
+            return True
+        else:
+            return False
+    except Exception as e:
+        print(e)
 
 
 def can_accept(userID):
@@ -514,72 +689,6 @@ def up_lvl(userID):
             cursor.execute("UPDATE Users SET UserRank=UserRank+1 WHERE ID=" + str(userID))
             give_new_prof(userID)
         connect.commit()
-    except Exception as e:
-        print(e)
-
-
-def add_money(userID, money):
-    try:
-        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
-        cursor = connect.cursor()
-        cursor.execute("UPDATE Users SET Money=Money+{0} WHERE ID={1}".format(money, userID))
-        connect.commit()
-        upd_taskNow(userID, "None")
-        ownerID = get_referal_owner(userID)
-        if str(ownerID) != 'none' and ownerID != 0:
-            cursor.execute("UPDATE Users SET Money=Money+{0} WHERE ID={1}".
-                           format((money / args.referal_procent), ownerID))
-        connect.commit()
-    except Exception as e:
-        print(e)
-
-
-def add_Quest(message):
-    try:
-        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
-        cursor = connect.cursor()
-        data = message.text.split(' , ')
-        data.pop(0)
-        print(data)
-        cursor.execute("INSERT INTO Quests VALUES(?, ?, ?, ?)", data)
-        connect.commit()
-    except Exception as e:
-        print(e)
-
-
-def addAvatar(ID, file):
-    try:
-        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
-        cursor = connect.cursor()
-        data = [ID, r'{}'.format(str(file))]
-        cursor.execute("INSERT INTO userPhotos VALUES(?, ?)", data)
-        connect.commit()
-    except Exception as e:
-        print(e)
-
-
-def getAvatar(ID):
-    try:
-        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
-        cursor = connect.cursor()
-        cursor.execute("SELECT photo FROM userPhotos WHERE ID=" + str(ID))
-        photo = cursor.fetchall()[0][0]
-        print(type(photo))
-        return photo
-    except Exception as e:
-        print(e)
-
-
-def isFree(userID):  # проверить выполняет ли пользователь какую-либо работу
-    try:
-        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
-        cursor = connect.cursor()
-        cursor.execute("SELECT Status FROM Users WHERE ID=" + str(userID))
-        status = cursor.fetchall()
-        if status[0][0] == args.waitStatus:
-            return True
-        else:
-            return False
     except Exception as e:
         print(e)
 
@@ -666,20 +775,6 @@ def newReq(toID, fromWho):
     getReq(toID)
 
 
-def getReq(toID):
-    connect = sqlite3.connect(args.filesFolderName + args.databaseName)
-    cursor = connect.cursor()
-    cursor.execute("SELECT DISTINCT * FROM Requests WHERE toUserID={0}".format(toID))
-    res = cursor.fetchall()
-    print(res)
-    print(len(res))
-    msg = ''
-    for i in range(len(res)):
-        msg += str(res[i][1]) + ' /accept' + str(get_owner(res[i][1]))
-        msg += '\n'
-    return msg
-
-
 def delete_request(userID):
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
@@ -687,79 +782,9 @@ def delete_request(userID):
     connect.commit()
 
 
-def get_referal_owner(userID):
-    try:
-        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
-        cursor = connect.cursor()
-        cursor.execute("SELECT InviteID FROM Users WHERE ID=" + str(userID))
-        ownerID = cursor.fetchall()[0][0]
-        if len(str(ownerID)) > 1:
-            return int(ownerID)
-        else:
-            return 0
-    except Exception as e:
-        print(e)
-        return str('none')
-
-
-def get_noInCorpUsers(message):
-    try:
-        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
-        cursor = connect.cursor()
-        cursor.execute("SELECT ID,NickName,Profession FROM Users WHERE Comp='0' ORDER BY RANDOM() LIMIT 7")
-        users = cursor.fetchall()
-        msg_text = ''
-        print('check')
-        print(len(users[0]))
-        print(len(users))
-        for i in range(len(users)):
-            if users[i][0] != message.from_user.id:
-                print(i)
-                msg_text += str(users[i][1]) + ' ' + str(users[i][2]) + ' /invite' + str(users[i][0])
-                msg_text += '\n'
-        return msg_text
-    except Exception as e:
-        print(e)
-
-
-def UpdQuests():
+def change_spec(userID):
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
-    cursor.execute("SELECT * FROM {0}".format("Quests"))
-    args.QuestsArr = []
-    res = cursor.fetchall()
-    for i in res:
-        args.QuestsArr.append([i[0], i[1], i[2], i[3]])
-    print("Список всех поступивших квестов: ")
-    print(args.QuestsArr)
-
-
-def UpdProf():  # Обновление полного списка профессий и профессий для начинающих
-    connect = sqlite3.connect(args.filesFolderName + args.databaseName)
-    cursor = connect.cursor()
-    cursor.execute("SELECT * FROM Profs")
-    args.ProfArr = cursor.fetchall()
-    print("Список всех поступивших профессий: ")
-    print(args.ProfArr)
-
-    args.techList = []
-    args.gumList = []
-    LowProfRank = 0
-    gumID = 0
-    techID = 1
-
-    for i in args.ProfArr:
-        if i[2] == LowProfRank and i[1] == techID:  # Заполнение techList профессиями
-            args.techList.append(i[0])
-        elif i[2] == LowProfRank and i[1] == gumID:  # Заполнение gumList профессиями
-            args.gumList.append(i[0])
-        elif i[2] == LowProfRank and i[1] == 3:
-            args.lowList.append(i[0])
-
-    for i in args.ProfArr:
-        if i[1] == techID:
-            args.all_techList.append(i[0])
-        elif i[1] == gumID:
-            args.all_gumList.append(i[0])
-        elif i[1] == 3:
-            args.all_lowList.append(i[0])
+    cursor.execute("UPDATE Users SET Spec='None',Profession='None',Count_Works='0',Status='{0}',End_time='None',"
+                   "UserRank='0' WHERE ID={1}".format(str(args.waitStatus), str(userID)))
+    connect.commit()

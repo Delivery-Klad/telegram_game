@@ -45,8 +45,6 @@ def timer():
                                             dataBase.add_money(ownerID, int(money)/10)
                                         dataBase.add_money(userId[0][u], money)
                                         dataBase.start_job(userId[0][u], args.waitStatus, 'None')
-                        # bot.send_message(496537969, 'test')
-                        # bot.send_message(441287694, 'test')
                         print('checking')
                         can = False  # чтобы не выполнялось несколько раз в секунду
                 else:
