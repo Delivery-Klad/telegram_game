@@ -264,11 +264,12 @@ def get_gum(userID, taskID):
         markup = types.InlineKeyboardMarkup()
         msg = 'Выберете кому дать задание:\n----------\n'
         for i in range(len(users)):
-            text = str(users[i][0])
-            call = '/_task' + str(users[i][1]) + '_' + str(taskID)
-            key = types.InlineKeyboardButton(text, callback_data=call)
-            markup.add(key)
-            msg += str(users[i][0]) + ' ' + str(users[i][2]) + ' Ранг: ' + str(users[i][3]) + '\n'
+            if int(users[i][1]) != userID:
+                text = str(users[i][0])
+                call = '/_task' + str(users[i][1]) + '_' + str(taskID)
+                key = types.InlineKeyboardButton(text, callback_data=call)
+                markup.add(key)
+                msg += str(users[i][0]) + ' ' + str(users[i][2]) + ' Ранг: ' + str(users[i][3]) + '\n'
         print(users)
         return msg, markup
     except Exception as e:
@@ -289,11 +290,12 @@ def get_low(userID, taskID):
         markup = types.InlineKeyboardMarkup()
         msg = 'Выберете кому дать задание:\n'
         for i in range(len(users)):
-            text = str(users[i][0])
-            call = '/_task' + str(users[i][1]) + '_' + str(taskID)
-            key = types.InlineKeyboardButton(text, callback_data=call)
-            markup.add(key)
-            msg += str(users[i][0]) + ' ' + str(users[i][2]) + ' Ранг: ' + str(users[i][3]) + '\n'
+            if int(users[i][1]) != userID:
+                text = str(users[i][0])
+                call = '/_task' + str(users[i][1]) + '_' + str(taskID)
+                key = types.InlineKeyboardButton(text, callback_data=call)
+                markup.add(key)
+                msg += str(users[i][0]) + ' ' + str(users[i][2]) + ' Ранг: ' + str(users[i][3]) + '\n'
         print(users)
         return msg, markup
     except Exception as e:
