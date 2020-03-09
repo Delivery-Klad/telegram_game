@@ -196,12 +196,15 @@ def handler_accept(message):
                 bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                  text='<i>Вы Начали выполнение здания это займет примерно</i> <b>' + str(
                                      job_timer) + '</b> <i> мин</i>')
+                return True
             else:
                 bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                  text='<b>OOPS\nВы заняты чем-то другим</b>')
+                return False
         else:
             bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                              text='<b>OOPS</b>\nКажется у вас нет задания, которое можно принять')
+            return False
     except Exception as e:
         print(e)
 
@@ -214,6 +217,9 @@ def handler_cancel(message):
             dataBase.upd_can_accept(message.from_user.id, 0)
             bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                              text='<b>Вы отказались от выполнения задания</b>')
+            return True
+        else:
+            return False
     except Exception as e:
         print(e)
 
@@ -259,15 +265,19 @@ def handler_invite(message):
                     bot.send_message(parse_mode='HTML', chat_id=int(userID),
                                      text='<b>Список ваших приглашений:\n</b>' + msg, reply_markup=markup)
                     print(userID)
+                    return True
                 else:
                     bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                      text='<b>Пользователь уже состоит в организации</b>')
+                    return False
             else:
                 bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                  text='<b>У пользователя уже есть приглашение в данную организацию</b>')
+                return False
         else:
             bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                              text='<b>Кажется вы не глава организации</b>')
+            return False
     except Exception as e:
         print(e)
 
@@ -289,19 +299,24 @@ def handler_kick(message):
                         bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                          text='<b>Пользователь исключен из организации</b>')
                         dataBase.kick_from_corp(userID)
+                        return True
                     else:
                         bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                          text='<b>Пользователь не состоит в организации</b>')
+                        return False
                 else:
                     bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                      text='<bВы не можете исключить сами себя из организации</b>')
+                    return False
             except Exception as e:
                 print(e)
                 bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                  text='<bВы не можете исключить сами себя из организации</b>')
+                return False
         else:
             bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                              text='<b>Вы не глава организации</b>')
+            return False
     except Exception as e:
         print(e)
 
@@ -326,12 +341,15 @@ def handler_leave(message):
             if dataBase.leave_corp(message.from_user.id):
                 bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                  text='<b>Вы покинули организацию</b> <i>{0}</i>'.format(str(company)))
+                return True
             else:
                 bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                  text='<b>Владелец не может покинуть организацию</b>')
+                return False
         else:
             bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                              text='<b>Вы не состоите в организации</b>')
+            return False
     except Exception as e:
         print(e)
 
@@ -409,12 +427,15 @@ def handler_task(message):
                                  text='<i>Вы отправили задание пользователю</i> <b>' + str(
                                      dataBase.get_nickname(workerID)) + '</b>')
                 dataBase.upd_can_accept(workerID, 1)
+                return True
             else:
                 bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                  text='<b>OOPS\nКажется пользователь занят</b>')
+                return False
         else:
             bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                              text='<b>А ты хитрый жук, не делай так больше</b>')
+            return False
     except Exception as e:
         print(e)
 
@@ -478,6 +499,8 @@ def handler_me(message):
                    who, dataBase.get_nickname(ID))
         bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                          text=msg, reply_markup=markup)
+        print(threading.active_count())
+        print(threading.enumerate())
     except Exception as e:
         print(e)
 
@@ -492,18 +515,32 @@ def func(c):
                                   text='<b>Узнать как пользоваться ботом</b>', reply_markup=None)
             bot.answer_callback_query(callback_query_id=c.id, show_alert=False, text='Ты приемный')
         elif c.data == '1':
-            handler_accept(c)
-            bot.answer_callback_query(callback_query_id=c.id, show_alert=True, text='Вы начали выполнение задания')
+            if handler_accept(c):
+                bot.answer_callback_query(callback_query_id=c.id, show_alert=True, text='Вы начали выполнение задания')
+            else:
+                bot.answer_callback_query(callback_query_id=c.id, show_alert=True, text='Нееее, дружок, так не пойдет')
         elif c.data == '2':
-            handler_cancel(c)
-            bot.answer_callback_query(callback_query_id=c.id, show_alert=True, text='Вы отказались выполнять задание')
+            if handler_cancel(c):
+                bot.answer_callback_query(callback_query_id=c.id, show_alert=True, text='Вы отказались выполнять '
+                                                                                        'задание')
+            else:
+                bot.answer_callback_query(callback_query_id=c.id, show_alert=True, text='Нееее, дружок, так не пойдет')
         elif c.data[1:7] == 'invite':
-            handler_invite(c)
-            bot.answer_callback_query(callback_query_id=c.id, show_alert=True, text='Пользователь приглашен')
+            if handler_invite(c):
+                bot.answer_callback_query(callback_query_id=c.id, show_alert=True, text='Пользователь приглашен')
+            else:
+                bot.answer_callback_query(callback_query_id=c.id, show_alert=True, text='Приглашение не отправлено')
         elif c.data[1:5] == 'task':
-            handler_task(c)
-            bot.answer_callback_query(callback_query_id=c.id, show_alert=False, text='Задание отправлено')
+            if handler_task(c):
+                bot.answer_callback_query(callback_query_id=c.id, show_alert=False, text='Задание отправлено')
+            else:
+                bot.answer_callback_query(callback_query_id=c.id, show_alert=False, text='Задание не отправлено')
         elif c.data[1:7] == 'accept':
+            """
+            
+            пофиксить
+            
+            """
             ownerID = int(c.data[7:])
             print(ownerID)
             company = dataBase.get_company(ownerID)
@@ -515,41 +552,53 @@ def func(c):
                              text='<b>Вы присоединились к организации </b>' + str(company))
             bot.answer_callback_query(callback_query_id=c.id, show_alert=False, text='Вы приняли приглашение')
         elif c.data[1:5] == 'kick':
-            handler_kick(c)
-            bot.answer_callback_query(callback_query_id=c.id, show_alert=False, text='Пользователь исключен')
+            if handler_kick(c):
+                bot.answer_callback_query(callback_query_id=c.id, show_alert=False, text='Пользователь исключен')
+            else:
+                bot.answer_callback_query(callback_query_id=c.id, show_alert=True, text='Нееее, дружок, так не пойдет')
         elif c.data[2:6] == 'task':
             if handler_corp_task(c):
                 bot.answer_callback_query(callback_query_id=c.id, show_alert=False, text='Задание отправлено')
+            else:
+                bot.answer_callback_query(callback_query_id=c.id, show_alert=True, text='Нееее, дружок, так не пойдет')
         elif c.data[1:9] == 'give_low':
             if dataBase.isOwner(c.from_user.id):
                 ID = str(c.data[9:])
                 msg, markup = dataBase.get_low(c.from_user.id, ID)
                 bot.send_message(parse_mode='HTML', chat_id=c.from_user.id, text=msg, reply_markup=markup)
+                bot.answer_callback_query(callback_query_id=c.id, show_alert=False, text='Success')
                 return
             else:
                 bot.send_message(parse_mode='HTML', chat_id=c.from_user.id,
                                  text='<b>Кажется вы не глава организации</b>')
+                bot.answer_callback_query(callback_query_id=c.id, show_alert=False, text='Error')
         elif c.data[1:9] == 'give_gum':
             if dataBase.isOwner(c.from_user.id):
                 ID = str(c.data[9:])
                 msg, markup = dataBase.get_gum(c.from_user.id, ID)
                 bot.send_message(parse_mode='HTML', chat_id=c.from_user.id, text=msg, reply_markup=markup)
+                bot.answer_callback_query(callback_query_id=c.id, show_alert=False, text='Success')
                 return
             else:
                 bot.send_message(parse_mode='HTML', chat_id=c.from_user.id,
                                  text='<b>Кажется вы не глава организации</b>')
+                bot.answer_callback_query(callback_query_id=c.id, show_alert=False, text='Error')
         elif c.data[1:10] == 'give_tech':
             if dataBase.isOwner(c.from_user.id):
                 ID = str(c.data[10:])
                 msg, markup = dataBase.get_tech(c.from_user.id, ID)
                 bot.send_message(parse_mode='HTML', chat_id=c.from_user.id, text=msg, reply_markup=markup)
+                bot.answer_callback_query(callback_query_id=c.id, show_alert=False, text='Success')
                 return
             else:
                 bot.send_message(parse_mode='HTML', chat_id=c.from_user.id,
                                  text='<b>Кажется вы не глава организации</b>')
+                bot.answer_callback_query(callback_query_id=c.id, show_alert=False, text='Error')
         elif c.data[1:] == 'leave_corp':
-            handler_leave(c)
-            bot.answer_callback_query(callback_query_id=c.id, show_alert=False, text='Вы покинули орг')
+            if handler_leave(c):
+                bot.answer_callback_query(callback_query_id=c.id, show_alert=False, text='Вы покинули орг')
+            else:
+                bot.answer_callback_query(callback_query_id=c.id, show_alert=True, text='Нееее, дружок, так не пойдет')
     except Exception as e:
         print(e)
 
@@ -643,7 +692,7 @@ def handler_text(message):
         print(e)
 
 
-@bot.message_handler(content_types=['photo'])  # функция обработки фото
+@bot.message_handler(content_types=['photo'])
 def handler_photo(message):
     try:
         ID = message.from_user.id
@@ -663,7 +712,7 @@ def handler_photo(message):
         print(e)
 
 
-@bot.message_handler(content_types=['contact'])  # функция обработки фото
+@bot.message_handler(content_types=['contact'])
 def handler_photo(message):
     try:
         functions.wrong_input(message.from_user.id, dataBase.get_spec(message.from_user.id))
@@ -671,7 +720,7 @@ def handler_photo(message):
         print(e)
 
 
-@bot.message_handler(content_types=['sticker'])  # функция обработки фото
+@bot.message_handler(content_types=['sticker'])
 def handler_photo(message):
     try:
         if not functions.isAdmin(message.from_user.id):
@@ -684,7 +733,7 @@ def handler_photo(message):
         print(e)
 
 
-@bot.message_handler(content_types=['voice'])  # функция обработки фото
+@bot.message_handler(content_types=['voice'])
 def handler_photo(message):
     try:
         functions.wrong_input(message.from_user.id, dataBase.get_spec(message.from_user.id))
@@ -692,7 +741,7 @@ def handler_photo(message):
         print(e)
 
 
-@bot.message_handler(content_types=['location'])  # функция обработки фото
+@bot.message_handler(content_types=['location'])
 def handler_photo(message):
     try:
         functions.wrong_input(message.from_user.id, dataBase.get_spec(message.from_user.id))
@@ -700,7 +749,7 @@ def handler_photo(message):
         print(e)
 
 
-@bot.message_handler(content_types=['audio'])  # функция обработки фото
+@bot.message_handler(content_types=['audio'])
 def handler_photo(message):
     try:
         functions.wrong_input(message.from_user.id, dataBase.get_spec(message.from_user.id))
@@ -708,7 +757,7 @@ def handler_photo(message):
         print(e)
 
 
-@bot.message_handler(content_types=['video'])  # функция обработки фото
+@bot.message_handler(content_types=['video'])
 def handler_photo(message):
     try:
         functions.wrong_input(message.from_user.id, dataBase.get_spec(message.from_user.id))
@@ -716,7 +765,7 @@ def handler_photo(message):
         print(e)
 
 
-@bot.message_handler(content_types=['document'])  # функция обработки фото
+@bot.message_handler(content_types=['document'])
 def handler_photo(message):
     try:
         functions.wrong_input(message.from_user.id, dataBase.get_spec(message.from_user.id))
@@ -732,5 +781,6 @@ try:  # максимально странная конструкция
             bot.polling(none_stop=True, interval=0)  # получение обновлений
         except Exception as er:
             print(er)
+        threading.active_count()
 except Exception as er:
     print(er)
