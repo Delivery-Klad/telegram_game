@@ -811,6 +811,16 @@ def delete_request(userID):
     connect.commit()
 
 
+def refreshCorpTasks(userID):
+    try:
+        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+        cursor = connect.cursor()
+        cursor.execute("DELETE FROM CorpTasks WHERE ownerID={0}".format(userID))
+        connect.commit()
+    except Exception as e:
+        print(e)
+
+
 def change_spec(userID):
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()

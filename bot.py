@@ -360,14 +360,18 @@ def handler_getTask(message):
         functions.log(message)
         if dataBase.inCorp(message.from_user.id):
             if dataBase.isOwner(message.from_user.id):
+                dataBase.refreshCorpTasks(message.from_user.id)
                 msg, markup = dataBase.get_corpTask(message.from_user.id)
                 bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text=msg, reply_markup=markup)
+                return True
             else:
                 bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                  text='<b>Вы не глава организации</b>')
+                return False
         else:
             bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                              text='<b>Вы не состоите в организации</b>')
+            return False
     except Exception as e:
         print(e)
 
