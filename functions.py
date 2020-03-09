@@ -11,20 +11,36 @@ def log(message):  # запись лога сообщений
         file = open(args.filesFolderName + args.logFileName, 'a')
         file.write('\n' + args.delimiter_line + '\n')
         file.write(str(datetime.now().strftime('%d-%m-%Y %H:%M:%S')))
-        if message.from_user.username != 'None' and message.from_user.username is not None:
-            file.write('\nСообщение от {0}, (id = {1})\nТекст - {2}'.format(message.from_user.username,
-                                                                            str(message.from_user.id),
-                                                                            message.text))
-        else:
-            file.write('\nСообщение от {0} {1}, (id = {2})\nТекст - {3}'.format(message.from_user.first_name,
-                                                                                message.from_user.last_name,
+        try:
+            if message.from_user.username != 'None' and message.from_user.username is not None:
+                file.write('\nСообщение от {0}, (id = {1})\nТекст - {2}'.format(message.from_user.username,
                                                                                 str(message.from_user.id),
                                                                                 message.text))
-        print('\n' + args.delimiter_line)
-        print(str(datetime.now().strftime('%d-%m-%Y %H:%M:%S')))
-        print('Сообщение от {0}, (id = {1})\nТекст - {2}'.format(message.from_user.username,
-                                                                 str(message.from_user.id),
-                                                                 message.text))
+            else:
+                file.write('\nСообщение от {0} {1}, (id = {2})\nТекст - {3}'.format(message.from_user.first_name,
+                                                                                    message.from_user.last_name,
+                                                                                    str(message.from_user.id),
+                                                                                    message.text))
+            print('\n' + args.delimiter_line)
+            print(str(datetime.now().strftime('%d-%m-%Y %H:%M:%S')))
+            print('Сообщение от {0}, (id = {1})\nТекст - {2}'.format(message.from_user.username,
+                                                                     str(message.from_user.id),
+                                                                     message.text))
+        except AttributeError:
+            if message.from_user.username != 'None' and message.from_user.username is not None:
+                file.write('\nСообщение от {0}, (id = {1})\nТекст - {2}'.format(message.from_user.username,
+                                                                                str(message.from_user.id),
+                                                                                message.data))
+            else:
+                file.write('\nСообщение от {0} {1}, (id = {2})\nТекст - {3}'.format(message.from_user.first_name,
+                                                                                    message.from_user.last_name,
+                                                                                    str(message.from_user.id),
+                                                                                    message.data))
+            print('\n' + args.delimiter_line)
+            print(str(datetime.now().strftime('%d-%m-%Y %H:%M:%S')))
+            print('Сообщение от {0}, (id = {1})\nТекст - {2}'.format(message.from_user.username,
+                                                                     str(message.from_user.id),
+                                                                     message.data))
         file.close()
     except Exception as e:
         print(e)
