@@ -25,6 +25,7 @@ def createTables():  # создание таблиц в sql если их нет
                        'Reg_Date TEXT,'
                        'UserRank TEXT,'
                        'Comp TEXT,'
+                       'CompDiscription TEXT,'
                        'task TEXT)')  # дата регистрации
         cursor.execute('CREATE TABLE IF NOT EXISTS Quests(Profession TEXT,'  # профессия 
                        'Quest TEXT,'  # задание
@@ -692,12 +693,39 @@ def corp_members(userID):
     return msg, markup
 
 
+def corp_info(userID):
+    try:
+        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+        cursor = connect.cursor()
+        cursor.execute("SELECT CompDiscription FROM Users WHERE ID={0}".format(str(userID)))
+        res = cursor.fetchall()
+        msg = '<b>Название:</b> <i>{0}</i>\n<b>Описание:/b> <i>{1}</i>'.format(get_Corp(userID), res[0][0])
+        return msg
+    except Exception as e:
+        functions.errorLog('corp_info')
+
+
+def update_corp_description(userID, name):
+    try:
+        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+        cursor = connect.cursor()
+        if isOwner(userID):
+            cursor.execute("UPDATE Users SET CompDiscription='{0}' WHERE Comp='{1}'".format(name, get_Corp(userID)))
+            connect.commit()
+            return 'Описание обновлено'
+        else:
+            return 'Вы не владелец организации'
+    except Exception as e:
+        functions.errorLog('update_corp_description')
+
+
 def leave_corp(userID):
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
         if not isOwner(userID):
             cursor.execute("UPDATE Users SET Comp='0' WHERE ID={0}".format(str(userID)))
+            cursor.execute("UPDATE Users SET CompDiscription=None WHERE ID={0}".format(str(userID)))
             connect.commit()
             return True
         else:

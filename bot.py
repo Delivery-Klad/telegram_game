@@ -55,8 +55,9 @@ def handler_start(message):
                 functions.errorLog('handler_start')
                 res = 0
             data = [message.from_user.id, message.from_user.username, "None", "None", "None", str(args.waitStatus),
-                    "None", 0, str(datetime.now().strftime('%d-%m-%Y %H:%M:%S')), 0, "0", 0, "0", 0, "None", res]
-            cursor.execute('INSERT INTO Users VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', data)
+                    "None", 0, str(datetime.now().strftime('%d-%m-%Y %H:%M:%S')), 0, "0", 0, "0", 0,
+                    "None", "None", res]
+            cursor.execute('INSERT INTO Users VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', data)
         connect.commit()
     except Exception as e:
         functions.errorLog('handler_start')
@@ -77,6 +78,7 @@ def handler_help(message):
                               '/corp_help - Информация об организациях\n'
                               '/me - Информация об аккаунте\n'
                               '/balance - Узнать баланс\n'
+                              '/change_nickname - Изменить никнейм\n'
                               '-')
         if functions.isAdmin(message.from_user.id):
             bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
@@ -99,6 +101,8 @@ def handler_corp_help(message):
                          text='Меню помощи\n'
                               '/create_corp (+название) - Создать организацию\n'
                               '/leave_corp - Покинуть организацию\n'
+                              '/set_desc (+название) - Добавить описание организации\n'
+                              '/info - Информация об организации\n'
                               '/accept - Согласиться вступить в организацию\n'
                               '/cancel - Отказаться от вступления в организацию\n'
                               '/invite - Выбрать кому отправить приглос в орг\n'
@@ -409,6 +413,27 @@ def handler_create_corp(message):
         functions.errorLog('handler_create_corp')
 
 
+@bot.message_handler(commands=['info'])
+def handler_info_corp(message):
+    try:
+        functions.log(message)
+        info = dataBase.corp_info(message.from_user.id)
+        bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text=info)
+    except Exception as e:
+        functions.errorLog('info_handler')
+
+
+@bot.message_handler(commands=['set_desc'])
+def handler_set_desc(message):
+    try:
+        functions.log(message)
+        name = message.text.split(' ').pop(0)
+        res = dataBase.update_corp_description(message.from_user.id, name)
+        bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text=res)
+    except Exception as e:
+        functions.errorLog('upd_info_handler')
+
+
 def handler_task(message):
     try:
         workerID = int(message.data[5:])
@@ -479,6 +504,7 @@ def handler_corp_task(message):
 @bot.message_handler(commands=['me'])  # функция инвайта в орг
 def handler_me(message):
     try:
+        functions.log(message)
         ID = message.from_user.id
         markup = types.InlineKeyboardMarkup()
         if dataBase.isOwner(ID):
@@ -500,6 +526,15 @@ def handler_me(message):
                          text=msg, reply_markup=markup)
     except Exception as e:
         functions.errorLog('handler_me')
+
+
+@bot.message_handler(commands=['change_nickname'])  # функция инвайта в орг
+def handler_change(message):
+    try:
+        functions.log(message)
+        nickList.append(message.from_user.id)
+    except Exception as e:
+        functions.errorLog('change_nickname')
 
 
 @bot.callback_query_handler(func=lambda c: True)  # функция обработки inline кнопок
