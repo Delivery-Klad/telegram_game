@@ -699,7 +699,9 @@ def corp_info(userID):
         cursor = connect.cursor()
         cursor.execute("SELECT CompDiscription FROM Users WHERE ID={0}".format(str(userID)))
         res = cursor.fetchall()
-        msg = '<b>Название:</b> <i>{0}</i>\n<b>Описание:/b> <i>{1}</i>'.format(get_Corp(userID), res[0][0])
+        company = get_Corp(userID)
+        owner = get_owner(company)
+        msg = '<b>Название:</b> <i>{0}</i>\n<b>Владелец:</b> <i>{1}</i>\n<b>Описание:</b> <i>{2}</i>'.format(company, owner, res[0][0])
         return msg
     except Exception as e:
         functions.errorLog('corp_info')

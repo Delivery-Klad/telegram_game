@@ -420,6 +420,7 @@ def handler_info_corp(message):
         info = dataBase.corp_info(message.from_user.id)
         bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text=info)
     except Exception as e:
+        print(e)
         functions.errorLog('info_handler')
 
 
@@ -427,7 +428,7 @@ def handler_info_corp(message):
 def handler_set_desc(message):
     try:
         functions.log(message)
-        name = message.text.split(' ').pop(0)
+        name = message.text.split(' ', 1)[1]
         res = dataBase.update_corp_description(message.from_user.id, name)
         bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text=res)
     except Exception as e:
@@ -533,6 +534,7 @@ def handler_change(message):
     try:
         functions.log(message)
         nickList.append(message.from_user.id)
+        bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text='<b>Ввведите новый ник:</b>')
     except Exception as e:
         functions.errorLog('change_nickname')
 
