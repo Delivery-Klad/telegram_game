@@ -6,6 +6,7 @@ from telebot import types
 import sqlite3
 import telebot
 import random
+import functions
 import args
 
 
@@ -34,7 +35,8 @@ def createTables():  # создание таблиц в sql если их нет
                        'ProfRank INTEGER)')  # 0/1/3 - гум/технарь/доступен всем
         connect.commit()
     except Exception as e:
-        print(e)
+        createTables()
+        functions.errorLog('createTables')
 
 
 def set_nickname(nickName):
@@ -45,7 +47,8 @@ def set_nickname(nickName):
             "UPDATE Users SET NickName='{0}' WHERE ID='{1}'".format(str(nickName.text), str(nickName.from_user.id)))
         connect.commit()
     except Exception as e:
-        print(e)
+        createTables()
+        functions.errorLog('set_nickname')
 
 
 def set_profession(message, in_profArr):
@@ -86,7 +89,8 @@ def set_profession(message, in_profArr):
         connect.commit()
         return True
     except Exception as e:
-        print(e)
+        createTables()
+        functions.errorLog('set_professoin')
 
 
 def setOwner(userID):
@@ -96,7 +100,8 @@ def setOwner(userID):
         cursor.execute("UPDATE Users SET isOwner=1 WHERE ID={0}".format(str(userID)))
         connect.commit()
     except Exception as e:
-        print(e)
+        createTables()
+        functions.errorLog('setOwner')
 
 
 def get_nickname(userID):
@@ -107,7 +112,8 @@ def get_nickname(userID):
         name = cursor.fetchall()
         return name[0][0]
     except Exception as e:
-        print(e)
+        createTables()
+        functions.errorLog('get_nickname')
 
 
 def get_spec(userID):
@@ -118,7 +124,8 @@ def get_spec(userID):
         spec = cursor.fetchall()
         return spec[0][0]
     except Exception as e:
-        print(e)
+        createTables()
+        functions.errorLog('get_spec')
 
 
 def get_prof(userID):
@@ -126,7 +133,6 @@ def get_prof(userID):
     cursor = connect.cursor()
     cursor.execute("SELECT Profession FROM Users WHERE ID=" + str(userID))
     prof = cursor.fetchall()
-    print(prof[0][0])
     return prof[0][0]
 
 
@@ -135,7 +141,6 @@ def get_userRank(userID):
     cursor = connect.cursor()
     cursor.execute("SELECT UserRank FROM Users WHERE ID=" + str(userID))
     rank = cursor.fetchall()
-    print(rank[0][0])
     return rank[0][0]
 
 
@@ -158,10 +163,10 @@ def get_task(userID):
             task = random.randint(0, len(quests) - 1)
         else:
             task = 0
-        print(quests[task][0])
         return quests[task][0]
     except Exception as e:
-        print(e)
+        createTables()
+        functions.errorLog('get_task')
 
 
 def get_corpTask(userID):
@@ -174,7 +179,6 @@ def get_corpTask(userID):
         markup = types.InlineKeyboardMarkup()
         if len(quests) > 1:
             for i in range(5):
-                print(i)
                 task = random.randint(0, len(quests) - 1)
                 if quests[task][1] in args.all_techList:
                     cursor.execute("SELECT MAX(id) FROM CorpTasks")
@@ -216,10 +220,10 @@ def get_corpTask(userID):
                                                                                                 quests[task][2],
                                                                                                 quests[task][0])
         msg += 'Выберете кому дать задание'
-        print(msg)
         return msg, markup
     except Exception as e:
-        print(e)
+        createTables()
+        functions.errorLog('get_CorpTask')
 
 
 def get_tech(userID, taskID):
@@ -244,10 +248,10 @@ def get_tech(userID, taskID):
                 key = types.InlineKeyboardButton(text, callback_data=call)
                 markup.add(key)
                 msg += str(users[i][0]) + ' ' + str(users[i][2]) + ' Ранг: ' + str(users[i][3]) + '\n'
-        print(users)
         return msg, markup
     except Exception as e:
-        print(e)
+        createTables()
+        functions.errorLog('get_tech')
         return 'Выберете кому дать задание:\n----------\nNone'
 
 
@@ -270,10 +274,10 @@ def get_gum(userID, taskID):
                 key = types.InlineKeyboardButton(text, callback_data=call)
                 markup.add(key)
                 msg += str(users[i][0]) + ' ' + str(users[i][2]) + ' Ранг: ' + str(users[i][3]) + '\n'
-        print(users)
         return msg, markup
     except Exception as e:
-        print(e)
+        createTables()
+        functions.errorLog('get_gum')
         return 'Выберете кому дать задание:\n----------\nNone'
 
 
@@ -296,10 +300,10 @@ def get_low(userID, taskID):
                 key = types.InlineKeyboardButton(text, callback_data=call)
                 markup.add(key)
                 msg += str(users[i][0]) + ' ' + str(users[i][2]) + ' Ранг: ' + str(users[i][3]) + '\n'
-        print(users)
         return msg, markup
     except Exception as e:
-        print(e)
+        createTables()
+        functions.errorLog('get_low')
         return 'Выберете кому дать задание:\n----------\nNone'
 
 
@@ -311,9 +315,6 @@ def get_workers(message):
                        .format(str(args.waitStatus)))
         users = cursor.fetchall()
         msg_text = ''
-        print('check')
-        print(len(users[0]))
-        print(len(users))
         markup = types.InlineKeyboardMarkup()
         for i in range(len(users)):
             if users[i][0] != message.from_user.id:
@@ -326,6 +327,8 @@ def get_workers(message):
                 msg_text += '\n'
         return msg_text, markup
     except IndexError:
+        createTables()
+        functions.errorLog('get_workers')
         return 'Некому дать задание', None
 
 
@@ -338,7 +341,8 @@ def get_balance(userID):
         money += str(args.currency)
         return money
     except Exception as e:
-        print(e)
+        createTables()
+        functions.errorLog('get_balance')
 
 
 def get_company(userID):
@@ -368,7 +372,8 @@ def get_taskCost(userID):
         cost = cursor.fetchall()[0][0]
         return cost
     except Exception as e:
-        print(e)
+        createTables()
+        functions.errorLog('get_taskCost')
 
 
 def get_job_timer(userID):
@@ -383,7 +388,8 @@ def get_job_timer(userID):
         print(time)
         return int(time)
     except Exception as e:
-        print(e)
+        createTables()
+        functions.errorLog('get_job_timer')
 
 
 def get_Corp(userID):
@@ -394,7 +400,8 @@ def get_Corp(userID):
         corpName = cursor.fetchall()[0][0]
         return corpName
     except Exception as e:
-        print(e)
+        createTables()
+        functions.errorLog('get_Corp')
         return True
 
 
@@ -409,7 +416,8 @@ def getAvatar(ID):
         print(type(photo))
         return photo
     except Exception as e:
-        print(e)
+        createTables()
+        functions.errorLog('getAvatar')
 
 
 def getReq(toID):
@@ -417,8 +425,6 @@ def getReq(toID):
     cursor = connect.cursor()
     cursor.execute("SELECT DISTINCT toUserID,fromWho,type FROM Requests WHERE toUserID={0}".format(toID))
     res = cursor.fetchall()
-    print(res)
-    print(len(res))
     msg = ''
     markup = types.InlineKeyboardMarkup()
     for i in range(len(res)):
@@ -442,7 +448,8 @@ def get_refOwner(userID):
         else:
             return 0
     except Exception as e:
-        print(e)
+        createTables()
+        functions.errorLog('get_refOwner')
         return str('none')
 
 
@@ -453,9 +460,6 @@ def get_noInCorpUsers(message):
         cursor.execute("SELECT ID,NickName,Profession,UserRank FROM Users WHERE Comp='0' ORDER BY RANDOM() LIMIT 5")
         users = cursor.fetchall()
         msg_text = ''
-        print('check')
-        print(len(users[0]))
-        print(len(users))
         markup = types.InlineKeyboardMarkup()
         for i in range(len(users)):
             if users[i][0] != message.from_user.id:
@@ -468,6 +472,8 @@ def get_noInCorpUsers(message):
                 msg_text += '\n'
         return msg_text, markup
     except IndexError:
+        createTables()
+        functions.errorLog('get_notInCorpUsers')
         return 'Нет свободных людей', None
 
 
@@ -484,7 +490,8 @@ def add_money(userID, money):
                            format((money / args.referal_procent), ownerID))
         connect.commit()
     except Exception as e:
-        print(e)
+        createTables()
+        functions.errorLog('add_money')
 
 
 def add_Quest(message):
@@ -493,11 +500,11 @@ def add_Quest(message):
         cursor = connect.cursor()
         data = message.text.split(' , ')
         data.pop(0)
-        print(data)
         cursor.execute("INSERT INTO Quests VALUES(?, ?, ?, ?)", data)
         connect.commit()
     except Exception as e:
-        print(e)
+        createTables()
+        functions.errorLog('add_quest')
 
 
 def addAvatar(ID, file):
@@ -508,7 +515,8 @@ def addAvatar(ID, file):
         cursor.execute("INSERT INTO userPhotos VALUES(?, ?)", data)
         connect.commit()
     except Exception as e:
-        print(e)
+        createTables()
+        functions.errorLog('addAvatar')
 
 
 def upd_corp(userID, company):
@@ -518,7 +526,8 @@ def upd_corp(userID, company):
         cursor.execute("UPDATE Users SET Comp='{0}' WHERE ID={1}".format(str(company), str(userID)))
         connect.commit()
     except Exception as e:
-        print(e)
+        createTables()
+        functions.errorLog('upd_corp')
 
 
 def upd_spec(userID, spec):
@@ -528,7 +537,8 @@ def upd_spec(userID, spec):
         cursor.execute("UPDATE Users SET Spec='{0}' WHERE ID={1}".format(spec, str(userID)))
         connect.commit()
     except Exception as e:
-        print(e)
+        createTables()
+        functions.errorLog('upd_spec')
 
 
 def upd_can_accept(userID, check):
@@ -540,14 +550,13 @@ def upd_can_accept(userID, check):
 
 def upd_taskNow(userID, task):
     try:
-        print(task)
-        print(userID)
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
         cursor.execute("UPDATE Users SET TaskNow='{0}' WHERE ID={1}".format(str(task), str(userID)))
         connect.commit()
     except Exception as e:
-        print(e)
+        createTables()
+        functions.errorLog('upd_taskNow')
 
 
 def upd_quests():
@@ -558,8 +567,6 @@ def upd_quests():
     res = cursor.fetchall()
     for i in res:
         args.QuestsArr.append([i[0], i[1], i[2], i[3]])
-    print("Список всех поступивших квестов: ")
-    print(args.QuestsArr)
 
 
 def upd_prof():  # Обновление полного списка профессий и профессий для начинающих
@@ -567,8 +574,6 @@ def upd_prof():  # Обновление полного списка профес
     cursor = connect.cursor()
     cursor.execute("SELECT * FROM Profs")
     args.ProfArr = cursor.fetchall()
-    print("Список всех поступивших профессий: ")
-    print(args.ProfArr)
 
     args.techList = []
     args.gumList = []
@@ -605,7 +610,8 @@ def inCorp(userID):
         else:
             return True
     except Exception as e:
-        print(e)
+        createTables()
+        functions.errorLog('inCorp')
         return True
 
 
@@ -615,10 +621,10 @@ def isOwner(userID):
         cursor = connect.cursor()
         cursor.execute("SELECT Comp FROM Users WHERE isOwner=1 AND ID=" + str(userID))
         corpName = cursor.fetchall()[0][0]
-        print(corpName)
         return True
     except Exception as e:
-        print(e)
+        createTables()
+        functions.errorLog('isOwner')
         return False
 
 
@@ -633,7 +639,8 @@ def isFree(userID):  # проверить выполняет ли пользов
         else:
             return False
     except Exception as e:
-        print(e)
+        createTables()
+        functions.errorLog('isFree')
 
 
 def give_corp_task(taskID, userID):
@@ -642,7 +649,6 @@ def give_corp_task(taskID, userID):
         cursor = connect.cursor()
         cursor.execute("SELECT Task,spec,rank FROM CorpTasks WHERE id=" + str(taskID))
         task = cursor.fetchall()
-        print(task[0][0])
         if get_userRank(userID) >= int(task[0][2]) and get_spec(userID) == task[0][1]:
             upd_taskNow(userID, task[0][0])
         cursor.execute("DELETE FROM CorpTasks WHERE id=" + str(taskID))
@@ -650,7 +656,8 @@ def give_corp_task(taskID, userID):
         msg = '<b>Вы получили задание от главы организиции:</b> ' + task[0][0]
         return msg
     except Exception as e:
-        print(e)
+        createTables()
+        functions.errorLog('give_corp_task')
         return 'None'
 
 
@@ -664,13 +671,16 @@ def kick_from_corp(userID):
 def corp_members(userID):
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
+    markup = types.InlineKeyboardMarkup()
+    if get_company(userID) == 0:
+        call = '/me'
+        key = types.InlineKeyboardButton('/me', callback_data=call)
+        markup.add(key)
+        return 'Вы не состоите в организации', markup
     cursor.execute("SELECT ID,NickName,Profession,UserRank FROM Users WHERE Comp='{0}'".
                    format(str(get_company(userID))))
     members = cursor.fetchall()
-    print(len(members))
-    print(members)
     msg = '<b>Члены организации:</b>\n'
-    markup = types.InlineKeyboardMarkup()
     for i in range(len(members)):
         if userID != members[i][0]:
             text = 'Выгнать ' + str(members[i][1])
@@ -693,7 +703,8 @@ def leave_corp(userID):
         else:
             return False
     except Exception as e:
-        print(e)
+        createTables()
+        functions.errorLog('leave_corp')
 
 
 def can_accept(userID):
@@ -719,7 +730,8 @@ def up_lvl(userID):
             give_new_prof(userID)
         connect.commit()
     except Exception as e:
-        print(e)
+        createTables()
+        functions.errorLog('up_lvl')
 
 
 def give_new_prof(userID):
@@ -739,7 +751,6 @@ def give_new_prof(userID):
         cursor.execute("SELECT Prof FROM Profs WHERE ProfRank<={0} AND ProfCheck={1}".
                        format(str(get_userRank(userID)), profID))
         profs = cursor.fetchall()
-        print(profs)
         for i in range(len(profs)):
             print(i)
             user_markup.row(profs[i][0])
@@ -748,7 +759,8 @@ def give_new_prof(userID):
                               reply_markup=user_markup)
         args.new_frof_list.append(userID)
     except Exception as e:
-        print(e)
+        createTables()
+        functions.errorLog('gevi_new_prof')
 
 
 def start_job(userID, status, time):  # замена статуса и указание времени начала
@@ -759,7 +771,8 @@ def start_job(userID, status, time):  # замена статуса и указ�
         cursor.execute("UPDATE Users SET End_time='{0}' WHERE ID='{1}'".format(str(time), str(userID)))
         connect.commit()
     except Exception as e:
-        print(e)
+        createTables()
+        functions.errorLog('start_job')
 
 
 def plus_count_works(userID):  # указание количества выполненных работ
@@ -770,7 +783,8 @@ def plus_count_works(userID):  # указание количества выпо�
         connect.commit()
         up_lvl(userID)  # повышение ранга
     except Exception as e:
-        print(e)
+        createTables()
+        functions.errorLog('plus_count_works')
 
 
 def minus_money(userID, money):
@@ -780,7 +794,8 @@ def minus_money(userID, money):
         cursor.execute("UPDATE Users SET Money=Money-{0} WHERE ID='{1}'".format(money, userID))
         connect.commit()
     except Exception as e:
-        print(e)
+        createTables()
+        functions.errorLog('minus_money')
 
 
 def check_requests(userID, company):
@@ -818,7 +833,7 @@ def refreshCorpTasks(userID):
         cursor.execute("DELETE FROM CorpTasks WHERE ownerID={0}".format(userID))
         connect.commit()
     except Exception as e:
-        print(e)
+        functions.errorLog('refreshCorpTasks')
 
 
 def change_spec(userID):

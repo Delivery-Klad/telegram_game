@@ -18,6 +18,7 @@ databaseName = 'DataBase.db'
 helpButtonName = 'нужна помощь?'
 filesFolderName = 'files/'
 logFileName = 'LogBot.txt'
+ErlogFileName = 'ErrorLog.txt'
 workStatus = 'Work'                                # статус во время выполнения работы
 waitStatus = 'Chill'                               # статус во время ожидиния работы
 admins_list = [441287694, 496537969]

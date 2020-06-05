@@ -26,14 +26,12 @@ def timer():
                         end_time = cursor.fetchall()
                         for i in range(len(end_time)):
                             if end_time[i][0] != 'None':
-                                print(end_time[i][0])
                                 end_minutes = int(end_time[i][0])
                                 mitutes_now = int(datetime.now().strftime('%M'))
                                 if mitutes_now == end_minutes or mitutes_now > end_minutes:
                                     cursor.execute("SELECT ID FROM Users WHERE End_time=" + str(end_minutes))
                                     userId = cursor.fetchall()
                                     for u in range(len(userId[0])):
-                                        print(userId[0][u])
                                         money = dataBase.get_taskCost(userId[0][u])
                                         args.bot.send_message(parse_mode='HTML', chat_id=userId[0][u],
                                                               text='<b>Вы закончили выполнение задания</b>\nВаш '
@@ -45,7 +43,7 @@ def timer():
                                             dataBase.add_money(ownerID, int(money)/10)
                                         dataBase.add_money(userId[0][u], money)
                                         dataBase.start_job(userId[0][u], args.waitStatus, 'None')
-                        print('checking')
+                        print('------------\nchecking\n------------')
                         can = False  # чтобы не выполнялось несколько раз в секунду
                 else:
                     can = True

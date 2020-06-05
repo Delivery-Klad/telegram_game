@@ -34,7 +34,7 @@ def handler_start(message):
         try:
             bot.send_sticker(message.from_user.id, args.hello)
         except Exception as e:
-            print(e)
+            functions.errorLog('handler_start')
         bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text='<b>Узнать как пользоваться ботом</b>',
                          reply_markup=key1)
         contain = False
@@ -52,14 +52,14 @@ def handler_start(message):
                 mess = message.text.split()
                 res = mess[1]
             except Exception as e:
-                print(e)
+                functions.errorLog('handler_start')
                 res = 0
             data = [message.from_user.id, message.from_user.username, "None", "None", "None", str(args.waitStatus),
                     "None", 0, str(datetime.now().strftime('%d-%m-%Y %H:%M:%S')), 0, "0", 0, "0", 0, "None", res]
             cursor.execute('INSERT INTO Users VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', data)
         connect.commit()
     except Exception as e:
-        print(e)
+        functions.errorLog('handler_start')
 
 
 @bot.message_handler(commands=['help'])  # обработка команды помощи
@@ -75,18 +75,20 @@ def handler_help(message):
                               '/give_task - Дать задание другому игроку\n'
                               '/change_spec - Изменить специализацию\n'
                               '/corp_help - Информация об организациях\n'
+                              '/me - Информация об аккаунте\n'
                               '/balance - Узнать баланс\n'
                               '-')
         if functions.isAdmin(message.from_user.id):
             bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                              text='Меню помощи\n'
                                   '/log - Запросить логи\n'
+                                  '/errorlog - Запросить логи\n'
                                   '/db - Запросить базу данных\n'
                                   '/add_quest - (по формату '
                                   '/add_quest , профессия , задание , ранг , время)\n '
                                   '-')
     except Exception as e:
-        print(e)
+        functions.errorLog('handler_help')
 
 
 @bot.message_handler(commands=['corp_help'])  # функция инвайта в орг
@@ -104,7 +106,7 @@ def handler_corp_help(message):
                               '/get_task - Получить задание на организацию\n'
                               '-')
     except Exception as e:
-        print(e)
+        functions.errorLog('handler_corp_help')
 
 
 @bot.message_handler(commands=['log'])  # функция обработки запроса логов
@@ -115,7 +117,7 @@ def handler_log(message):
             doc = open(args.filesFolderName + args.logFileName, 'rb')
             bot.send_document(message.from_user.id, doc)
     except Exception as e:
-        print(e)
+        functions.errorLog('handler_log')
 
 
 @bot.message_handler(commands=['db'])  # функция обработки запроса базы данных
@@ -126,7 +128,7 @@ def handler_db(message):
             doc = open(args.filesFolderName + args.databaseName, 'rb')
             bot.send_document(message.from_user.id, doc)
     except Exception as e:
-        print(e)
+        functions.errorLog('handler_db')
 
 
 @bot.message_handler(commands=['ref'])
@@ -144,7 +146,7 @@ def handler_balance(message):
         bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                          text='<i>Ваш баланс: </i>' + str(dataBase.get_balance(message.from_user.id)))
     except Exception as e:
-        print(e)
+        functions.errorLog('handler_balance')
 
 
 @bot.message_handler(commands=['add_quest'])  # функция обработки запроса логов
@@ -155,7 +157,7 @@ def handler_add_quest(message):
         dataBase.upd_quests()
         dataBase.upd_prof()
     except Exception as e:
-        print(e)
+        functions.errorLog('handler_add_quest')
 
 
 @bot.message_handler(commands=['give_task'])  # функция выдачи задания
@@ -166,7 +168,7 @@ def handler_giveTask(message):
         bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                          text='<b>Выберете кому дать дать задание:\n</b>' + msg, reply_markup=markup)
     except Exception as e:
-        print(e)
+        functions.errorLog('handler_giveTask')
 
 
 @bot.message_handler(commands=['invite'])  # функция инвайта в орг
@@ -180,7 +182,7 @@ def handler_org(message):
         else:
             bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text='<b>Вы не владелец компании</b>')
     except Exception as e:
-        print(e)
+        functions.errorLog('handler_org')
 
 
 @bot.message_handler(commands=['accept'])
@@ -190,7 +192,6 @@ def handler_accept(message):
         if dataBase.can_accept(message.from_user.id):
             if dataBase.isFree(message.from_user.id):
                 job_timer = dataBase.get_job_timer(message.from_user.id)
-                print(job_timer)
                 dataBase.start_job(message.from_user.id, args.workStatus,
                                    (int(datetime.now().strftime('%M')) + job_timer) % 60)
                 bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
@@ -206,7 +207,7 @@ def handler_accept(message):
                              text='<b>OOPS</b>\nКажется у вас нет задания, которое можно принять')
             return False
     except Exception as e:
-        print(e)
+        functions.errorLog('handler_accept')
 
 
 @bot.message_handler(commands=['cancel'])
@@ -221,7 +222,7 @@ def handler_cancel(message):
         else:
             return False
     except Exception as e:
-        print(e)
+        functions.errorLog('handler_cancel')
 
 
 @bot.message_handler(commands=['change_spec'])
@@ -231,16 +232,16 @@ def handler_changeSpec(message):
         bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text=args.test_question)
         dataBase.change_spec(message.from_user.id)
     except Exception as e:
-        print(e)
+        functions.errorLog('handler_changeSpec')
 
 
 @bot.message_handler(commands=['exit'])
-def handler_changeSpec(message):
+def handler_exit(message):
     try:
         functions.log(message)
         bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text='<i>Выход только в окно</i>')
     except Exception as e:
-        print(e)
+        functions.errorLog('handler_exit')
 
 
 def handler_invite(message):
@@ -252,7 +253,6 @@ def handler_invite(message):
                 userID = int(message.text[7:])
             except AttributeError:
                 userID = int(message.data[7:])
-            print(userID)
             if dataBase.check_requests(userID, company):
                 if not dataBase.inCorp(userID):
                     bot.send_message(parse_mode='HTML', chat_id=int(userID),
@@ -264,7 +264,6 @@ def handler_invite(message):
                     msg, markup = dataBase.getReq(userID)
                     bot.send_message(parse_mode='HTML', chat_id=int(userID),
                                      text='<b>Список ваших приглашений:\n</b>' + msg, reply_markup=markup)
-                    print(userID)
                     return True
                 else:
                     bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
@@ -279,7 +278,7 @@ def handler_invite(message):
                              text='<b>Кажется вы не глава организации</b>')
             return False
     except Exception as e:
-        print(e)
+        functions.errorLog('handler_invite')
 
 
 def handler_kick(message):
@@ -290,7 +289,6 @@ def handler_kick(message):
                 userID = int(message.text[5:])
             except AttributeError:
                 userID = int(message.data[5:])
-            print(userID)
             try:
                 if int(userID) != int(message.from_user.id):
                     if dataBase.inCorp(userID):
@@ -309,7 +307,7 @@ def handler_kick(message):
                                      text='<bВы не можете исключить сами себя из организации</b>')
                     return False
             except Exception as e:
-                print(e)
+                functions.errorLog('handler_kick')
                 bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                  text='<bВы не можете исключить сами себя из организации</b>')
                 return False
@@ -318,7 +316,7 @@ def handler_kick(message):
                              text='<b>Вы не глава организации</b>')
             return False
     except Exception as e:
-        print(e)
+        functions.errorLog('handler_kick')
 
 
 @bot.message_handler(commands=['corp_members'])  # члены компании
@@ -329,7 +327,7 @@ def handler_members(message):
         bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                          text=msg, reply_markup=markup)
     except Exception as e:
-        print(e)
+        functions.errorLog('handler_members')
 
 
 @bot.message_handler(commands=['leave_corp'])  # функция ухода из орг
@@ -351,7 +349,7 @@ def handler_leave(message):
                              text='<b>Вы не состоите в организации</b>')
             return False
     except Exception as e:
-        print(e)
+        functions.errorLog('handler_leave')
 
 
 @bot.message_handler(commands=['get_task'])  # функция ухода из орг
@@ -373,7 +371,7 @@ def handler_getTask(message):
                              text='<b>Вы не состоите в организации</b>')
             return False
     except Exception as e:
-        print(e)
+        functions.errorLog('handler_getTask')
 
 
 @bot.message_handler(commands=['create_corp'])  # функция инвайта в орг
@@ -390,14 +388,13 @@ def handler_create_corp(message):
                         else:
                             name = message.text.split(maxsplit=1)
                             name = name[1]
-                            print(name)
                             dataBase.upd_corp(message.from_user.id, name)
                             dataBase.setOwner(message.from_user.id)
                             dataBase.minus_money(message.from_user.id, args.corp_cost)
                             bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                              text='<i>Организация</i> <b>' + name + '</b> <i>успешно создана</i>')
                     except Exception as e:
-                        print(e)
+                        functions.errorLog('handler_create_corp')
                 else:
                     bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                      text='<i>Для создания организации требуется</i> <b>' + str(args.corp_cost) +
@@ -409,7 +406,7 @@ def handler_create_corp(message):
             bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                              text='<b>Организацию может создать только пользователь достигший дзена</b>')
     except Exception as e:
-        print(e)
+        functions.errorLog('handler_create_corp')
 
 
 def handler_task(message):
@@ -441,7 +438,7 @@ def handler_task(message):
                              text='<b>А ты хитрый жук, не делай так больше</b>')
             return False
     except Exception as e:
-        print(e)
+        functions.errorLog('handler_task')
 
 
 def handler_corp_task(message):
@@ -450,8 +447,6 @@ def handler_corp_task(message):
             tmp = message.data.split('_')
             taskID = tmp[2]
             userID = tmp[1][4:]
-            print(taskID)
-            print(userID)
             if dataBase.isFree(userID):
                 markup = types.InlineKeyboardMarkup()
                 key1 = types.InlineKeyboardButton(args.acceptWorkButton, callback_data='1')
@@ -478,7 +473,7 @@ def handler_corp_task(message):
             bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                              text='<b>Кажется вы не глава организации</b>')
     except Exception as e:
-        print(e)
+        functions.errorLog('handler_corp_task')
 
 
 @bot.message_handler(commands=['me'])  # функция инвайта в орг
@@ -503,16 +498,13 @@ def handler_me(message):
                    who, dataBase.get_nickname(ID))
         bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                          text=msg, reply_markup=markup)
-        print(threading.active_count())
-        print(threading.enumerate())
     except Exception as e:
-        print(e)
+        functions.errorLog('handler_me')
 
 
 @bot.callback_query_handler(func=lambda c: True)  # функция обработки inline кнопок
 def func(c):
     try:
-        print(c.message.text)
         if c.data == '0':
             handler_help(c)
             bot.edit_message_text(parse_mode='HTML', chat_id=c.from_user.id, message_id=c.message.message_id,
@@ -546,7 +538,6 @@ def func(c):
             
             """
             ownerID = int(c.data[7:])
-            print(ownerID)
             company = dataBase.get_company(ownerID)
             dataBase.upd_corp(c.from_user.id, company)
             dataBase.delete_request(c.from_user.id)
@@ -604,7 +595,7 @@ def func(c):
             else:
                 bot.answer_callback_query(callback_query_id=c.id, show_alert=True, text='Нееее, дружок, так не пойдет')
     except Exception as e:
-        print(e)
+        functions.errorLog('handler_c')
 
 
 @bot.message_handler(content_types=['text'])  # функция обработки текстовых сообщений
@@ -632,7 +623,6 @@ def handler_text(message):
                 bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                  text='<i>Ваша профессия</i> <b>' + message.text + '</b>', reply_markup=user_markup)
                 if dataBase.get_nickname(message.from_user.id) == "None":
-                    print('2')
                     bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                      text='<i>Теперь укажите ваш никнейм </i>', reply_markup=user_markup)
                     nickList.append(message.from_user.id)
@@ -660,7 +650,7 @@ def handler_text(message):
                     try:
                         bot.send_sticker(message.from_user.id, args.choose)
                     except Exception as e:
-                        print(e)
+                        functions.errorLog('handler_text')
                 elif str(message.text).isnumeric():
                     bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                      text='<i>Соболезнуем, вы — </i><b>гуманитарий</b>')
@@ -674,9 +664,8 @@ def handler_text(message):
                     try:
                         bot.send_sticker(message.from_user.id, args.choose)
                     except Exception as e:
-                        print(e)
+                        functions.errorLog('handler_text')
                 else:
-                    print('check')
                     bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                      text='<b>Походу у вас с головой проблемы</b>')
                     dataBase.upd_spec(message.from_user.id, "low")
@@ -689,11 +678,11 @@ def handler_text(message):
                     try:
                         bot.send_sticker(message.from_user.id, args.choose)
                     except Exception as e:
-                        print(e)
+                        functions.errorLog('handler_text')
             else:
                 bot.send_message(message.from_user.id, message.text)
     except Exception as e:
-        print(e)
+        functions.errorLog('handler_text')
 
 
 @bot.message_handler(content_types=['photo'])
@@ -703,17 +692,15 @@ def handler_photo(message):
         if ID in avatarList:
             file_info = bot.get_file(message.photo[len(message.photo) - 1].file_id)
             downloaded_file = bot.download_file(file_info.file_path)
-            print(downloaded_file)
             dataBase.addAvatar(ID, downloaded_file)
             index = avatarList.index(ID)
             avatarList.pop(index)
             photo = dataBase.getAvatar(ID)
-            print(photo)
             bot.send_photo(chat_id=ID, photo=photo, caption='Ваш аватар')
         else:
             functions.wrong_input(ID, dataBase.get_spec(message.from_user.id))
     except Exception as e:
-        print(e)
+        functions.errorLog('handler_photo')
 
 
 @bot.message_handler(content_types=['contact'])
@@ -721,7 +708,7 @@ def handler_photo(message):
     try:
         functions.wrong_input(message.from_user.id, dataBase.get_spec(message.from_user.id))
     except Exception as e:
-        print(e)
+        functions.errorLog('handler_contact')
 
 
 @bot.message_handler(content_types=['sticker'])
@@ -732,9 +719,8 @@ def handler_photo(message):
         else:
             file_info = bot.get_file(message.sticker.file_id)
             downloaded_file = bot.download_file(file_info.file_path)
-            print(downloaded_file)
     except Exception as e:
-        print(e)
+        functions.errorLog('handler_sticker')
 
 
 @bot.message_handler(content_types=['voice'])
@@ -742,7 +728,7 @@ def handler_photo(message):
     try:
         functions.wrong_input(message.from_user.id, dataBase.get_spec(message.from_user.id))
     except Exception as e:
-        print(e)
+        functions.errorLog('handler_voice')
 
 
 @bot.message_handler(content_types=['location'])
@@ -750,7 +736,7 @@ def handler_photo(message):
     try:
         functions.wrong_input(message.from_user.id, dataBase.get_spec(message.from_user.id))
     except Exception as e:
-        print(e)
+        functions.errorLog('handler_location')
 
 
 @bot.message_handler(content_types=['audio'])
@@ -758,7 +744,7 @@ def handler_photo(message):
     try:
         functions.wrong_input(message.from_user.id, dataBase.get_spec(message.from_user.id))
     except Exception as e:
-        print(e)
+        functions.errorLog('handler_audio')
 
 
 @bot.message_handler(content_types=['video'])
@@ -766,7 +752,7 @@ def handler_photo(message):
     try:
         functions.wrong_input(message.from_user.id, dataBase.get_spec(message.from_user.id))
     except Exception as e:
-        print(e)
+        functions.errorLog('handler_video')
 
 
 @bot.message_handler(content_types=['document'])
@@ -774,7 +760,7 @@ def handler_photo(message):
     try:
         functions.wrong_input(message.from_user.id, dataBase.get_spec(message.from_user.id))
     except Exception as e:
-        print(e)
+        functions.errorLog('handler_document')
 
 
 try:  # максимально странная конструкция
@@ -784,7 +770,7 @@ try:  # максимально странная конструкция
         try:
             bot.polling(none_stop=True, interval=0)  # получение обновлений
         except Exception as er:
-            print(er)
+            functions.errorLog('zaloop')
         threading.active_count()
 except Exception as er:
-    print(er)
+    functions.errorLog('zaloop')

@@ -6,6 +6,23 @@ import random
 import args
 
 
+def errorLog(reason):
+    try:
+        file = open(args.filesFolderName + args.ErlogFileName, 'a')
+        file.write('\n' + args.delimiter_line + '\n')
+        file.write(str(datetime.now().strftime('%d-%m-%Y %H:%M:%S')))
+        print('\n' + args.delimiter_line)
+        print(str(datetime.now().strftime('%d-%m-%Y %H:%M:%S')))
+        try:
+            file.write('Ошибка в функции {0}'.format(reason))
+            print('Ошибка в функции {0}'.format(reason))
+            file.close()
+        except Exception as e:
+            print(e)
+    except Exception as e:
+        print(e)
+
+
 def log(message):  # запись лога сообщений
     try:
         file = open(args.filesFolderName + args.logFileName, 'a')
@@ -43,7 +60,7 @@ def log(message):  # запись лога сообщений
                                                                      message.data))
         file.close()
     except Exception as e:
-        print(e)
+        errorLog('Log')
 
 
 def send_task(name, task):  # отправка задания пользователю
@@ -77,7 +94,7 @@ def isAdmin(userID):  # проверка является ли пользова�
         else:
             return False
     except Exception as e:
-        print(e)
+        errorLog('send_task')
 
 
 def in_profArr(message):
@@ -103,4 +120,4 @@ def wrong_input(userID, spec):
                                        'отправлять то, что я не должен обрабатывать!')
         args.bot.send_sticker(userID, args.dyrka)
     except Exception as e:
-        print(e)
+        errorLog('wrong_input')
