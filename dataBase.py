@@ -10,7 +10,7 @@ import functions
 import args
 
 
-def createTables():  # создание таблиц в sql если их нет
+def create_tables():  # создание таблиц в sql если их нет
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
@@ -34,25 +34,26 @@ def createTables():  # создание таблиц в sql если их нет
         cursor.execute('CREATE TABLE IF NOT EXISTS Profs(Prof TEXT,'  # профессия 
                        'ProfCheck INTEGER,'
                        'ProfRank INTEGER)')  # 0/1/3 - гум/технарь/доступен всем
+        cursor.execute('CREATE TABLE IF NOT EXISTS Companies(ID INTEGER,'  # уникальный ID 
+                       'Name TEXT,'  # название
+                       'Description TEXT)')  # описание
         connect.commit()
     except Exception as e:
-        createTables()
-        functions.errorLog('createTables')
+        functions.error_log(e)
 
 
-def set_nickname(nickName):
+def set_nickname(nickname):
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
         cursor.execute(
-            "UPDATE Users SET NickName='{0}' WHERE ID='{1}'".format(str(nickName.text), str(nickName.from_user.id)))
+            "UPDATE Users SET NickName='{0}' WHERE ID='{1}'".format(str(nickname.text), str(nickname.from_user.id)))
         connect.commit()
     except Exception as e:
-        createTables()
-        functions.errorLog('set_nickname')
+        functions.error_log(e)
 
 
-def set_profession(message, in_profArr):
+def set_profession(message, in_prof_arr):
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
@@ -74,7 +75,7 @@ def set_profession(message, in_profArr):
                                                                               str(message.from_user.id)))
             else:
                 return False
-        elif in_profArr:
+        elif in_prof_arr:
             cursor.execute(
                 "UPDATE Users SET Profession='{0}' WHERE ID='{1}'".format(str(message.text),
                                                                           str(message.from_user.id)))
@@ -90,62 +91,58 @@ def set_profession(message, in_profArr):
         connect.commit()
         return True
     except Exception as e:
-        createTables()
-        functions.errorLog('set_professoin')
+        functions.error_log(e)
 
 
-def setOwner(userID):
+def set_owner(user_id):
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
-        cursor.execute("UPDATE Users SET isOwner=1 WHERE ID={0}".format(str(userID)))
+        cursor.execute("UPDATE Users SET isOwner=1 WHERE ID={0}".format(str(user_id)))
         connect.commit()
     except Exception as e:
-        createTables()
-        functions.errorLog('setOwner')
+        functions.error_log(e)
 
 
-def get_nickname(userID):
+def get_nickname(user_id):
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
-        cursor.execute("SELECT NickName FROM Users WHERE ID=" + str(userID))
+        cursor.execute("SELECT NickName FROM Users WHERE ID=" + str(user_id))
         name = cursor.fetchall()
         return name[0][0]
     except Exception as e:
-        createTables()
-        functions.errorLog('get_nickname')
+        functions.error_log(e)
 
 
-def get_spec(userID):
+def get_spec(user_id):
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
-        cursor.execute("SELECT Spec FROM Users WHERE ID=" + str(userID))
+        cursor.execute("SELECT Spec FROM Users WHERE ID=" + str(user_id))
         spec = cursor.fetchall()
         return spec[0][0]
     except Exception as e:
-        createTables()
-        functions.errorLog('get_spec')
+        functions.error_log(e)
 
 
-def get_prof(userID):
+def get_prof(user_id):
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
-    cursor.execute("SELECT Profession FROM Users WHERE ID=" + str(userID))
+    cursor.execute("SELECT Profession FROM Users WHERE ID=" + str(user_id))
     prof = cursor.fetchall()
     return prof[0][0]
 
 
-def get_userRank(userID):
+def get_user_rank(user_id):
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
-    cursor.execute("SELECT UserRank FROM Users WHERE ID=" + str(userID))
+    cursor.execute("SELECT UserRank FROM Users WHERE ID=" + str(user_id))
     rank = cursor.fetchall()
     return rank[0][0]
 
 
-def get_profRank(quest):
+def get_prof_rank(quest):
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
     cursor.execute("SELECT Rank FROM Quest WHERE Quest=" + str(quest))
@@ -153,12 +150,12 @@ def get_profRank(quest):
     return rank
 
 
-def get_task(userID):
+def get_task(user_id):
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
         cursor.execute("SELECT Quest FROM Quests WHERE Profession='{0}' AND Rank<='{1}'".
-                       format(str(get_prof(userID)), str(get_userRank(userID))))
+                       format(str(get_prof(user_id)), str(get_user_rank(user_id))))
         quests = cursor.fetchall()
         if len(quests) > 1:
             task = random.randint(0, len(quests) - 1)
@@ -166,11 +163,10 @@ def get_task(userID):
             task = 0
         return quests[task][0]
     except Exception as e:
-        createTables()
-        functions.errorLog('get_task')
+        functions.error_log(e)
 
 
-def get_corpTask(userID):
+def get_corp_task(user_id):
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
@@ -183,12 +179,12 @@ def get_corpTask(userID):
                 task = random.randint(0, len(quests) - 1)
                 if quests[task][1] in args.all_techList:
                     cursor.execute("SELECT MAX(id) FROM CorpTasks")
-                    maxID = cursor.fetchall()[0][0]
-                    data = [quests[task][0], "tech", quests[task][2], userID, int(maxID) + 1]
+                    max_id = cursor.fetchall()[0][0]
+                    data = [quests[task][0], "tech", quests[task][2], user_id, int(max_id) + 1]
                     cursor.execute("INSERT INTO CorpTasks VALUES (?,?,?,?,?)", data)
                     connect.commit()
                     text = quests[task][1]
-                    call = '/give_tech' + str(int(maxID) + 1)
+                    call = '/give_tech' + str(int(max_id) + 1)
                     key = types.InlineKeyboardButton(text, callback_data=call)
                     markup.add(key)
                     msg += '{0}\nТребуемый ранг: {1}\nЗадание: <i>{2}</i>\n----------\n'.format(quests[task][1],
@@ -196,12 +192,12 @@ def get_corpTask(userID):
                                                                                                 quests[task][0])
                 elif quests[task][1] in args.all_gumList:
                     cursor.execute("SELECT MAX(id) FROM CorpTasks")
-                    maxID = cursor.fetchall()[0][0]
-                    data = [quests[task][0], "gum", quests[task][2], userID, int(maxID) + 1]
+                    max_id = cursor.fetchall()[0][0]
+                    data = [quests[task][0], "gum", quests[task][2], user_id, int(max_id) + 1]
                     cursor.execute("INSERT INTO CorpTasks VALUES (?,?,?,?,?)", data)
                     connect.commit()
                     text = quests[task][1]
-                    call = '/give_tech' + str(int(maxID) + 1)
+                    call = '/give_tech' + str(int(max_id) + 1)
                     key = types.InlineKeyboardButton(text, callback_data=call)
                     markup.add(key)
                     msg += '{0}\nТребуемый ранг: {1}\nЗадание: <i>{2}</i>\n----------\n'.format(quests[task][1],
@@ -209,12 +205,12 @@ def get_corpTask(userID):
                                                                                                 quests[task][0])
                 elif quests[task][1] in args.all_lowList:
                     cursor.execute("SELECT MAX(id) FROM CorpTasks")
-                    maxID = cursor.fetchall()[0][0]
-                    data = [quests[task][0], "low", quests[task][2], userID, int(maxID) + 1]
+                    max_id = cursor.fetchall()[0][0]
+                    data = [quests[task][0], "low", quests[task][2], user_id, int(max_id) + 1]
                     cursor.execute("INSERT INTO CorpTasks VALUES (?,?,?,?,?)", data)
                     connect.commit()
                     text = quests[task][1]
-                    call = '/give_tech' + str(int(maxID) + 1)
+                    call = '/give_tech' + str(int(max_id) + 1)
                     key = types.InlineKeyboardButton(text, callback_data=call)
                     markup.add(key)
                     msg += '{0}\nТребуемый ранг: {1}\nЗадание: <i>{2}</i>\n----------\n'.format(quests[task][1],
@@ -223,88 +219,84 @@ def get_corpTask(userID):
         msg += 'Выберете кому дать задание'
         return msg, markup
     except Exception as e:
-        createTables()
-        functions.errorLog('get_CorpTask')
+        functions.error_log(e)
 
 
-def get_tech(userID, taskID):
+def get_tech(user_id, task_id):
     try:
-        company = get_company(userID)
+        company = get_corp(user_id)
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
         cursor.execute("SELECT Profession FROM Quests WHERE Quest=(SELECT Task FROM CorpTasks WHERE id=" +
-                       str(taskID) + ")")
+                       str(task_id) + ")")
         prof = cursor.fetchall()[0][0]
-        cursor.execute("SELECT rank FROM CorpTasks WHERE ownerID={0} AND id={1}".format(userID, taskID))
+        cursor.execute("SELECT rank FROM CorpTasks WHERE ownerID={0} AND id={1}".format(user_id, task_id))
         rank = cursor.fetchall()[0][0]
         cursor.execute("SELECT NickName,ID,Profession,UserRank FROM Users WHERE UserRank>={0} AND Spec='tech' AND "
-                       "Profession='{1}' AND Comp='{2}' ORDER BY RANDOM() LIMIT 5".format(rank, prof, company))
+                       "Profession='{1}' AND Comp={2} ORDER BY RANDOM() LIMIT 5".format(rank, prof, company))
         users = cursor.fetchall()
         markup = types.InlineKeyboardMarkup()
         msg = 'Выберете кому дать задание:\n----------\n'
         for i in range(len(users)):
-            if int(users[i][1]) != userID:
+            if int(users[i][1]) != user_id:
                 text = str(users[i][0])
-                call = '/_task' + str(users[i][1]) + '_' + str(taskID)
+                call = '/_task' + str(users[i][1]) + '_' + str(task_id)
                 key = types.InlineKeyboardButton(text, callback_data=call)
                 markup.add(key)
                 msg += str(users[i][0]) + ' ' + str(users[i][2]) + ' Ранг: ' + str(users[i][3]) + '\n'
         return msg, markup
     except Exception as e:
-        createTables()
-        functions.errorLog('get_tech')
+        functions.error_log(e)
         return 'Выберете кому дать задание:\n----------\nNone'
 
 
-def get_gum(userID, taskID):
+def get_gum(user_id, task_id):
     try:
-        company = get_company(userID)
+        company = get_corp(user_id)
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
-        cursor.execute("SELECT rank FROM CorpTasks WHERE ownerID={0} AND id={1}".format(userID, taskID))
+        cursor.execute("SELECT rank FROM CorpTasks WHERE ownerID={0} AND id={1}".format(user_id, task_id))
         rank = cursor.fetchall()[0][0]
         cursor.execute("SELECT NickName,ID,Profession,UserRank FROM Users WHERE UserRank>={0} AND Spec='gum' AND "
-                       "Comp='{1}' ORDER BY RANDOM() LIMIT 5".format(rank, company))
+                       "Comp={1} ORDER BY RANDOM() LIMIT 5".format(rank, company))
         users = cursor.fetchall()
         markup = types.InlineKeyboardMarkup()
         msg = 'Выберете кому дать задание:\n----------\n'
         for i in range(len(users)):
-            if int(users[i][1]) != userID:
+            if int(users[i][1]) != user_id:
                 text = str(users[i][0])
-                call = '/_task' + str(users[i][1]) + '_' + str(taskID)
+                call = '/_task' + str(users[i][1]) + '_' + str(task_id)
                 key = types.InlineKeyboardButton(text, callback_data=call)
                 markup.add(key)
                 msg += str(users[i][0]) + ' ' + str(users[i][2]) + ' Ранг: ' + str(users[i][3]) + '\n'
         return msg, markup
     except Exception as e:
-        createTables()
-        functions.errorLog('get_gum')
+        functions.error_log(e)
         return 'Выберете кому дать задание:\n----------\nNone'
 
 
-def get_low(userID, taskID):
+def get_low(user_id, task_id):
     try:
-        company = get_company(userID)
+        company = get_corp(user_id)
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
-        cursor.execute("SELECT rank FROM CorpTasks WHERE ownerID={0} AND id={1}".format(userID, taskID))
+        cursor.execute("SELECT rank FROM CorpTasks WHERE ownerID={0} AND id={1}".format(user_id, task_id))
         rank = cursor.fetchall()[0][0]
         cursor.execute("SELECT NickName,ID,Profession,UserRank FROM Users WHERE UserRank>={0} AND Spec='low' AND "
-                       "Comp='{1}' ORDER BY RANDOM() LIMIT 5".format(rank, company))
+                       "Comp={1} ORDER BY RANDOM() LIMIT 5".format(rank, company))
         users = cursor.fetchall()
         markup = types.InlineKeyboardMarkup()
         msg = 'Выберете кому дать задание:\n'
         for i in range(len(users)):
-            if int(users[i][1]) != userID:
+            if int(users[i][1]) != user_id:
                 text = str(users[i][0])
-                call = '/_task' + str(users[i][1]) + '_' + str(taskID)
+                call = '/_task' + str(users[i][1]) + '_' + str(task_id)
                 key = types.InlineKeyboardButton(text, callback_data=call)
                 markup.add(key)
                 msg += str(users[i][0]) + ' ' + str(users[i][2]) + ' Ранг: ' + str(users[i][3]) + '\n'
         return msg, markup
     except Exception as e:
-        createTables()
-        functions.errorLog('get_low')
+        functions.error_log(e)
         return 'Выберете кому дать задание:\n----------\nNone'
 
 
@@ -327,61 +319,50 @@ def get_workers(message):
                 msg_text += str(users[i][1]) + ' ' + str(users[i][2]) + ' Ранг: ' + str(users[i][3])
                 msg_text += '\n'
         return msg_text, markup
-    except IndexError:
-        createTables()
-        functions.errorLog('get_workers')
+    except Exception as e:
+        functions.error_log(e)
         return 'Некому дать задание', None
 
 
-def get_balance(userID):
+def get_balance(user_id):
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
-        cursor.execute("SELECT Money FROM Users WHERE ID=" + str(userID))
+        cursor.execute("SELECT Money FROM Users WHERE ID=" + str(user_id))
         money = str(cursor.fetchall()[0][0])
         money += str(args.currency)
         return money
     except Exception as e:
-        createTables()
-        functions.errorLog('get_balance')
-
-
-def get_company(userID):
-    connect = sqlite3.connect(args.filesFolderName + args.databaseName)
-    cursor = connect.cursor()
-    cursor.execute("SELECT Comp FROM Users WHERE ID=" + str(userID))
-    corpName = cursor.fetchall()[0][0]
-    return corpName
+        functions.error_log(e)
 
 
 def get_owner(company):
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
-    cursor.execute("SELECT ID FROM Users WHERE Comp='{0}' AND isOwner=1".format(str(company)))
-    ID = cursor.fetchall()
-    ID = ID[0][0]
-    return ID
+    cursor.execute("SELECT ID FROM Users WHERE Comp={0} AND isOwner=1".format(str(company)))
+    ids = cursor.fetchall()
+    ids = ids[0][0]
+    return ids
 
 
-def get_taskCost(userID):
+def get_task_cost(user_id):
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
-        cursor.execute("SELECT TaskNow FROM Users WHERE ID={0}".format(str(userID)))
+        cursor.execute("SELECT TaskNow FROM Users WHERE ID={0}".format(str(user_id)))
         task = cursor.fetchall()[0][0]
         cursor.execute("SELECT Cost FROM Quests WHERE Quest='{0}'".format(task))
         cost = cursor.fetchall()[0][0]
         return cost
     except Exception as e:
-        createTables()
-        functions.errorLog('get_taskCost')
+        functions.error_log(e)
 
 
-def get_job_timer(userID):
+def get_job_timer(user_id):
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
-        cursor.execute("SELECT TaskNow FROM Users WHERE ID={0}".format(str(userID)))
+        cursor.execute("SELECT TaskNow FROM Users WHERE ID={0}".format(str(user_id)))
         task = cursor.fetchall()[0][0]
         print(task)
         cursor.execute("SELECT Time FROM Quests WHERE Quest='{0}'".format(task))
@@ -389,42 +370,53 @@ def get_job_timer(userID):
         print(time)
         return int(time)
     except Exception as e:
-        createTables()
-        functions.errorLog('get_job_timer')
+        functions.error_log(e)
 
 
-def get_Corp(userID):
+def get_corp(user_id):
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
-        cursor.execute("SELECT Comp FROM Users WHERE ID=" + str(userID))
-        corpName = cursor.fetchall()[0][0]
-        return corpName
+        cursor.execute("SELECT Comp FROM Users WHERE ID=" + str(user_id))
+        corp_id = cursor.fetchall()[0][0]
+        return corp_id
     except Exception as e:
-        createTables()
-        functions.errorLog('get_Corp')
+        functions.error_log(e)
         return True
 
 
-def getAvatar(ID):
+def get_corp_name(comp_id):
+    try:
+        if comp_id == 0:
+            return '0'
+        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+        cursor = connect.cursor()
+        cursor.execute("SELECT Name FROM Companies WHERE ID=" + str(comp_id))
+        corp_name = cursor.fetchall()[0][0]
+        return corp_name
+    except Exception as e:
+        functions.error_log(e)
+        return True
+
+
+def get_avatar(ids):
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
-        cursor.execute("SELECT photo FROM userPhotos WHERE ID=" + str(ID))
+        cursor.execute("SELECT photo FROM userPhotos WHERE ID=" + str(ids))
         photo = cursor.fetchall()[0][0]
         photo = photo.encode()[2:-1]
         print(photo)
         print(type(photo))
         return photo
     except Exception as e:
-        createTables()
-        functions.errorLog('getAvatar')
+        functions.error_log(e)
 
 
-def getReq(toID):
+def get_request(to_id):
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
-    cursor.execute("SELECT DISTINCT toUserID,fromWho,type FROM Requests WHERE toUserID={0}".format(toID))
+    cursor.execute("SELECT DISTINCT toUserID,from_who,type FROM Requests WHERE toUserID={0}".format(to_id))
     res = cursor.fetchall()
     msg = ''
     markup = types.InlineKeyboardMarkup()
@@ -438,27 +430,26 @@ def getReq(toID):
     return msg, markup
 
 
-def get_refOwner(userID):
+def get_ref_owner(user_id):
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
-        cursor.execute("SELECT InviteID FROM Users WHERE ID=" + str(userID))
-        ownerID = cursor.fetchall()[0][0]
-        if len(str(ownerID)) > 1:
-            return int(ownerID)
+        cursor.execute("SELECT InviteID FROM Users WHERE ID=" + str(user_id))
+        owner_id = cursor.fetchall()[0][0]
+        if len(str(owner_id)) > 1:
+            return int(owner_id)
         else:
             return 0
     except Exception as e:
-        createTables()
-        functions.errorLog('get_refOwner')
+        functions.error_log(e)
         return str('none')
 
 
-def get_noInCorpUsers(message):
+def get_not_in_corp_users(message):
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
-        cursor.execute("SELECT ID,NickName,Profession,UserRank FROM Users WHERE Comp='0' ORDER BY RANDOM() LIMIT 5")
+        cursor.execute("SELECT ID,NickName,Profession,UserRank FROM Users WHERE Comp=0 ORDER BY RANDOM() LIMIT 5")
         users = cursor.fetchall()
         msg_text = ''
         markup = types.InlineKeyboardMarkup()
@@ -472,30 +463,28 @@ def get_noInCorpUsers(message):
                 msg_text += str(users[i][1]) + ' ' + str(users[i][2]) + ' Ранг: ' + str(users[i][3])
                 msg_text += '\n'
         return msg_text, markup
-    except IndexError:
-        createTables()
-        functions.errorLog('get_notInCorpUsers')
+    except Exception as e:
+        functions.error_log(e)
         return 'Нет свободных людей', None
 
 
-def add_money(userID, money):
+def add_money(user_id, money):
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
-        cursor.execute("UPDATE Users SET Money=Money+{0} WHERE ID={1}".format(money, userID))
+        cursor.execute("UPDATE Users SET Money=Money+{0} WHERE ID={1}".format(money, user_id))
         connect.commit()
-        upd_taskNow(userID, "None")
-        ownerID = get_refOwner(userID)
-        if str(ownerID) != 'none' and ownerID != 0:
+        upd_task_now(user_id, "None")
+        owner_id = get_ref_owner(user_id)
+        if str(owner_id) != 'none' and owner_id != 0:
             cursor.execute("UPDATE Users SET Money=Money+{0} WHERE ID={1}".
-                           format((money / args.referal_procent), ownerID))
+                           format((money / args.referal_procent), owner_id))
         connect.commit()
     except Exception as e:
-        createTables()
-        functions.errorLog('add_money')
+        functions.error_log(e)
 
 
-def add_Quest(message):
+def add_quest(message):
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
@@ -504,60 +493,69 @@ def add_Quest(message):
         cursor.execute("INSERT INTO Quests VALUES(?, ?, ?, ?)", data)
         connect.commit()
     except Exception as e:
-        createTables()
-        functions.errorLog('add_quest')
+        functions.error_log(e)
 
 
-def addAvatar(ID, file):
+def add_avatar(ids, file):
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
-        data = [ID, r'{}'.format(str(file))]
+        data = [ids, r'{}'.format(str(file))]
         cursor.execute("INSERT INTO userPhotos VALUES(?, ?)", data)
         connect.commit()
     except Exception as e:
-        createTables()
-        functions.errorLog('addAvatar')
+        functions.error_log(e)
 
 
-def upd_corp(userID, company):
+def create_corp(user_id, name):
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
-        cursor.execute("UPDATE Users SET Comp='{0}' WHERE ID={1}".format(str(company), str(userID)))
+        cursor.execute("SELECT MAX(ID) FROM Companies")
+        max_id = cursor.fetchall()[0][0] + 1
+        data = [max_id, name, 'None']
+        cursor.execute("INSERT INTO Companies VALUES(?, ?, ?)", data)
         connect.commit()
+        upd_corp(user_id, max_id)
     except Exception as e:
-        createTables()
-        functions.errorLog('upd_corp')
+        functions.error_log(e)
 
 
-def upd_spec(userID, spec):
+def upd_corp(user_id, company):
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
-        cursor.execute("UPDATE Users SET Spec='{0}' WHERE ID={1}".format(spec, str(userID)))
+        cursor.execute("UPDATE Users SET Comp={0} WHERE ID={1}".format(company, user_id))
         connect.commit()
     except Exception as e:
-        createTables()
-        functions.errorLog('upd_spec')
+        functions.error_log(e)
 
 
-def upd_can_accept(userID, check):
+def upd_spec(user_id, spec):
+    try:
+        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+        cursor = connect.cursor()
+        cursor.execute("UPDATE Users SET Spec='{0}' WHERE ID={1}".format(spec, str(user_id)))
+        connect.commit()
+    except Exception as e:
+        functions.error_log(e)
+
+
+def upd_can_accept(user_id, check):
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
-    cursor.execute("UPDATE Users SET task={0} WHERE ID={1}".format(str(check), str(userID)))
+    cursor.execute("UPDATE Users SET task={0} WHERE ID={1}".format(str(check), str(user_id)))
     connect.commit()
 
 
-def upd_taskNow(userID, task):
+def upd_task_now(user_id, task):
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
-        cursor.execute("UPDATE Users SET TaskNow='{0}' WHERE ID={1}".format(str(task), str(userID)))
+        cursor.execute("UPDATE Users SET TaskNow='{0}' WHERE ID={1}".format(str(task), str(user_id)))
         connect.commit()
     except Exception as e:
-        createTables()
-        functions.errorLog('upd_taskNow')
+        functions.error_log(e)
 
 
 def upd_quests():
@@ -578,112 +576,107 @@ def upd_prof():  # Обновление полного списка профес
 
     args.techList = []
     args.gumList = []
-    LowProfRank = 0
-    gumID = 0
-    techID = 1
+    low_prof_rank = 0
+    gum_id = 0
+    tech_id = 1
 
     for i in args.ProfArr:
-        if i[2] == LowProfRank and i[1] == techID:  # Заполнение techList профессиями
+        if i[2] == low_prof_rank and i[1] == tech_id:  # Заполнение techList профессиями
             args.techList.append(i[0])
-        elif i[2] == LowProfRank and i[1] == gumID:  # Заполнение gumList профессиями
+        elif i[2] == low_prof_rank and i[1] == gum_id:  # Заполнение gumList профессиями
             args.gumList.append(i[0])
-        elif i[2] == LowProfRank and i[1] == 3:
+        elif i[2] == low_prof_rank and i[1] == 3:
             args.lowList.append(i[0])
 
     for i in args.ProfArr:
-        if i[1] == techID:
+        if i[1] == tech_id:
             args.all_techList.append(i[0])
-        elif i[1] == gumID:
+        elif i[1] == gum_id:
             args.all_gumList.append(i[0])
         elif i[1] == 3:
             args.all_lowList.append(i[0])
 
 
-def inCorp(userID):
+def in_corp(user_id):
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
-        cursor.execute("SELECT Comp FROM Users WHERE ID=" + str(userID))
-        corpName = cursor.fetchall()[0][0]
-        if corpName == "0":
-            print('0')
+        cursor.execute("SELECT Comp FROM Users WHERE ID=" + str(user_id))
+        corp_name = int(cursor.fetchall()[0][0])
+        if corp_name == 0:
             return False
         else:
             return True
     except Exception as e:
-        createTables()
-        functions.errorLog('inCorp')
+        functions.error_log(e)
         return True
 
 
-def isOwner(userID):
+def is_owner(user_id):
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
-        cursor.execute("SELECT Comp FROM Users WHERE isOwner=1 AND ID=" + str(userID))
-        corpName = cursor.fetchall()[0][0]
+        cursor.execute("SELECT Comp FROM Users WHERE isOwner=1 AND ID=" + str(user_id))
+        res = cursor.fetchall()[0][0]
         return True
     except Exception as e:
-        createTables()
-        functions.errorLog('isOwner')
+        functions.error_log(e)
         return False
 
 
-def isFree(userID):  # проверить выполняет ли пользователь какую-либо работу
+def is_free(user_id):  # проверить выполняет ли пользователь какую-либо работу
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
-        cursor.execute("SELECT Status FROM Users WHERE ID=" + str(userID))
+        cursor.execute("SELECT Status FROM Users WHERE ID=" + str(user_id))
         status = cursor.fetchall()
         if status[0][0] == args.waitStatus:
             return True
         else:
             return False
     except Exception as e:
-        createTables()
-        functions.errorLog('isFree')
+        functions.error_log(e)
 
 
-def give_corp_task(taskID, userID):
+def give_corp_task(task_id, user_id):
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
-        cursor.execute("SELECT Task,spec,rank FROM CorpTasks WHERE id=" + str(taskID))
+        cursor.execute("SELECT Task,spec,rank FROM CorpTasks WHERE id=" + str(task_id))
         task = cursor.fetchall()
-        if get_userRank(userID) >= int(task[0][2]) and get_spec(userID) == task[0][1]:
-            upd_taskNow(userID, task[0][0])
-        cursor.execute("DELETE FROM CorpTasks WHERE id=" + str(taskID))
+        if get_user_rank(user_id) >= int(task[0][2]) and get_spec(user_id) == task[0][1]:
+            upd_task_now(user_id, task[0][0])
+        cursor.execute("DELETE FROM CorpTasks WHERE id=" + str(task_id))
         connect.commit()
         msg = '<b>Вы получили задание от главы организиции:</b> ' + task[0][0]
         return msg
     except Exception as e:
-        createTables()
-        functions.errorLog('give_corp_task')
+        functions.error_log(e)
         return 'None'
 
 
-def kick_from_corp(userID):
+def kick_from_corp(user_id):
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
-    cursor.execute("UPDATE Users SET Comp='0' WHERE ID={0}".format(str(userID)))
+    cursor.execute("UPDATE Users SET Comp=0 WHERE ID={0}".format(user_id))
     connect.commit()
 
 
-def corp_members(userID):
+def corp_members(user_id):
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
     markup = types.InlineKeyboardMarkup()
-    if get_company(userID) == 0:
+    if get_corp(user_id) == 0:
         call = '/me'
         key = types.InlineKeyboardButton('/me', callback_data=call)
         markup.add(key)
         return 'Вы не состоите в организации', markup
-    cursor.execute("SELECT ID,NickName,Profession,UserRank FROM Users WHERE Comp='{0}'".
-                   format(str(get_company(userID))))
+    cursor.execute("SELECT ID,NickName,Profession,UserRank FROM Users WHERE Comp={0}".
+                   format(get_corp(user_id)))
     members = cursor.fetchall()
     msg = '<b>Члены организации:</b>\n'
     for i in range(len(members)):
-        if userID != members[i][0]:
+        if user_id != members[i][0]:
             text = 'Выгнать ' + str(members[i][1])
             call = '/kick' + str(members[i][0])
             key = types.InlineKeyboardButton(text, callback_data=call)
@@ -693,182 +686,178 @@ def corp_members(userID):
     return msg, markup
 
 
-def corp_info(userID):
+def corp_info(user_id):
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
-        cursor.execute("SELECT CompDiscription FROM Users WHERE ID={0}".format(str(userID)))
-        res = cursor.fetchall()
-        company = get_Corp(userID)
-        owner = get_owner(company)
-        msg = '<b>Название:</b> <i>{0}</i>\n<b>Владелец:</b> <i>{1}</i>\n<b>Описание:</b> <i>{2}</i>'.format(company, owner, res[0][0])
+        corp_id = get_corp(user_id)
+        cursor.execute("SELECT Description FROM Companies WHERE ID={0}".format(corp_id))
+        desc = cursor.fetchall()[0][0]
+        cursor.execute("SELECT Name FROM Companies WHERE ID={0}".format(corp_id))
+        company = cursor.fetchall()[0][0]
+        owner = get_owner(corp_id)
+        msg = '<b>Название:</b> <i>{0}</i>\n<b>Владелец:</b> <i>{1}</i>\n<b>Описание:</b> <i>{2}</i>'.format(
+            company, owner, desc)
         return msg
     except Exception as e:
-        functions.errorLog('corp_info')
+        functions.error_log(e)
 
 
-def update_corp_description(userID, name):
+def update_corp_description(user_id, name):
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
-        if isOwner(userID):
-            cursor.execute("UPDATE Users SET CompDiscription='{0}' WHERE Comp='{1}'".format(name, get_Corp(userID)))
+        if is_owner(user_id):
+            cursor.execute("UPDATE Companies SET Description='{0}' WHERE ID={1}".format(name, get_corp(user_id)))
             connect.commit()
             return 'Описание обновлено'
         else:
             return 'Вы не владелец организации'
     except Exception as e:
-        functions.errorLog('update_corp_description')
+        functions.error_log(e)
 
 
-def leave_corp(userID):
+def leave_corp(user_id):
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
-        if not isOwner(userID):
-            cursor.execute("UPDATE Users SET Comp='0' WHERE ID={0}".format(str(userID)))
-            cursor.execute("UPDATE Users SET CompDiscription=None WHERE ID={0}".format(str(userID)))
+        if not is_owner(user_id):
+            cursor.execute("UPDATE Users SET Comp=0 WHERE ID={0}".format(user_id))
             connect.commit()
             return True
         else:
             return False
     except Exception as e:
-        createTables()
-        functions.errorLog('leave_corp')
+        functions.error_log(e)
 
 
-def can_accept(userID):
+def can_accept(user_id):
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
-    cursor.execute("SELECT task FROM Users WHERE ID=" + str(userID))
+    cursor.execute("SELECT task FROM Users WHERE ID=" + str(user_id))
     can = cursor.fetchall()
     if can[0][0] == "1":
-        upd_can_accept(userID, 0)
+        upd_can_accept(user_id, 0)
         return True
     else:
         return False
 
 
-def up_lvl(userID):
+def up_lvl(user_id):
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
-        cursor.execute("SELECT Count_Works FROM Users WHERE ID=" + str(userID))
+        cursor.execute("SELECT Count_Works FROM Users WHERE ID=" + str(user_id))
         jobs = cursor.fetchall()
         if jobs[0][0] in args.jobs_to_lvl_up:
-            cursor.execute("UPDATE Users SET UserRank=UserRank+1 WHERE ID=" + str(userID))
-            give_new_prof(userID)
+            cursor.execute("UPDATE Users SET UserRank=UserRank+1 WHERE ID=" + str(user_id))
+            give_new_prof(user_id)
         connect.commit()
     except Exception as e:
-        createTables()
-        functions.errorLog('up_lvl')
+        functions.error_log(e)
 
 
-def give_new_prof(userID):
+def give_new_prof(user_id):
     try:
         user_markup = telebot.types.ReplyKeyboardMarkup(True, False)
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
-        cursor.execute("SELECT Spec FROM Users WHERE ID=" + str(userID))
-        profID = cursor.fetchall()
-        profID = profID[0][0]
-        if profID == 'low':
-            profID = 3
-        elif profID == 'gym':
-            profID = 0
+        cursor.execute("SELECT Spec FROM Users WHERE ID=" + str(user_id))
+        prof_id = cursor.fetchall()
+        prof_id = prof_id[0][0]
+        if prof_id == 'low':
+            prof_id = 3
+        elif prof_id == 'gym':
+            prof_id = 0
         else:
-            profID = 1
+            prof_id = 1
         cursor.execute("SELECT Prof FROM Profs WHERE ProfRank<={0} AND ProfCheck={1}".
-                       format(str(get_userRank(userID)), profID))
+                       format(str(get_user_rank(user_id)), prof_id))
         profs = cursor.fetchall()
         for i in range(len(profs)):
             print(i)
             user_markup.row(profs[i][0])
-        args.bot.send_message(parse_mode='HTML', chat_id=userID,
+        args.bot.send_message(parse_mode='HTML', chat_id=user_id,
                               text='<i>Вы получили новый ранг, теперь вы можете выбрать новую профессию</i>',
                               reply_markup=user_markup)
-        args.new_frof_list.append(userID)
+        args.new_frof_list.append(user_id)
     except Exception as e:
-        createTables()
-        functions.errorLog('gevi_new_prof')
+        functions.error_log(e)
 
 
-def start_job(userID, status, time):  # замена статуса и указание времени начала
+def start_job(user_id, status, time):  # замена статуса и указание времени начала
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
-        cursor.execute("UPDATE Users SET Status='{0}' WHERE ID='{1}'".format(str(status), str(userID)))
-        cursor.execute("UPDATE Users SET End_time='{0}' WHERE ID='{1}'".format(str(time), str(userID)))
+        cursor.execute("UPDATE Users SET Status='{0}' WHERE ID='{1}'".format(str(status), str(user_id)))
+        cursor.execute("UPDATE Users SET End_time='{0}' WHERE ID='{1}'".format(str(time), str(user_id)))
         connect.commit()
     except Exception as e:
-        createTables()
-        functions.errorLog('start_job')
+        functions.error_log(e)
 
 
-def plus_count_works(userID):  # указание количества выполненных работ
+def plus_count_works(user_id):  # указание количества выполненных работ
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
-        cursor.execute("UPDATE Users SET Count_Works=Count_Works+1 WHERE ID='{0}'".format(str(userID)))
+        cursor.execute("UPDATE Users SET Count_Works=Count_Works+1 WHERE ID='{0}'".format(str(user_id)))
         connect.commit()
-        up_lvl(userID)  # повышение ранга
+        up_lvl(user_id)  # повышение ранга
     except Exception as e:
-        createTables()
-        functions.errorLog('plus_count_works')
+        functions.error_log(e)
 
 
-def minus_money(userID, money):
+def minus_money(user_id, money):
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
-        cursor.execute("UPDATE Users SET Money=Money-{0} WHERE ID='{1}'".format(money, userID))
+        cursor.execute("UPDATE Users SET Money=Money-{0} WHERE ID='{1}'".format(money, user_id))
         connect.commit()
     except Exception as e:
-        createTables()
-        functions.errorLog('minus_money')
+        functions.error_log(e)
 
 
-def check_requests(userID, company):
+def check_requests(user_id, company):
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
-    cursor.execute("SELECT toUserID,fromWho FROM Requests")
+    cursor.execute("SELECT toUserID,from_who FROM Requests")
     reqs = cursor.fetchall()
     print(reqs)
     print(len(reqs))
     for i in range(len(reqs)):
-        if reqs[i][0] == userID and reqs[i][1] == company:
+        if reqs[i][0] == user_id and reqs[i][1] == company:
             return False
     return True
 
 
-def newReq(toID, fromWho):
+def new_req(to_id, from_who):
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
-    cursor.execute("INSERT INTO Requests VALUES ({0},'{1}',0)".format(toID, str(fromWho)))
+    cursor.execute("INSERT INTO Requests VALUES ({0},'{1}',0)".format(to_id, str(from_who)))
     connect.commit()
-    getReq(toID)
+    get_request(to_id)
 
 
-def delete_request(userID):
+def delete_request(user_id):
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
-    cursor.execute("DELETE FROM Requests WHERE toUserID={0}".format(userID))
+    cursor.execute("DELETE FROM Requests WHERE toUserID={0}".format(user_id))
     connect.commit()
 
 
-def refreshCorpTasks(userID):
+def refresh_corp_tasks(user_id):
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
-        cursor.execute("DELETE FROM CorpTasks WHERE ownerID={0}".format(userID))
+        cursor.execute("DELETE FROM CorpTasks WHERE ownerID={0}".format(user_id))
         connect.commit()
     except Exception as e:
-        functions.errorLog('refreshCorpTasks')
+        functions.error_log(e)
 
 
-def change_spec(userID):
+def change_spec(user_id):
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
     cursor.execute("UPDATE Users SET Spec='None',Profession='None',Count_Works='0',Status='{0}',End_time='None',"
-                   "UserRank='0' WHERE ID={1}".format(str(args.waitStatus), str(userID)))
+                   "UserRank='0' WHERE ID={1}".format(str(args.waitStatus), str(user_id)))
     connect.commit()

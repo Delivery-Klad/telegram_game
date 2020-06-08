@@ -30,20 +30,20 @@ def timer():
                                 mitutes_now = int(datetime.now().strftime('%M'))
                                 if mitutes_now == end_minutes or mitutes_now > end_minutes:
                                     cursor.execute("SELECT ID FROM Users WHERE End_time=" + str(end_minutes))
-                                    userId = cursor.fetchall()
-                                    for u in range(len(userId[0])):
-                                        money = dataBase.get_taskCost(userId[0][u])
-                                        args.bot.send_message(parse_mode='HTML', chat_id=userId[0][u],
+                                    user_id = cursor.fetchall()
+                                    for u in range(len(user_id[0])):
+                                        money = dataBase.get_task_cost(user_id[0][u])
+                                        args.bot.send_message(parse_mode='HTML', chat_id=user_id[0][u],
                                                               text='<b>Вы закончили выполнение задания</b>\nВаш '
                                                                    'заработок: ' + str(money) + args.currency)
-                                        dataBase.plus_count_works(userId[0][u])  # +1 к выполненным заданиям
-                                        company = dataBase.get_Corp(userId[0][u])
+                                        dataBase.plus_count_works(user_id[0][u])  # +1 к выполненным заданиям
+                                        company = dataBase.get_corp(user_id[0][u])
                                         if company != '0':
-                                            ownerID = dataBase.get_owner(company)
-                                            dataBase.add_money(ownerID, int(money)/10)
-                                        dataBase.add_money(userId[0][u], money)
-                                        dataBase.start_job(userId[0][u], args.waitStatus, 'None')
-                        print('------------\nchecking\n------------')
+                                            owner_id = dataBase.get_owner(company)
+                                            dataBase.add_money(owner_id, int(money)/10)
+                                        dataBase.add_money(user_id[0][u], money)
+                                        dataBase.start_job(user_id[0][u], args.waitStatus, 'None')
+                        print('------------\nchecking')
                         can = False  # чтобы не выполнялось несколько раз в секунду
                 else:
                     can = True

@@ -6,7 +6,7 @@ import random
 import args
 
 
-def errorLog(reason):
+def error_log(reason):
     try:
         file = open(args.filesFolderName + args.ErlogFileName, 'a')
         file.write('\n' + args.delimiter_line + '\n')
@@ -60,7 +60,7 @@ def log(message):  # запись лога сообщений
                                                                      message.data))
         file.close()
     except Exception as e:
-        errorLog('Log')
+        errorLog(e)
 
 
 def send_task(name, task):  # отправка задания пользователю
@@ -87,37 +87,37 @@ def send_task(name, task):  # отправка задания пользоват
         return msg
 
 
-def isAdmin(userID):  # проверка является ли пользователь админом
+def isAdmin(user_id):  # проверка является ли пользователь админом
     try:
-        if int(userID) in args.admins_list:
+        if int(user_id) in args.admins_list:
             return True
         else:
             return False
     except Exception as e:
-        errorLog('send_task')
+        errorLog(e)
 
 
-def in_profArr(message):
+def in_prof_arr(message):
     for i in range(len(args.ProfArr)):
         if message == args.ProfArr[i][0]:
             return True
     return False
 
 
-def wrong_input(userID, spec):
+def wrong_input(user_id, spec):
     try:
         if spec == 'tech':
-            args.bot.send_message(parse_mode='HTML', chat_id=userID,
+            args.bot.send_message(parse_mode='HTML', chat_id=user_id,
                                   text='Ты вроде <b>умный</b> человек, но зачем ты отправляешь мне то, что я не должен '
                                        'обрабатывать?')
         elif spec == 'gym':
-            args.bot.send_message(parse_mode='HTML', chat_id=userID,
+            args.bot.send_message(parse_mode='HTML', chat_id=user_id,
                                   text='Ты вроде <b>не глупый</b>, но зачем ты отправляешь мне то, что я не должен '
                                        'обрабатывать?')
         else:
-            args.bot.send_message(parse_mode='HTML', chat_id=userID,
+            args.bot.send_message(parse_mode='HTML', chat_id=user_id,
                                   text='Я конечно понимаю, что у тебя <b>проблемы с головой</b>, но не надо мне '
                                        'отправлять то, что я не должен обрабатывать!')
-        args.bot.send_sticker(userID, args.dyrka)
+        args.bot.send_sticker(user_id, args.dyrka)
     except Exception as e:
-        errorLog('wrong_input')
+        errorLog(e)
