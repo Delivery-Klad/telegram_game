@@ -345,6 +345,14 @@ def get_owner(company):
     return ids
 
 
+def get_owner_nickname(company):
+    connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+    cursor = connect.cursor()
+    cursor.execute("SELECT NickName FROM Users WHERE Comp={0} AND isOwner=1".format(company))
+    name = cursor.fetchall()[0][0]
+    return name
+
+
 def get_task_cost(user_id):
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
@@ -416,7 +424,7 @@ def get_avatar(ids):
 def get_request(to_id):
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
-    cursor.execute("SELECT DISTINCT toUserID,from_who,type FROM Requests WHERE toUserID={0}".format(to_id))
+    cursor.execute("SELECT DISTINCT toUserID,fromWho,type FROM Requests WHERE toUserID={0}".format(to_id))
     res = cursor.fetchall()
     msg = ''
     markup = types.InlineKeyboardMarkup()
@@ -695,7 +703,7 @@ def corp_info(user_id):
         desc = cursor.fetchall()[0][0]
         cursor.execute("SELECT Name FROM Companies WHERE ID={0}".format(corp_id))
         company = cursor.fetchall()[0][0]
-        owner = get_owner(corp_id)
+        owner = get_owner_nickname(corp_id)
         msg = '<b>Название:</b> <i>{0}</i>\n<b>Владелец:</b> <i>{1}</i>\n<b>Описание:</b> <i>{2}</i>'.format(
             company, owner, desc)
         return msg
@@ -711,6 +719,20 @@ def update_corp_description(user_id, name):
             cursor.execute("UPDATE Companies SET Description='{0}' WHERE ID={1}".format(name, get_corp(user_id)))
             connect.commit()
             return 'Описание обновлено'
+        else:
+            return 'Вы не владелец организации'
+    except Exception as e:
+        functions.error_log(e)
+
+
+def update_corp_name(user_id, name):
+    try:
+        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+        cursor = connect.cursor()
+        if is_owner(user_id):
+            cursor.execute("UPDATE Companies SET Name='{0}' WHERE ID={1}".format(name, get_corp(user_id)))
+            connect.commit()
+            return 'Название обновлено'
         else:
             return 'Вы не владелец организации'
     except Exception as e:
@@ -778,7 +800,7 @@ def give_new_prof(user_id):
             print(i)
             user_markup.row(profs[i][0])
         args.bot.send_message(parse_mode='HTML', chat_id=user_id,
-                              text='<i>Вы получили новый ранг, теперь вы можете выбрать новую профессию</i>',
+                              text='<i>У вас появилась возможность выбрать новую профессию</i>',
                               reply_markup=user_markup)
         args.new_frof_list.append(user_id)
     except Exception as e:
@@ -820,7 +842,7 @@ def minus_money(user_id, money):
 def check_requests(user_id, company):
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
-    cursor.execute("SELECT toUserID,from_who FROM Requests")
+    cursor.execute("SELECT toUserID,fromWho FROM Requests")
     reqs = cursor.fetchall()
     print(reqs)
     print(len(reqs))
@@ -833,7 +855,7 @@ def check_requests(user_id, company):
 def new_req(to_id, from_who):
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
-    cursor.execute("INSERT INTO Requests VALUES ({0},'{1}',0)".format(to_id, str(from_who)))
+    cursor.execute("INSERT INTO Requests VALUES ({0},'{1}',0)".format(to_id, from_who))
     connect.commit()
     get_request(to_id)
 
@@ -858,6 +880,6 @@ def refresh_corp_tasks(user_id):
 def change_spec(user_id):
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
-    cursor.execute("UPDATE Users SET Spec='None',Profession='None',Count_Works='0',Status='{0}',End_time='None',"
-                   "UserRank='0' WHERE ID={1}".format(str(args.waitStatus), str(user_id)))
+    cursor.execute("UPDATE Users SET Spec='None',Profession='None',Count_Works=0,Status='{0}',"
+                   "End_time='None',UserRank=0 WHERE ID={1}".format(str(args.waitStatus), str(user_id)))
     connect.commit()

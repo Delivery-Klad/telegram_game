@@ -1,5 +1,5 @@
 """
-файл для всяких функций
+файл реализации функций бота
 """
 from datetime import datetime
 import random
@@ -60,7 +60,7 @@ def log(message):  # запись лога сообщений
                                                                      message.data))
         file.close()
     except Exception as e:
-        errorLog(e)
+        error_log(e)
 
 
 def send_task(name, task):  # отправка задания пользователю
@@ -94,7 +94,7 @@ def isAdmin(user_id):  # проверка является ли пользова
         else:
             return False
     except Exception as e:
-        errorLog(e)
+        error_log(e)
 
 
 def in_prof_arr(message):
@@ -120,4 +120,4 @@ def wrong_input(user_id, spec):
                                        'отправлять то, что я не должен обрабатывать!')
         args.bot.send_sticker(user_id, args.dyrka)
     except Exception as e:
-        errorLog(e)
+        error_log(e)
