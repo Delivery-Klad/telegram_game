@@ -87,7 +87,7 @@ def send_task(name, task):  # отправка задания пользоват
         return msg
 
 
-def isAdmin(user_id):  # проверка является ли пользователь админом
+def is_admin(user_id):  # проверка является ли пользователь админом
     try:
         if int(user_id) in args.admins_list:
             return True

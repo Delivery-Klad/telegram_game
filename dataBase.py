@@ -10,33 +10,37 @@ import functions
 import args
 
 
-def create_tables():  # создание таблиц в sql если их нет
+def create_tables():  # создание таблиц в sqlшеу если их нет
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
         cursor.execute('CREATE TABLE IF NOT EXISTS Users(ID INTEGER,'  # телеграм id
-                       'UserName TEXT,'  # телеграм username
-                       'NickName TEXT,'  # ник(чтобы не палить username телеграма)
-                       'Spec TEXT,'  # специализация
-                       'Profession TEXT,'  # профессия 
-                       'Status TEXT,'  # работает/отдыхает
-                       'End_time TEXT,'  # время начала выполнения задания
-                       'Count_Works INTEGER,'  # количество выполненных заданий
-                       'Reg_Date TEXT,'
-                       'UserRank TEXT,'
-                       'Comp TEXT,'
-                       'CompDiscription TEXT,'
-                       'task TEXT)')  # дата регистрации
+                       'UserName TEXT,'         # телеграм username
+                       'NickName TEXT,'         # ник(чтобы не палить username телеграма)
+                       'Spec TEXT,'             # специализация
+                       'Profession TEXT,'       # профессия 
+                       'Status TEXT,'           # работает/отдыхает
+                       'End_time TEXT,'         # время начала выполнения задания
+                       'Count_Works INTEGER,'   # количество выполненных заданий
+                       'Reg_Date TEXT,'         # дата регистрации
+                       'UserRank INTEGER,'      # ранг пользователя
+                       'task TEXT,'             # присутствует ли задание
+                       'Money INTEGER,'         # баланс
+                       'isOwner INTEGER,'       # является ли владельцем компании
+                       'Comp INTEGER,'          # ID компании
+                       'TaskNow TEXT,'          # текущее задание
+                       'InviteID INTEGER)')     # ID приглосившего человека
         cursor.execute('CREATE TABLE IF NOT EXISTS Quests(Profession TEXT,'  # профессия 
-                       'Quest TEXT,'  # задание
-                       'Rank INTEGER,'  # ранг/сложность задания
-                       'Time INTEGER)')  # время выполнения задания
+                       'Quest TEXT,'            # задание
+                       'Rank INTEGER,'          # ранг/сложность задания
+                       'Time INTEGER)')         # время выполнения задания
         cursor.execute('CREATE TABLE IF NOT EXISTS Profs(Prof TEXT,'  # профессия 
-                       'ProfCheck INTEGER,'
-                       'ProfRank INTEGER)')  # 0/1/3 - гум/технарь/доступен всем
+                       'ProfCheck INTEGER,'     # 0/1/3 - гум/технарь/доступен всем
+                       'ProfRank INTEGER)')     # ранг, с которого доступна профессия
         cursor.execute('CREATE TABLE IF NOT EXISTS Companies(ID INTEGER,'  # уникальный ID 
-                       'Name TEXT,'  # название
-                       'Description TEXT)')  # описание
+                       'Name TEXT,'             # название
+                       'Description TEXT,'      # описание
+                       'CountWorks INTEGER)')   # кол-во выполненных работ
         connect.commit()
     except Exception as e:
         functions.error_log(e)
@@ -94,11 +98,11 @@ def set_profession(message, in_prof_arr):
         functions.error_log(e)
 
 
-def set_owner(user_id):
+def set_owner(user_id, owner):
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
-        cursor.execute("UPDATE Users SET isOwner=1 WHERE ID={0}".format(str(user_id)))
+        cursor.execute("UPDATE Users SET isOwner={0} WHERE ID={1}".format(owner, user_id))
         connect.commit()
     except Exception as e:
         functions.error_log(e)
@@ -300,7 +304,7 @@ def get_low(user_id, task_id):
         return 'Выберете кому дать задание:\n----------\nNone'
 
 
-def get_workers(message):
+def get_workers(user_id):
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
@@ -310,7 +314,7 @@ def get_workers(message):
         msg_text = ''
         markup = types.InlineKeyboardMarkup()
         for i in range(len(users)):
-            if users[i][0] != message.from_user.id:
+            if users[i][0] != user_id:
                 print(i)
                 call = '/task' + str(users[i][0])
                 msg = 'Дать задание  ' + str(users[i][1])
@@ -476,6 +480,20 @@ def get_not_in_corp_users(message):
         return 'Нет свободных людей', None
 
 
+def get_members_id(corp_id):
+    try:
+        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+        cursor = connect.cursor()
+        cursor.execute("SELECT ID FROM Users WHERE Comp={0}".format(corp_id))
+        users = cursor.fetchall()
+        res = []
+        for i in range(len(users)):
+            res.append(int(users[i][0]))
+        return res
+    except Exception as e:
+        functions.error_log(e)
+
+
 def add_money(user_id, money):
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
@@ -521,10 +539,25 @@ def create_corp(user_id, name):
         cursor = connect.cursor()
         cursor.execute("SELECT MAX(ID) FROM Companies")
         max_id = cursor.fetchall()[0][0] + 1
-        data = [max_id, name, 'None']
-        cursor.execute("INSERT INTO Companies VALUES(?, ?, ?)", data)
+        data = [max_id, name, 'None', 0]
+        cursor.execute("INSERT INTO Companies VALUES(?, ?, ?, ?)", data)
         connect.commit()
         upd_corp(user_id, max_id)
+    except Exception as e:
+        functions.error_log(e)
+
+
+def remove_corp(user_id):
+    try:
+        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+        cursor = connect.cursor()
+        corp_id = get_corp(user_id)
+        cursor.execute("DELETE FROM Companies WHERE ID={0}".format(corp_id))
+        connect.commit()
+        set_owner(user_id, 0)
+        upd_corp(user_id, 0)
+        members = get_members_id(corp_id)
+        return members
     except Exception as e:
         functions.error_log(e)
 
@@ -694,6 +727,30 @@ def corp_members(user_id):
     return msg, markup
 
 
+def change_owner(user_id):
+    connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+    cursor = connect.cursor()
+    markup = types.InlineKeyboardMarkup()
+    if get_corp(user_id) == 0:
+        call = '/me'
+        key = types.InlineKeyboardButton('/me', callback_data=call)
+        markup.add(key)
+        return 'Вы не состоите в организации', markup
+    cursor.execute("SELECT ID,NickName,Profession,UserRank FROM Users WHERE Comp={0}".
+                   format(get_corp(user_id)))
+    members = cursor.fetchall()
+    msg = '<b>Члены организации:</b>\n'
+    for i in range(len(members)):
+        if user_id != members[i][0]:
+            text = 'Назначить ' + str(members[i][1])
+            call = '/set_owner' + str(members[i][0])
+            key = types.InlineKeyboardButton(text, callback_data=call)
+            markup.add(key)
+        msg += '<b>' + str(members[i][1]) + '</b> <i>' + str(members[i][2]) + ' Ранг: ' + str(members[i][3]) + '</i>'
+        msg += '\n'
+    return msg, markup
+
+
 def corp_info(user_id):
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
@@ -708,7 +765,9 @@ def corp_info(user_id):
             company, owner, desc)
         return msg
     except Exception as e:
+        msg = 'Вы не владелец организации'
         functions.error_log(e)
+        return msg
 
 
 def update_corp_description(user_id, name):
@@ -802,7 +861,7 @@ def give_new_prof(user_id):
         args.bot.send_message(parse_mode='HTML', chat_id=user_id,
                               text='<i>У вас появилась возможность выбрать новую профессию</i>',
                               reply_markup=user_markup)
-        args.new_frof_list.append(user_id)
+        args.new_prof_list.append(user_id)
     except Exception as e:
         functions.error_log(e)
 
