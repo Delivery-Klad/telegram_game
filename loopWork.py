@@ -26,18 +26,22 @@ def timer():
                         end_time = cursor.fetchall()
                         for i in range(len(end_time)):
                             if end_time[i][0] != 'None':
+                                print('1')
                                 end_minutes = int(end_time[i][0])
                                 mitutes_now = int(datetime.now().strftime('%M'))
                                 if mitutes_now == end_minutes or mitutes_now > end_minutes:
+                                    print('2')
                                     cursor.execute("SELECT ID FROM Users WHERE End_time=" + str(end_minutes))
                                     user_id = cursor.fetchall()
                                     for u in range(len(user_id[0])):
+                                        print('3')
                                         money = dataBase.get_task_cost(user_id[0][u])
                                         args.bot.send_message(parse_mode='HTML', chat_id=user_id[0][u],
                                                               text='<b>Вы закончили выполнение задания</b>\nВаш '
                                                                    'заработок: ' + str(money) + args.currency)
                                         dataBase.plus_count_works(user_id[0][u])  # +1 к выполненным заданиям
                                         company = dataBase.get_corp(user_id[0][u])
+                                        print('4')
                                         if company != '0':
                                             owner_id = dataBase.get_owner(company)
                                             dataBase.add_money(owner_id, int(money)/10)
