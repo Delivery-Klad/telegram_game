@@ -55,3 +55,37 @@
 ------------------------------------------------
 10-06-2020 20:59:59Ошибка в функции A request to the Telegram API was unsuccessful. The server returned HTTP 400 Bad Request. Response body:
 [b'{"ok":false,"error_code":400,"description":"Bad Request: message text is empty"}']
+------------------------------------------------
+11-06-2020 12:14:09Ошибка в функции A request to the Telegram API was unsuccessful. The server returned HTTP 400 Bad Request. Response body:
+[b'{"ok":false,"error_code":400,"description":"Bad Request: message is not modified: specified new message content and reply markup are exactly the same as a current content and reply markup of the message"}']
+------------------------------------------------
+11-06-2020 12:14:10Ошибка в функции A request to the Telegram API was unsuccessful. The server returned HTTP 400 Bad Request. Response body:
+[b'{"ok":false,"error_code":400,"description":"Bad Request: message is not modified: specified new message content and reply markup are exactly the same as a current content and reply markup of the message"}']
+------------------------------------------------
+11-06-2020 12:14:10Ошибка в функции A request to the Telegram API was unsuccessful. The server returned HTTP 400 Bad Request. Response body:
+[b'{"ok":false,"error_code":400,"description":"Bad Request: message is not modified: specified new message content and reply markup are exactly the same as a current content and reply markup of the message"}']
+------------------------------------------------
+11-06-2020 12:21:38Ошибка в функции database is locked
+------------------------------------------------
+11-06-2020 12:23:54Ошибка в функции database is locked
+------------------------------------------------
+11-06-2020 12:26:06Ошибка в функции database is locked
+------------------------------------------------
+11-06-2020 12:30:47Ошибка в функции list index out of range
+------------------------------------------------
+11-06-2020 12:30:47Ошибка в функции 'NoneType' object has no attribute 'split'
+------------------------------------------------
+11-06-2020 12:30:51Ошибка в функции list index out of range
+------------------------------------------------
+11-06-2020 12:30:51Ошибка в функции 'NoneType' object has no attribute 'split'
+------------------------------------------------
+11-06-2020 12:40:37Ошибка в функции list index out of range
+------------------------------------------------
+11-06-2020 12:40:41Ошибка в функции list index out of range
+------------------------------------------------
+11-06-2020 17:50:01Ошибка в функции list index out of range
+------------------------------------------------
+11-06-2020 18:22:05Ошибка в функции invalid literal for int() with base 10: 'RRX23'
+------------------------------------------------
+11-06-2020 18:22:06Ошибка в функции A request to the Telegram API was unsuccessful. The server returned HTTP 400 Bad Request. Response body:
+[b'{"ok":false,"error_code":400,"description":"Bad Request: message text is empty"}']

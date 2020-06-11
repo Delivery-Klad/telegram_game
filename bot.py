@@ -70,6 +70,7 @@ def handler_help(message):
                          text='Меню помощи\n'
                               '/start - Начать ользоваться ботом\n'
                               '/help - Меню помощи\n'
+                              '/ref - Реферальная ссылка\n'
                               '/accept - Согласиться на выполнение работы\n'
                               '/cancel - Отказаться от выполнения работы\n'
                               '/give_task - Дать задание другому игроку\n'
@@ -102,6 +103,7 @@ def handler_corp_help(message):
                               '/accept - Согласиться вступить в организацию\n'
                               '/cancel - Отказаться от вступления в организацию\n'
                               '/create_corp (+название) - Создать организацию\n'
+                              '/remove_corp - Расформировать организацию\n'
                               '/leave_corp - Покинуть организацию\n'
                               '/set_desc (+название) - Изменить описание организации\n'
                               '/set_name (+название) - Изменить название организации\n'
@@ -617,7 +619,7 @@ def handler_corp_task(message):
         functions.error_log(e)
 
 
-@bot.message_handler(commands=['me'])  # функция инвайта в орг
+@bot.message_handler(commands=['me'])  # функция информации об аккаунте
 def handler_me(message):
     try:
         functions.log(message)
@@ -648,12 +650,27 @@ def handler_me(message):
         functions.error_log(e)
 
 
-@bot.message_handler(commands=['change_nickname'])  # функция инвайта в орг
+@bot.message_handler(commands=['change_nickname'])  # функция изменения ника
 def handler_change(message):
     try:
         functions.log(message)
         nickList.append(message.from_user.id)
         bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text='<b>Ввведите новый ник:</b>')
+    except Exception as e:
+        functions.error_log(e)
+
+
+@bot.message_handler(commands=['top'])  # функция для посмотра топов
+def handler_tops(message):
+    try:
+        functions.log(message)
+        markup = types.InlineKeyboardMarkup()
+        key1 = types.InlineKeyboardButton('Топ богачей', callback_data='/top_rich')
+        key2 = types.InlineKeyboardButton('Топ организаций', callback_data='/top_orgs')
+        markup.add(key1)
+        markup.add(key2)
+        bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text='<b>Выберите из списка:\n</b>',
+                         reply_markup=markup)
     except Exception as e:
         functions.error_log(e)
 
@@ -666,7 +683,7 @@ def handler_a_chat(message):
             command = message.text.split(maxsplit=1)[1]
             for j in range(len(args.admins_list)):
                 if args.admins_list[j] != message.from_user.id:
-                    bot.send_message(parse_mode='HTML', chat_id=args.admins_list[j], text=str('Админ чат | {0}{1}').
+                    bot.send_message(parse_mode='HTML', chat_id=args.admins_list[j], text=str('Админ чат | {0} {1}').
                                      format(message.from_user.username, command))
     except Exception as e:
         functions.error_log(e)
@@ -700,7 +717,7 @@ def func(c):
             if handler_task(c):
                 bot.answer_callback_query(callback_query_id=c.id, show_alert=False, text='Задание отправлено')
                 bot.edit_message_text(parse_mode='HTML', chat_id=c.from_user.id, message_id=c.message.message_id,
-                                      text='<b>Выберете кому дать дать задание:\n</b>' + c.message.text)
+                                      text=c.message.text)
             else:
                 bot.answer_callback_query(callback_query_id=c.id, show_alert=False, text='Задание не отправлено')
         elif c.data[1:7] == 'accept':
@@ -781,11 +798,18 @@ def func(c):
             members = dataBase.remove_corp(c.from_user.id)
             for i in members:
                 bot.send_message(parse_mode='HTML', chat_id=i, text='<b>Организация расформирована</b>')
+                dataBase.upd_corp(i, 0)
             bot.edit_message_text(chat_id=c.from_user.id, message_id=c.message.message_id,
                                   text='Организация удалена')
         elif c.data[1:] == 'remove_decline':
             bot.edit_message_text(chat_id=c.from_user.id, message_id=c.message.message_id,
                                   text='Действие отменено')
+        elif c.data[1:] == 'top_rich':
+            res = dataBase.get_top('rich')
+            bot.edit_message_text(parse_mode='HTML', chat_id=c.from_user.id, message_id=c.message.message_id, text=res)
+        elif c.data[1:] == 'top_orgs':
+            res = dataBase.get_top('orgs')
+            bot.edit_message_text(parse_mode='HTML', chat_id=c.from_user.id, message_id=c.message.message_id, text=res)
     except Exception as e:
         functions.error_log(e)
 

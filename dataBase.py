@@ -314,8 +314,7 @@ def get_workers(user_id):
         msg_text = ''
         markup = types.InlineKeyboardMarkup()
         for i in range(len(users)):
-            if users[i][0] != user_id:
-                print(i)
+            if users[i][0] != user_id and int(users[i][0]) != 0:
                 call = '/task' + str(users[i][0])
                 msg = 'Дать задание  ' + str(users[i][1])
                 key = types.InlineKeyboardButton(msg, callback_data=call)
@@ -490,6 +489,30 @@ def get_members_id(corp_id):
         for i in range(len(users)):
             res.append(int(users[i][0]))
         return res
+    except Exception as e:
+        functions.error_log(e)
+
+
+def get_top(top):
+    try:
+        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+        cursor = connect.cursor()
+        if top == 'rich':
+            cursor.execute("SELECT NickName FROM Users ORDER BY Money DESC LIMIT 10")
+            users = cursor.fetchall()
+            cursor.execute("SELECT ID FROM Users ORDER BY Money DESC LIMIT 10")
+            users_id = cursor.fetchall()
+            res = '<b>Топ-10 богачей:</b>'
+            for i in range(len(users)):
+                res += '\n{}) {}: {}'.format(i + 1, users[i][0], get_balance(int(users_id[i][0])))
+            return res
+        elif top == 'orgs':
+            cursor.execute("SELECT Name FROM Companies ORDER BY CountWorks DESC LIMIT 10")
+            orgs = cursor.fetchall()
+            res = '<b>Топ-10 организаций:</b>'
+            for i in range(len(orgs)):
+                res += '\n{}) {}:'.format(i + 1, orgs[i][0])
+            return res
     except Exception as e:
         functions.error_log(e)
 
