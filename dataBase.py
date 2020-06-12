@@ -32,7 +32,8 @@ def create_tables():  # создание таблиц в sqlite если их н
         cursor.execute('CREATE TABLE IF NOT EXISTS HiddenInfo(ID INTEGER,'  # телеграм ID
                        'UserName TEXT,'         # телеграм username
                        'Reg_Date TEXT,'         # дата регистрации
-                       'InviteID INTEGER)')     # ID приглосившего человека
+                       'InviteID INTEGER,'      # ID приглосившего человека
+                       'isAdmin INTEGER)')      # является ли пользователь админом
         cursor.execute('CREATE TABLE IF NOT EXISTS Quests(Profession TEXT,'  # профессия 
                        'Quest TEXT,'            # задание
                        'Rank INTEGER,'          # ранг/сложность задания
@@ -322,10 +323,13 @@ def get_gum(user_id, task_id):  # получение работников gym с
         company = get_corp(user_id)
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
+        cursor.execute("SELECT Profession FROM Quests WHERE Quest=(SELECT Task FROM CorpTasks WHERE id=" +
+                       str(task_id) + ")")
+        prof = cursor.fetchall()[0][0]
         cursor.execute("SELECT rank FROM CorpTasks WHERE ownerID={0} AND id={1}".format(user_id, task_id))
         rank = cursor.fetchall()[0][0]
         cursor.execute("SELECT NickName,ID,Profession,UserRank FROM Users WHERE UserRank>={0} AND Spec='gum' AND "
-                       "Comp={1} ORDER BY RANDOM() LIMIT 5".format(rank, company))
+                       "Profession='{1}' AND Comp={2} ORDER BY RANDOM() LIMIT 5".format(rank, prof, company))
         users = cursor.fetchall()
         markup = types.InlineKeyboardMarkup()
         msg = 'Выберете кому дать задание:\n----------\n'
@@ -352,10 +356,13 @@ def get_low(user_id, task_id):  # получение работников low с
         company = get_corp(user_id)
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
+        cursor.execute("SELECT Profession FROM Quests WHERE Quest=(SELECT Task FROM CorpTasks WHERE id=" +
+                       str(task_id) + ")")
+        prof = cursor.fetchall()[0][0]
         cursor.execute("SELECT rank FROM CorpTasks WHERE ownerID={0} AND id={1}".format(user_id, task_id))
         rank = cursor.fetchall()[0][0]
         cursor.execute("SELECT NickName,ID,Profession,UserRank FROM Users WHERE UserRank>={0} AND Spec='low' AND "
-                       "Comp={1} ORDER BY RANDOM() LIMIT 5".format(rank, company))
+                       "Profession='{1}' AND Comp={2} ORDER BY RANDOM() LIMIT 5".format(rank, prof, company))
         users = cursor.fetchall()
         markup = types.InlineKeyboardMarkup()
         msg = 'Выберете кому дать задание:\n'

@@ -79,7 +79,6 @@ def handler_help(message):
                               '/change_prof - Изменить профессию (в разработке)\n'
                               '/corp_help - Информация об организациях\n'
                               '/me - Информация об аккаунте\n'
-                              '/balance - Узнать баланс\n'
                               '/change_nickname - Изменить никнейм')
         if functions.is_admin(message.from_user.id):
             bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
@@ -88,6 +87,7 @@ def handler_help(message):
                                   '/log - Запросить логи\n'
                                   '/errors - Запросить ошибки\n'
                                   '/db - Запросить базу данных\n'
+                                  '/exit - Выключить бота\n'
                                   '/add_quest - (по формату /add_quest , профессия , задание , ранг , время)')
     except Exception as e:
         functions.error_log(e)
@@ -152,16 +152,6 @@ def handler_ref(message):
         bot.send_message(chat_id=message.from_user.id, text="Реферальная ссылка для помощи проекту и себе: "
                                                             "https://telegram.me/" + bot.get_me().username + "?start={}"
                          .format(message.from_user.id))
-    except Exception as e:
-        functions.error_log(e)
-
-
-@bot.message_handler(commands=['balance'])
-def handler_balance(message):
-    try:
-        functions.log(message)
-        bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
-                         text='<i>Ваш баланс: </i>' + str(dataBase.get_balance(message.from_user.id)))
     except Exception as e:
         functions.error_log(e)
 
@@ -280,6 +270,7 @@ def handler_invite(message):
         functions.log(message)
         if dataBase.is_owner(message.from_user.id):
             company = dataBase.get_corp(message.from_user.id)
+            corp_name = dataBase.get_corp_name(dataBase.get_corp(message.from_user.id))
             try:
                 user_id = int(message.text[7:])
             except AttributeError:
@@ -287,7 +278,7 @@ def handler_invite(message):
             if dataBase.check_requests(user_id, company):
                 if not dataBase.in_corp(user_id):
                     bot.send_message(parse_mode='HTML', chat_id=int(user_id),
-                                     text='Вы были приглашены в организацию "{}"'.format(company))
+                                     text='Вы были приглашены в организацию "{}"'.format(corp_name))
                     bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                      text='Вы пригласили <b>{}</b> в организацию '.format(
                                          dataBase.get_nickname(user_id)))
