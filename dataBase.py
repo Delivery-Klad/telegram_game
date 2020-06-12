@@ -25,6 +25,7 @@ def create_tables():  # создание таблиц в sqlite если их н
                        'Count_Works INTEGER,'   # количество выполненных заданий
                        'UserRank INTEGER,'      # ранг пользователя
                        'task TEXT,'             # присутствует ли задание
+                       'corptask INTEGER,'      # 1/0 задание от орг
                        'Money INTEGER,'         # баланс
                        'isOwner INTEGER,'       # является ли владельцем компании
                        'Comp INTEGER,'          # ID компании
@@ -44,7 +45,8 @@ def create_tables():  # создание таблиц в sqlite если их н
         cursor.execute('CREATE TABLE IF NOT EXISTS Companies(ID INTEGER,'  # уникальный ID
                        'Name TEXT,'             # название
                        'Description TEXT,'      # описание
-                       'CountWorks INTEGER)')   # кол-во выполненных работ
+                       'CountWorks INTEGER,'    # кол-во выполненных работ
+                       'TaskCoolDown INTEGER)')   # кд на выдачу заданий
         cursor.execute('CREATE TABLE IF NOT EXISTS CorpTasks(Task TEXT,'  # задание
                        'spec TEXT,'             # специальность
                        'rank INTEGER,'          # ранг задания
@@ -648,6 +650,20 @@ def get_top(top):  # генерация списка топов
         functions.error_log(e)
 
 
+def get_all_users():
+    try:
+        tmp = []
+        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+        cursor = connect.cursor()
+        cursor.execute("SELECT ID FROM Users")
+        res = cursor.fetchall()
+        for i in range(len(res)):
+            tmp.append(int(res[i][0]))
+        return tmp
+    except Exception as e:
+        functions.error_log(e)
+
+
 def add_money(user_id, money):  # функция добавления вознаграждения
     """
     :param user_id: user_id
@@ -712,8 +728,8 @@ def create_corp(user_id, name):  # создание организации
         cursor = connect.cursor()
         cursor.execute("SELECT MAX(ID) FROM Companies")
         max_id = cursor.fetchall()[0][0] + 1
-        data = [max_id, name, 'None', 0]
-        cursor.execute("INSERT INTO Companies VALUES(?, ?, ?, ?)", data)
+        data = [max_id, name, 'None', 0, 0]
+        cursor.execute("INSERT INTO Companies VALUES(?, ?, ?, ?, ?)", data)
         connect.commit()
         upd_corp(user_id, max_id)
     except Exception as e:
@@ -735,6 +751,53 @@ def remove_corp(user_id):  # удаление организации
         upd_corp(user_id, 0)
         members = get_members_id(corp_id)
         return members
+    except Exception as e:
+        functions.error_log(e)
+
+
+def is_corp_task(user_id):  # является ли задание заданиеом от орг
+    """
+    :param user_id: user_id
+    :return: является ли задание заданиеом от орг
+    """
+    try:
+        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+        cursor = connect.cursor()
+        cursor.execute("SELECT corptask FROM Users WHERE ID={0}".format(user_id))
+        res = int(cursor.fetchall()[0][0])
+        if res == 1:
+            return True
+        elif res == 0:
+            return False
+    except Exception as e:
+        functions.error_log(e)
+
+
+def upd_is_corp_task(user_id, is_corp):  # обновление corptask
+    """
+    :param user_id: user_id
+    :param is_corp: is_corp_task
+    :return: обновление corptask
+    """
+    try:
+        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+        cursor = connect.cursor()
+        cursor.execute("UPDATE Users SET corptask={0} WHERE ID={1}".format(is_corp, user_id))
+        connect.commit()
+    except Exception as e:
+        functions.error_log(e)
+
+
+def upd_corp_count_works(corp_id):  # увеличение количества выполненных работ орг
+    """
+    :param corp_id: user_id
+    :return: увеличение количества выполненных работ орг
+    """
+    try:
+        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+        cursor = connect.cursor()
+        cursor.execute("UPDATE Companies SET CountWorks=CountWorks+1 WHERE ID={0}".format(corp_id))
+        connect.commit()
     except Exception as e:
         functions.error_log(e)
 

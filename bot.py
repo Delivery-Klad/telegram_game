@@ -21,6 +21,7 @@ args.bot = bot
 nickList = []
 avatarList = []
 print(bot.get_me())
+args.start_time = datetime.now()
 print("------------------------ЗАКОНЧИЛАСЬ ЗАГРУЗКА БОТА------------------------")
 
 
@@ -54,8 +55,8 @@ def handler_start(message):
                 functions.error_log(e)
                 res = 0
             data = [message.from_user.id, "None", "None", "None", str(args.waitStatus),
-                    "None", 0, 0, "0", 0, 0, 0, "None"]
-            cursor.execute('INSERT INTO Users VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', data)
+                    "None", 0, 0, "0", 0, 0, 0, 0, "None"]
+            cursor.execute('INSERT INTO Users VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', data)
             data = [message.from_user.id, message.from_user.username,
                     str(datetime.now().strftime('%d-%m-%Y %H:%M:%S')), res]
             cursor.execute('INSERT INTO HiddenInfo VALUES(?, ?, ?, ?)', data)
@@ -75,8 +76,6 @@ def handler_help(message):
                               '/ref - Реферальная ссылка\n'
                               '/top - Посмотреть топ\n'
                               '/give_task - Дать задание другому игроку\n'
-                              '/change_spec - Изменить специализацию (ранг будет сброшен)\n'
-                              '/change_prof - Изменить профессию (в разработке)\n'
                               '/corp_help - Информация об организациях\n'
                               '/me - Информация об аккаунте\n'
                               '/change_nickname - Изменить никнейм')
@@ -86,6 +85,7 @@ def handler_help(message):
                                   '/a (+сообщение) - Админ чат\n'
                                   '/log - Запросить логи\n'
                                   '/errors - Запросить ошибки\n'
+                                  '/uptime - Запросить uptime\n'
                                   '/db - Запросить базу данных\n'
                                   '/exit - Выключить бота\n'
                                   '/add_quest - (по формату /add_quest , профессия , задание , ранг , время)')
@@ -198,6 +198,9 @@ def handler_accept(message):
         functions.log(message)
         if dataBase.can_accept(message.from_user.id):
             if dataBase.is_free(message.from_user.id):
+                if dataBase.is_corp_task(message.from_user.id):
+                    dataBase.upd_is_corp_task(message.from_user.id, 0)
+                    dataBase.upd_corp_count_works(dataBase.get_corp(message.from_user.id))
                 job_timer = dataBase.get_job_timer(message.from_user.id)
                 dataBase.start_job(message.from_user.id, args.workStatus,
                                    (int(datetime.now().strftime('%M')) + job_timer) % 60)
@@ -228,26 +231,6 @@ def handler_cancel(message):
             return True
         else:
             return False
-    except Exception as e:
-        functions.error_log(e)
-
-
-@bot.message_handler(commands=['change_spec'])
-def handler_change_spec(message):
-    try:
-        functions.log(message)
-        bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text=args.test_question)
-        dataBase.change_spec(message.from_user.id)
-    except Exception as e:
-        functions.error_log(e)
-
-
-@bot.message_handler(commands=['change_prof'])
-def handler_change_prof(message):
-    try:
-        functions.log(message)
-        bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text='<b>Фунция в разработке</b>')
-        dataBase.give_new_prof(message.from_user.id)
     except Exception as e:
         functions.error_log(e)
 
@@ -589,6 +572,7 @@ def handler_corp_task(message):
                 msg = dataBase.give_corp_task(task_id, user_id)
                 if msg != 'None':
                     dataBase.upd_can_accept(user_id, 1)
+                    dataBase.upd_is_corp_task(user_id, 1)
                     bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                      text='<i>Задание отправлено</i>')
                     bot.send_message(parse_mode='HTML', chat_id=int(user_id),
@@ -629,6 +613,10 @@ def handler_me(message):
         if dataBase.is_owner(message.from_user.id):
             key = types.InlineKeyboardButton('Передать командование', callback_data='/change_owner')
             markup.add(key)
+        key1 = types.InlineKeyboardButton('Изменить специальность', callback_data='/change_spec')
+        markup.add(key1)
+        key2 = types.InlineKeyboardButton('Изменить профессию', callback_data='/change_prof')
+        markup.add(key2)
         msg = '<i>Никнейм: </i> <b>{5}</b>\n<i>Профессия:</i> <b>{0}</b>\n<i>Ранг:</i> <b>{1}</b>\n<i>Баланс:</i> ' \
               '<b>{2}</b>\n<i>Организация:</i> <b>{3}</b>\n<i>Должность в орг.:</i> <b>{4}</b>'.\
             format(dataBase.get_prof(ids), dataBase.get_user_rank(ids), dataBase.get_balance(ids), company,
@@ -675,6 +663,32 @@ def handler_a_chat(message):
                 if args.admins_list[j] != message.from_user.id:
                     bot.send_message(parse_mode='HTML', chat_id=args.admins_list[j], text=str('Админ чат | {0} {1}').
                                      format(dataBase.get_nickname(message.from_user.id), command))
+    except Exception as e:
+        functions.error_log(e)
+
+
+@bot.message_handler(commands=['all'])  # функция отправки сообщения в админ чат
+def handler_a_chat(message):
+    try:
+        if functions.is_admin(message.from_user.id):
+            functions.log(message)
+            msg = message.text.split(maxsplit=1)[1]
+            users = dataBase.get_all_users()
+            for i in range(len(users)):
+                if users[i] != message.from_user.id:
+                    bot.send_message(parse_mode='HTML', chat_id=users[i], text=str('Сообщение от админа | {0} {1}').
+                                     format(dataBase.get_nickname(message.from_user.id), msg))
+    except Exception as e:
+        functions.error_log(e)
+
+
+@bot.message_handler(commands=['uptime'])  # узнать время работы
+def handler_a_chat(message):
+    try:
+        functions.log(message)
+        if functions.is_admin(message.from_user.id):
+            tmp_msg = str('<b>\nВремя:</b> ' + str(datetime.now() - args.start_time))
+            bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text=str(tmp_msg))
     except Exception as e:
         functions.error_log(e)
 
@@ -775,6 +789,12 @@ def func(c):
                 bot.send_message(parse_mode='HTML', chat_id=c.from_user.id,
                                  text='<b>Кажется вы не глава организации</b>')
                 bot.answer_callback_query(callback_query_id=c.id, show_alert=False, text='Error')
+        elif c.data[1:] == 'change_prof':
+            bot.send_message(parse_mode='HTML', chat_id=c.from_user.id, text='<b>Выберите новую профессию</b>')
+            dataBase.give_new_prof(c.from_user.id)
+        elif c.data[1:] == 'change_spec':
+            bot.send_message(parse_mode='HTML', chat_id=c.from_user.id, text=args.test_question)
+            dataBase.change_spec(c.from_user.id)
         elif c.data[1:] == 'leave_corp':
             if handler_leave(c):
                 bot.answer_callback_query(callback_query_id=c.id, show_alert=False, text='Вы покинули орг')
