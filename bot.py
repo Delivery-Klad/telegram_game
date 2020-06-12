@@ -53,10 +53,12 @@ def handler_start(message):
             except Exception as e:
                 functions.error_log(e)
                 res = 0
-            data = [message.from_user.id, message.from_user.username, "None", "None", "None", str(args.waitStatus),
-                    "None", 0, str(datetime.now().strftime('%d-%m-%Y %H:%M:%S')), 0, "0", 0, 0,
-                    0, "None", res]
-            cursor.execute('INSERT INTO Users VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', data)
+            data = [message.from_user.id, "None", "None", "None", str(args.waitStatus),
+                    "None", 0, 0, "0", 0, 0, 0, "None"]
+            cursor.execute('INSERT INTO Users VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', data)
+            data = [message.from_user.id, message.from_user.username,
+                    str(datetime.now().strftime('%d-%m-%Y %H:%M:%S')), res]
+            cursor.execute('INSERT INTO HiddenInfo VALUES(?, ?, ?, ?)', data)
         connect.commit()
     except Exception as e:
         functions.error_log(e)
@@ -71,16 +73,14 @@ def handler_help(message):
                               '/start - Начать ользоваться ботом\n'
                               '/help - Меню помощи\n'
                               '/ref - Реферальная ссылка\n'
-                              '/accept - Согласиться на выполнение работы\n'
-                              '/cancel - Отказаться от выполнения работы\n'
+                              '/top - Посмотреть топ\n'
                               '/give_task - Дать задание другому игроку\n'
                               '/change_spec - Изменить специализацию (ранг будет сброшен)\n'
                               '/change_prof - Изменить профессию (в разработке)\n'
                               '/corp_help - Информация об организациях\n'
                               '/me - Информация об аккаунте\n'
                               '/balance - Узнать баланс\n'
-                              '/change_nickname - Изменить никнейм\n'
-                              '-')
+                              '/change_nickname - Изменить никнейм')
         if functions.is_admin(message.from_user.id):
             bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                              text='Меню помощи\n'
@@ -88,8 +88,7 @@ def handler_help(message):
                                   '/log - Запросить логи\n'
                                   '/errors - Запросить ошибки\n'
                                   '/db - Запросить базу данных\n'
-                                  '/add_quest - (по формату /add_quest , профессия , задание , ранг , время)\n'
-                                  '-')
+                                  '/add_quest - (по формату /add_quest , профессия , задание , ранг , время)')
     except Exception as e:
         functions.error_log(e)
 
@@ -99,19 +98,16 @@ def handler_corp_help(message):
     try:
         functions.log(message)
         bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
-                         text='Меню помощи\n'
-                              '/accept - Согласиться вступить в организацию\n'
-                              '/cancel - Отказаться от вступления в организацию\n'
+                         text='Меню помощи организации\n'
+                              '/info - Информация об организации\n'
                               '/create_corp (+название) - Создать организацию\n'
                               '/remove_corp - Расформировать организацию\n'
                               '/leave_corp - Покинуть организацию\n'
                               '/set_desc (+название) - Изменить описание организации\n'
                               '/set_name (+название) - Изменить название организации\n'
-                              '/info - Информация об организации\n'
                               '/invite - Выбрать кому отправить приглос в орг\n'
                               '/corp_members - Информация о членах организации\n'
-                              '/get_task - Получить задание на организацию\n'
-                              '-')
+                              '/get_task - Получить задание на организацию')
     except Exception as e:
         functions.error_log(e)
 
@@ -151,10 +147,13 @@ def handler_db(message):
 
 @bot.message_handler(commands=['ref'])
 def handler_ref(message):
-    functions.log(message)
-    bot.send_message(chat_id=message.from_user.id, text="Реферальная ссылка для помощи проекту и себе: "
-                                                        "https://telegram.me/" + bot.get_me().username + "?start={}"
-                     .format(message.from_user.id))
+    try:
+        functions.log(message)
+        bot.send_message(chat_id=message.from_user.id, text="Реферальная ссылка для помощи проекту и себе: "
+                                                            "https://telegram.me/" + bot.get_me().username + "?start={}"
+                         .format(message.from_user.id))
+    except Exception as e:
+        functions.error_log(e)
 
 
 @bot.message_handler(commands=['balance'])
@@ -684,7 +683,7 @@ def handler_a_chat(message):
             for j in range(len(args.admins_list)):
                 if args.admins_list[j] != message.from_user.id:
                     bot.send_message(parse_mode='HTML', chat_id=args.admins_list[j], text=str('Админ чат | {0} {1}').
-                                     format(message.from_user.username, command))
+                                     format(dataBase.get_nickname(message.from_user.id), command))
     except Exception as e:
         functions.error_log(e)
 
@@ -980,7 +979,7 @@ def handler_photo(message):
         functions.error_log(e)
 
 
-try:  # максимально странная конструкция
+try:  # максимально странная конструкция (за то работает)
     while True:
         t = threading.Thread(target=loopWork.timer, name='timer')  # создание потока для функции timer
         t.start()  # запуск нового потока

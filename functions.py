@@ -6,7 +6,11 @@ import random
 import args
 
 
-def error_log(reason):
+def error_log(reason):  # запись лога ошибок
+    """
+    :param reason: error reason
+    :return: запись лога ошибок
+    """
     try:
         file = open(args.filesFolderName + args.ErlogFileName, 'a')
         file.write('\n' + args.delimiter_line + '\n')
@@ -24,6 +28,10 @@ def error_log(reason):
 
 
 def log(message):  # запись лога сообщений
+    """
+    :param message: message
+    :return: запись лога сообщений
+    """
     try:
         file = open(args.filesFolderName + args.logFileName, 'a')
         file.write('\n' + args.delimiter_line + '\n')
@@ -64,6 +72,11 @@ def log(message):  # запись лога сообщений
 
 
 def send_task(name, task):  # отправка задания пользователю
+    """
+    :param name: user's name
+    :param task: task
+    :return: отправка задания пользователю
+    """
     try:
         if task == 'Перенести':
             index = random.randint(0, len(args.props_arr) - 1)
@@ -88,6 +101,10 @@ def send_task(name, task):  # отправка задания пользоват
 
 
 def is_admin(user_id):  # проверка является ли пользователь админом
+    """
+    :param user_id: user_id
+    :return: является ли пользователь админом
+    """
     try:
         if int(user_id) in args.admins_list:
             return True
@@ -97,14 +114,23 @@ def is_admin(user_id):  # проверка является ли пользов�
         error_log(e)
 
 
-def in_prof_arr(message):
+def in_prof_arr(message):  # что это такое? я хз прост)))0)))
+    """
+    :param message: message
+    :return: xz
+    """
     for i in range(len(args.ProfArr)):
         if message == args.ProfArr[i][0]:
             return True
     return False
 
 
-def wrong_input(user_id, spec):
+def wrong_input(user_id, spec):  # функция обработки ошибочного ввода
+    """
+    :param user_id: user_id
+    :param spec: user's spec
+    :return: error
+    """
     try:
         if spec == 'tech':
             args.bot.send_message(parse_mode='HTML', chat_id=user_id,

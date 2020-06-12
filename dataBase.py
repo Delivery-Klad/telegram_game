@@ -1,7 +1,6 @@
 """
 файл для работы с базой данных
 """
-# import base64
 from telebot import types
 import sqlite3
 import telebot
@@ -10,25 +9,29 @@ import functions
 import args
 
 
-def create_tables():  # создание таблиц в sqlшеу если их нет
+def create_tables():  # создание таблиц в sqlite если их нет
+    """
+    :return: создание таблиц, если их нет
+    """
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
-        cursor.execute('CREATE TABLE IF NOT EXISTS Users(ID INTEGER,'  # телеграм id
-                       'UserName TEXT,'         # телеграм username
+        cursor.execute('CREATE TABLE IF NOT EXISTS Users(ID INTEGER,'  # телеграм ID
                        'NickName TEXT,'         # ник(чтобы не палить username телеграма)
                        'Spec TEXT,'             # специализация
                        'Profession TEXT,'       # профессия 
                        'Status TEXT,'           # работает/отдыхает
                        'End_time TEXT,'         # время начала выполнения задания
                        'Count_Works INTEGER,'   # количество выполненных заданий
-                       'Reg_Date TEXT,'         # дата регистрации
                        'UserRank INTEGER,'      # ранг пользователя
                        'task TEXT,'             # присутствует ли задание
                        'Money INTEGER,'         # баланс
                        'isOwner INTEGER,'       # является ли владельцем компании
                        'Comp INTEGER,'          # ID компании
-                       'TaskNow TEXT,'          # текущее задание
+                       'TaskNow TEXT)')         # текущее задание
+        cursor.execute('CREATE TABLE IF NOT EXISTS HiddenInfo(ID INTEGER,'  # телеграм ID
+                       'UserName TEXT,'         # телеграм username
+                       'Reg_Date TEXT,'         # дата регистрации
                        'InviteID INTEGER)')     # ID приглосившего человека
         cursor.execute('CREATE TABLE IF NOT EXISTS Quests(Profession TEXT,'  # профессия 
                        'Quest TEXT,'            # задание
@@ -37,16 +40,28 @@ def create_tables():  # создание таблиц в sqlшеу если их
         cursor.execute('CREATE TABLE IF NOT EXISTS Profs(Prof TEXT,'  # профессия 
                        'ProfCheck INTEGER,'     # 0/1/3 - гум/технарь/доступен всем
                        'ProfRank INTEGER)')     # ранг, с которого доступна профессия
-        cursor.execute('CREATE TABLE IF NOT EXISTS Companies(ID INTEGER,'  # уникальный ID 
+        cursor.execute('CREATE TABLE IF NOT EXISTS Companies(ID INTEGER,'  # уникальный ID
                        'Name TEXT,'             # название
                        'Description TEXT,'      # описание
                        'CountWorks INTEGER)')   # кол-во выполненных работ
+        cursor.execute('CREATE TABLE IF NOT EXISTS CorpTasks(Task TEXT,'  # задание
+                       'spec TEXT,'             # специальность
+                       'rank INTEGER,'          # ранг задания
+                       'ownerID INTEGER,'       # ID владельца орг
+                       'id INTEGER)')           # уникальный ID задания
+        cursor.execute('CREATE TABLE IF NOT EXISTS Requests(toUserID INTEGER,'  # кому задание
+                       'fromWho TEXT,'          # от кого задание
+                       'type TEXT)')            # тип задания (что это значит?)
         connect.commit()
     except Exception as e:
         functions.error_log(e)
 
 
-def set_nickname(nickname):
+def set_nickname(nickname):  # установка ника пользователя
+    """
+    :param nickname: message
+    :return: установка никнейма
+    """
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
@@ -57,7 +72,12 @@ def set_nickname(nickname):
         functions.error_log(e)
 
 
-def set_profession(message, in_prof_arr):
+def set_profession(message, in_prof_arr):   # установка профессии пользователя
+    """
+    :param message: message
+    :param in_prof_arr: dataBase.set_profession
+    :return: установка профессии
+    """
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
@@ -98,7 +118,12 @@ def set_profession(message, in_prof_arr):
         functions.error_log(e)
 
 
-def set_owner(user_id, owner):
+def set_owner(user_id, owner):  # установка владельца орг
+    """
+    :param user_id: user_id
+    :param owner: 1/0
+    :return: установка владельца орг
+    """
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
@@ -108,7 +133,11 @@ def set_owner(user_id, owner):
         functions.error_log(e)
 
 
-def get_nickname(user_id):
+def get_nickname(user_id):  # получение ника пользователя
+    """
+    :param user_id: user_id
+    :return: ник пользователя
+    """
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
@@ -119,7 +148,11 @@ def get_nickname(user_id):
         functions.error_log(e)
 
 
-def get_spec(user_id):
+def get_spec(user_id):  # получение специализации пользователя
+    """
+    :param user_id: user_id
+    :return: специальность пользователя
+    """
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
@@ -130,7 +163,11 @@ def get_spec(user_id):
         functions.error_log(e)
 
 
-def get_prof(user_id):
+def get_prof(user_id):  # получение профессии пользователя
+    """
+    :param user_id: user_id
+    :return: профессия пользователя
+    """
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
     cursor.execute("SELECT Profession FROM Users WHERE ID=" + str(user_id))
@@ -138,7 +175,11 @@ def get_prof(user_id):
     return prof[0][0]
 
 
-def get_user_rank(user_id):
+def get_user_rank(user_id):  # получение ранга пользователя
+    """
+    :param user_id: user_id
+    :return: ранг пользователя
+    """
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
     cursor.execute("SELECT UserRank FROM Users WHERE ID=" + str(user_id))
@@ -146,7 +187,11 @@ def get_user_rank(user_id):
     return rank[0][0]
 
 
-def get_prof_rank(quest):
+def get_prof_rank(quest):  # получение ранга профессии (используется?)
+    """
+    :param quest: хз
+    :return: ранг профессии (useless?)
+    """
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
     cursor.execute("SELECT Rank FROM Quest WHERE Quest=" + str(quest))
@@ -154,7 +199,11 @@ def get_prof_rank(quest):
     return rank
 
 
-def get_task(user_id):
+def get_task(user_id):  # получение задания
+    """
+    :param user_id: user_id
+    :return: сгенерированное задание
+    """
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
@@ -170,7 +219,11 @@ def get_task(user_id):
         functions.error_log(e)
 
 
-def get_corp_task(user_id):
+def get_corp_task(user_id):  # получение задания организации
+    """
+    :param user_id: user_id
+    :return: список заданий на орг
+    """
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
@@ -226,7 +279,12 @@ def get_corp_task(user_id):
         functions.error_log(e)
 
 
-def get_tech(user_id, task_id):
+def get_tech(user_id, task_id):  # получение работников tech спец
+    """
+    :param user_id: user_id
+    :param task_id: task_id
+    :return: получение работников tech спец
+    """
     try:
         company = get_corp(user_id)
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
@@ -254,7 +312,12 @@ def get_tech(user_id, task_id):
         return 'Выберете кому дать задание:\n----------\nNone'
 
 
-def get_gum(user_id, task_id):
+def get_gum(user_id, task_id):  # получение работников gym спец
+    """
+    :param user_id: user_id
+    :param task_id: task_id
+    :return: получение работников gym спец
+    """
     try:
         company = get_corp(user_id)
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
@@ -279,7 +342,12 @@ def get_gum(user_id, task_id):
         return 'Выберете кому дать задание:\n----------\nNone'
 
 
-def get_low(user_id, task_id):
+def get_low(user_id, task_id):  # получение работников low спец
+    """
+    :param user_id: user_id
+    :param task_id: task_id
+    :return: получение работников low спец
+    """
     try:
         company = get_corp(user_id)
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
@@ -304,7 +372,11 @@ def get_low(user_id, task_id):
         return 'Выберете кому дать задание:\n----------\nNone'
 
 
-def get_workers(user_id):
+def get_workers(user_id):  # получение работников для выдачи задания
+    """
+    :param user_id: user_id
+    :return: список работников для выдачи задания
+    """
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
@@ -327,7 +399,11 @@ def get_workers(user_id):
         return 'Некому дать задание', None
 
 
-def get_balance(user_id):
+def get_balance(user_id):  # получение баланса
+    """
+    :param user_id: user_id
+    :return: баланс пользователя
+    """
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
@@ -339,7 +415,11 @@ def get_balance(user_id):
         functions.error_log(e)
 
 
-def get_owner(company):
+def get_owner(company):  # получение ID владельца орг
+    """
+    :param company: get_comp()
+    :return: ID владельца
+    """
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
     cursor.execute("SELECT ID FROM Users WHERE Comp={0} AND isOwner=1".format(str(company)))
@@ -348,7 +428,11 @@ def get_owner(company):
     return ids
 
 
-def get_owner_nickname(company):
+def get_owner_nickname(company):  # получение ника владельца орг
+    """
+    :param company: get_comp()
+    :return: ник владельца
+    """
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
     cursor.execute("SELECT NickName FROM Users WHERE Comp={0} AND isOwner=1".format(company))
@@ -356,7 +440,11 @@ def get_owner_nickname(company):
     return name
 
 
-def get_task_cost(user_id):
+def get_task_cost(user_id):  # получение суммы вознаграждения
+    """
+    :param user_id: user_id
+    :return: сумма вознаграждения
+    """
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
@@ -369,7 +457,11 @@ def get_task_cost(user_id):
         functions.error_log(e)
 
 
-def get_job_timer(user_id):
+def get_job_timer(user_id):  # получение таймера работы
+    """
+    :param user_id: user_id
+    :return: время выполнения
+    """
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
@@ -384,7 +476,11 @@ def get_job_timer(user_id):
         functions.error_log(e)
 
 
-def get_corp(user_id):
+def get_corp(user_id):  # получение ID орг
+    """
+    :param user_id: user_id
+    :return: ID орг
+    """
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
@@ -396,7 +492,11 @@ def get_corp(user_id):
         return True
 
 
-def get_corp_name(comp_id):
+def get_corp_name(comp_id):  # получение названия орг
+    """
+    :param comp_id: get_comp()
+    :return: название орг
+    """
     try:
         if comp_id == 0:
             return '0'
@@ -410,7 +510,11 @@ def get_corp_name(comp_id):
         return True
 
 
-def get_avatar(ids):
+def get_avatar(ids):  # полученя аватара (мб не работает)
+    """
+    :param ids: user_id
+    :return: аватар (мб не работает)
+    """
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
@@ -424,7 +528,11 @@ def get_avatar(ids):
         functions.error_log(e)
 
 
-def get_request(to_id):
+def get_request(to_id):  # получение заданий орг
+    """
+    :param to_id: to_id
+    :return: список заданий на орг
+    """
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
     cursor.execute("SELECT DISTINCT toUserID,fromWho,type FROM Requests WHERE toUserID={0}".format(to_id))
@@ -441,11 +549,15 @@ def get_request(to_id):
     return msg, markup
 
 
-def get_ref_owner(user_id):
+def get_ref_owner(user_id):  # получение ID приглосившего человека
+    """
+    :param user_id: user_id
+    :return: ID приглосившего человека
+    """
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
-        cursor.execute("SELECT InviteID FROM Users WHERE ID=" + str(user_id))
+        cursor.execute("SELECT InviteID FROM HiddenInfo WHERE ID=" + str(user_id))
         owner_id = cursor.fetchall()[0][0]
         if len(str(owner_id)) > 1:
             return int(owner_id)
@@ -456,7 +568,11 @@ def get_ref_owner(user_id):
         return str('none')
 
 
-def get_not_in_corp_users(message):
+def get_not_in_corp_users(message):  # получение пользователей не сост в орг
+    """
+    :param message: message
+    :return: список пользователей не сост в орг
+    """
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
@@ -479,7 +595,11 @@ def get_not_in_corp_users(message):
         return 'Нет свободных людей', None
 
 
-def get_members_id(corp_id):
+def get_members_id(corp_id):  # получение ID членов орг
+    """
+    :param corp_id: get_corp()
+    :return: ID членов орг
+    """
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
@@ -493,7 +613,11 @@ def get_members_id(corp_id):
         functions.error_log(e)
 
 
-def get_top(top):
+def get_top(top):  # генерация списка топов
+    """
+    :param top: orgs/rich
+    :return: список топов
+    """
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
@@ -517,7 +641,12 @@ def get_top(top):
         functions.error_log(e)
 
 
-def add_money(user_id, money):
+def add_money(user_id, money):  # функция добавления вознаграждения
+    """
+    :param user_id: user_id
+    :param money: money_count
+    :return: добавление денег
+    """
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
@@ -533,7 +662,11 @@ def add_money(user_id, money):
         functions.error_log(e)
 
 
-def add_quest(message):
+def add_quest(message):  # функция добавления квеста
+    """
+    :param message: message
+    :return: добавление квеста
+    """
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
@@ -545,7 +678,12 @@ def add_quest(message):
         functions.error_log(e)
 
 
-def add_avatar(ids, file):
+def add_avatar(ids, file):  # это вообще работает?
+    """
+    :param ids: user_id
+    :param file: file
+    :return: наверн что-то должно вернуться
+    """
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
@@ -556,7 +694,12 @@ def add_avatar(ids, file):
         functions.error_log(e)
 
 
-def create_corp(user_id, name):
+def create_corp(user_id, name):  # создание организации
+    """
+    :param user_id: user_id
+    :param name: name of corp
+    :return: создание орг
+    """
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
@@ -570,7 +713,11 @@ def create_corp(user_id, name):
         functions.error_log(e)
 
 
-def remove_corp(user_id):
+def remove_corp(user_id):  # удаление организации
+    """
+    :param user_id: user_id
+    :return: удаление орг
+    """
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
@@ -585,7 +732,12 @@ def remove_corp(user_id):
         functions.error_log(e)
 
 
-def upd_corp(user_id, company):
+def upd_corp(user_id, company):  # обновление организации пользователя
+    """
+    :param user_id: user_id
+    :param company: get_corp()
+    :return: обновление организации пользователя
+    """
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
@@ -595,7 +747,12 @@ def upd_corp(user_id, company):
         functions.error_log(e)
 
 
-def upd_spec(user_id, spec):
+def upd_spec(user_id, spec):  # обновление специализации пользователя
+    """
+    :param user_id: user_id
+    :param spec: user's spec
+    :return: обновление специализации пользователя
+    """
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
@@ -605,14 +762,24 @@ def upd_spec(user_id, spec):
         functions.error_log(e)
 
 
-def upd_can_accept(user_id, check):
+def upd_can_accept(user_id, check):  # обновление возможности принятия задания
+    """
+    :param user_id: user_id
+    :param check: 0/1 task column
+    :return: обновление возможности принятия задания
+    """
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
     cursor.execute("UPDATE Users SET task={0} WHERE ID={1}".format(str(check), str(user_id)))
     connect.commit()
 
 
-def upd_task_now(user_id, task):
+def upd_task_now(user_id, task):  # обновление текущего задания
+    """
+    :param user_id: user_id
+    :param task: task
+    :return: обновление текущего задания
+    """
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
@@ -622,7 +789,10 @@ def upd_task_now(user_id, task):
         functions.error_log(e)
 
 
-def upd_quests():
+def upd_quests():  # что тут написано? кто это сделал?
+    """
+    :return: что тут написано? кто это сделал?
+    """
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
     cursor.execute("SELECT * FROM {0}".format("Quests"))
@@ -633,6 +803,9 @@ def upd_quests():
 
 
 def upd_prof():  # Обновление полного списка профессий и профессий для начинающих
+    """
+    :return: Обновление списка профессий
+    """
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
     cursor.execute("SELECT * FROM Profs")
@@ -661,7 +834,11 @@ def upd_prof():  # Обновление полного списка профес
             args.all_lowList.append(i[0])
 
 
-def in_corp(user_id):
+def in_corp(user_id):  # проверка состоит ли пользователь в орг
+    """
+    :param user_id: user_id
+    :return: состоит ли пользователь в орг
+    """
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
@@ -676,7 +853,11 @@ def in_corp(user_id):
         return True
 
 
-def is_owner(user_id):
+def is_owner(user_id):  # проверка является ли пользователь главой орг
+    """
+    :param user_id: user_id
+    :return: является ли пользователь главой орг
+    """
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
@@ -689,6 +870,10 @@ def is_owner(user_id):
 
 
 def is_free(user_id):  # проверить выполняет ли пользователь какую-либо работу
+    """
+    :param user_id: user_id
+    :return: выполняет ли пользователь какую-либо работу сейчас
+    """
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
@@ -702,7 +887,12 @@ def is_free(user_id):  # проверить выполняет ли пользо
         functions.error_log(e)
 
 
-def give_corp_task(task_id, user_id):
+def give_corp_task(task_id, user_id):  # выдача заданий на организацию
+    """
+    :param task_id: task_id
+    :param user_id: user_id
+    :return: список заданий на организацию
+    """
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
@@ -719,14 +909,22 @@ def give_corp_task(task_id, user_id):
         return 'None'
 
 
-def kick_from_corp(user_id):
+def kick_from_corp(user_id):  # исключение пользователя из орг
+    """
+    :param user_id: user_id
+    :return: исключение пользователя из орг
+    """
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
     cursor.execute("UPDATE Users SET Comp=0 WHERE ID={0}".format(user_id))
     connect.commit()
 
 
-def corp_members(user_id):
+def corp_members(user_id):  # список пользователей в орг
+    """
+    :param user_id: user_id
+    :return: список пользователей в орг
+    """
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
     markup = types.InlineKeyboardMarkup()
@@ -750,7 +948,11 @@ def corp_members(user_id):
     return msg, markup
 
 
-def change_owner(user_id):
+def change_owner(user_id):  # смена владельца орг
+    """
+    :param user_id: user_id
+    :return: смена владельца орг
+    """
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
     markup = types.InlineKeyboardMarkup()
@@ -774,7 +976,11 @@ def change_owner(user_id):
     return msg, markup
 
 
-def corp_info(user_id):
+def corp_info(user_id):  # информация об орг
+    """
+    :param user_id: user_id
+    :return: информация об орг
+    """
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
@@ -793,12 +999,17 @@ def corp_info(user_id):
         return msg
 
 
-def update_corp_description(user_id, name):
+def update_corp_description(user_id, desc):  # обновление описание орг
+    """
+    :param user_id: user_id
+    :param desc: corp description
+    :return: обновление описание орг
+    """
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
         if is_owner(user_id):
-            cursor.execute("UPDATE Companies SET Description='{0}' WHERE ID={1}".format(name, get_corp(user_id)))
+            cursor.execute("UPDATE Companies SET Description='{0}' WHERE ID={1}".format(desc, get_corp(user_id)))
             connect.commit()
             return 'Описание обновлено'
         else:
@@ -807,7 +1018,12 @@ def update_corp_description(user_id, name):
         functions.error_log(e)
 
 
-def update_corp_name(user_id, name):
+def update_corp_name(user_id, name):  # обновление описания орг
+    """
+    :param user_id: user_id
+    :param name: name of org
+    :return: обновление описания орг
+    """
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
@@ -821,7 +1037,11 @@ def update_corp_name(user_id, name):
         functions.error_log(e)
 
 
-def leave_corp(user_id):
+def leave_corp(user_id):  # покинуть орг
+    """
+    :param user_id: user_id
+    :return: покинуть орг
+    """
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
@@ -835,7 +1055,11 @@ def leave_corp(user_id):
         functions.error_log(e)
 
 
-def can_accept(user_id):
+def can_accept(user_id):  # может ли принимать задание
+    """
+    :param user_id: user_id
+    :return: может ли user принимать задание
+    """
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
     cursor.execute("SELECT task FROM Users WHERE ID=" + str(user_id))
@@ -847,7 +1071,11 @@ def can_accept(user_id):
         return False
 
 
-def up_lvl(user_id):
+def up_lvl(user_id):  # поднятие уровня
+    """
+    :param user_id: user_id
+    :return: поднятие уровня пользователя
+    """
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
@@ -861,7 +1089,11 @@ def up_lvl(user_id):
         functions.error_log(e)
 
 
-def give_new_prof(user_id):
+def give_new_prof(user_id):  # выдача новой профессии
+    """
+    :param user_id: user_id
+    :return: выдача списка новых профессий
+    """
     try:
         user_markup = telebot.types.ReplyKeyboardMarkup(True, False)
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
@@ -890,6 +1122,12 @@ def give_new_prof(user_id):
 
 
 def start_job(user_id, status, time):  # замена статуса и указание времени начала
+    """
+    :param user_id: user_id
+    :param status: статус chill/work
+    :param time: время выполнения работы
+    :return: замена статуса и указание времени начала работы
+    """
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
@@ -901,6 +1139,10 @@ def start_job(user_id, status, time):  # замена статуса и указ
 
 
 def plus_count_works(user_id):  # указание количества выполненных работ
+    """
+    :param user_id: user_id
+    :return: добавление +1 к выполненным работам
+    """
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
@@ -911,7 +1153,12 @@ def plus_count_works(user_id):  # указание количества выпо
         functions.error_log(e)
 
 
-def minus_money(user_id, money):
+def minus_money(user_id, money):  # вычитание денег
+    """
+    :param user_id: user_id
+    :param money: money count
+    :return: вычитание денег
+    """
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
@@ -921,7 +1168,12 @@ def minus_money(user_id, money):
         functions.error_log(e)
 
 
-def check_requests(user_id, company):
+def check_requests(user_id, company):  # проверка приглосов
+    """
+    :param user_id: user_id
+    :param company: get_corp()
+    :return: проверка списка приглосов
+    """
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
     cursor.execute("SELECT toUserID,fromWho FROM Requests")
@@ -934,7 +1186,12 @@ def check_requests(user_id, company):
     return True
 
 
-def new_req(to_id, from_who):
+def new_req(to_id, from_who):  # создание нового запроса
+    """
+    :param to_id: to user id
+    :param from_who: from user id
+    :return: создание нового запроса
+    """
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
     cursor.execute("INSERT INTO Requests VALUES ({0},'{1}',0)".format(to_id, from_who))
@@ -942,14 +1199,22 @@ def new_req(to_id, from_who):
     get_request(to_id)
 
 
-def delete_request(user_id):
+def delete_request(user_id):  # удаление запроса
+    """
+    :param user_id: user_id
+    :return: удаление запроса
+    """
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
     cursor.execute("DELETE FROM Requests WHERE toUserID={0}".format(user_id))
     connect.commit()
 
 
-def refresh_corp_tasks(user_id):
+def refresh_corp_tasks(user_id):  # обновление заданий орг
+    """
+    :param user_id: user_id
+    :return: обновление заданий орг
+    """
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
@@ -959,7 +1224,11 @@ def refresh_corp_tasks(user_id):
         functions.error_log(e)
 
 
-def change_spec(user_id):
+def change_spec(user_id):  # изменение специализации
+    """
+    :param user_id: user_id
+    :return: изменение специализации пользователя
+    """
     connect = sqlite3.connect(args.filesFolderName + args.databaseName)
     cursor = connect.cursor()
     cursor.execute("UPDATE Users SET Spec='None',Profession='None',Count_Works=0,Status='{0}',"
