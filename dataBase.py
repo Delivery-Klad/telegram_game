@@ -255,7 +255,7 @@ def get_corp_task(user_id):  # получение задания организ�
                     cursor.execute("INSERT INTO CorpTasks VALUES (?,?,?,?,?)", data)
                     connect.commit()
                     text = quests[task][1]
-                    call = '/give_tech' + str(int(max_id) + 1)
+                    call = '/give_gum' + str(int(max_id) + 1)
                     key = types.InlineKeyboardButton(text, callback_data=call)
                     markup.add(key)
                     msg += '{0}\nТребуемый ранг: {1}\nЗадание: <i>{2}</i>\n----------\n'.format(quests[task][1],
@@ -268,7 +268,7 @@ def get_corp_task(user_id):  # получение задания организ�
                     cursor.execute("INSERT INTO CorpTasks VALUES (?,?,?,?,?)", data)
                     connect.commit()
                     text = quests[task][1]
-                    call = '/give_tech' + str(int(max_id) + 1)
+                    call = '/give_low' + str(int(max_id) + 1)
                     key = types.InlineKeyboardButton(text, callback_data=call)
                     markup.add(key)
                     msg += '{0}\nТребуемый ранг: {1}\nЗадание: <i>{2}</i>\n----------\n'.format(quests[task][1],
