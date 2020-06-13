@@ -62,6 +62,11 @@ def create_tables():  # создание таблиц в sqlite если их н
 
 
 def set_last_worker(user_id, worker_id):
+    """
+    :param user_id: user_id
+    :param worker_id: worker_id
+    :return: установить id пользователя, которому было выдано последнее задание
+    """
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
@@ -149,6 +154,10 @@ def set_owner(user_id, owner):  # установка владельца орг
 
 
 def get_last_worker(user_id):
+    """
+    :param user_id: user_id
+    :return: id пользователя, которому было выдано последнее задание
+    """
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
@@ -676,6 +685,9 @@ def get_top(top):  # генерация списка топов
 
 
 def get_all_users():
+    """
+    :return: все id из users
+    """
     try:
         tmp = []
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)

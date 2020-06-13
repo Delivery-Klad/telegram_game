@@ -181,6 +181,16 @@ def handler_db(message):  # функция обработки запроса б�
         functions.error_log(e)
 
 
+@bot.message_handler(commands=['change_db'])  # заменить бд
+def handler_help(message):
+    try:
+        functions.log(message)
+        args.change_db.append(message.from_user.id)
+        bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text='<b>Отправьте файл базы данных\n</b>')
+    except Exception as e:
+        functions.error_log(e)
+
+
 @bot.message_handler(commands=['add_quest'])  # функция обработки запроса логов
 def handler_add_quest(message):
     try:
@@ -866,6 +876,7 @@ def handler_text(message):
                                      text='<b>Меню администратора</b>\n'
                                           '/a (+сообщение) - Админ чат\n'
                                           '/all (+сообщение) - Сообщение всем\n'
+                                          '/change_db - Заменить базу данных\n'
                                           '/add_quest - (по формату /add_quest , профессия , задание , ранг , время)',
                                      reply_markup=markup)
                 else:
@@ -1013,7 +1024,16 @@ def handler_photo(message):
 @bot.message_handler(content_types=['document'])
 def handler_photo(message):
     try:
-        functions.wrong_input(message.from_user.id, dataBase.get_spec(message.from_user.id))
+        functions.log(message)
+        if functions.is_admin(message.from_user.id):
+            args.change_db.pop(args.change_db.index(message.from_user.id))
+            file_info = bot.get_file(message.document.file_id)
+            downloaded_file = bot.download_file(file_info.file_path)
+            with open(args.databaseName, 'wb') as file:
+                file.write(downloaded_file)
+            bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text='<i>База данных заменена</i>')
+        else:
+            bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text='<i>Отказано, сука, в доступе</i>')
     except Exception as e:
         functions.error_log(e)
 

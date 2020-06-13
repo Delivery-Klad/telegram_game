@@ -40,6 +40,7 @@ address_arr = ['улица Пушкина дом Колотушкина']
 stream_reason_arr = ['по шарараму', 'по майнкрафту']
 
 new_prof_list = []
+change_db = []
 currency = '₴'  # цэ знак валюты(гривна)
 corp_cost = 100000
 referal_procent = 10
