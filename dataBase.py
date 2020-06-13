@@ -34,7 +34,8 @@ def create_tables():  # создание таблиц в sqlite если их н
                        'UserName TEXT,'         # телеграм username
                        'Reg_Date TEXT,'         # дата регистрации
                        'InviteID INTEGER,'      # ID приглосившего человека
-                       'isAdmin INTEGER)')      # является ли пользователь админом
+                       'isAdmin INTEGER,'       # является ли пользователь админом
+                       'lastWorker INTEGER)')   # Кому последнему было отправлено задание
         cursor.execute('CREATE TABLE IF NOT EXISTS Quests(Profession TEXT,'  # профессия 
                        'Quest TEXT,'            # задание
                        'Rank INTEGER,'          # ранг/сложность задания
@@ -60,6 +61,17 @@ def create_tables():  # создание таблиц в sqlite если их н
         functions.error_log(e)
 
 
+def set_last_worker(user_id, worker_id):
+    try:
+        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+        cursor = connect.cursor()
+        cursor.execute(
+            "UPDATE HiddenInfo SET lastWorker={0} WHERE ID={1}".format(worker_id, user_id))
+        connect.commit()
+    except Exception as e:
+        functions.error_log(e)
+
+
 def set_nickname(nickname):  # установка ника пользователя
     """
     :param nickname: message
@@ -69,7 +81,7 @@ def set_nickname(nickname):  # установка ника пользовате�
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
         cursor.execute(
-            "UPDATE Users SET NickName='{0}' WHERE ID='{1}'".format(str(nickname.text), str(nickname.from_user.id)))
+            "UPDATE Users SET NickName='{0}' WHERE ID={1}".format(str(nickname.text), nickname.from_user.id))
         connect.commit()
     except Exception as e:
         functions.error_log(e)
@@ -134,6 +146,19 @@ def set_owner(user_id, owner):  # установка владельца орг
         connect.commit()
     except Exception as e:
         functions.error_log(e)
+
+
+def get_last_worker(user_id):
+    try:
+        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+        cursor = connect.cursor()
+        cursor.execute(
+            "SELECT lastWorker FROM HiddenInfo WHERE ID={0}".format(user_id))
+        worker = cursor.fetchall()[0][0]
+        return int(worker)
+    except Exception as e:
+        functions.error_log(e)
+        return 0
 
 
 def get_nickname(user_id):  # получение ника пользователя
@@ -225,7 +250,7 @@ def get_task(user_id):  # получение задания
 def get_corp_task(user_id):  # получение задания организации
     """
     :param user_id: user_id
-    :return: список заданий на орг
+    :return: список заданий на орг + markup
     """
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
@@ -1063,8 +1088,11 @@ def corp_info(user_id):  # информация об орг
         msg = '<b>Название:</b> <i>{0}</i>\n<b>Владелец:</b> <i>{1}</i>\n<b>Описание:</b> <i>{2}</i>'.format(
             company, owner, desc)
         return msg
+    except IndexError as e:
+        msg = 'Вы не состоите в организации'
+        return msg
     except Exception as e:
-        msg = 'Вы не владелец организации'
+        msg = 'Что-то пошло не по плану'
         functions.error_log(e)
         return msg
 

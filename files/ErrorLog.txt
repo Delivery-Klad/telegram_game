@@ -89,3 +89,7 @@
 ------------------------------------------------
 11-06-2020 18:22:06Ошибка в функции A request to the Telegram API was unsuccessful. The server returned HTTP 400 Bad Request. Response body:
 [b'{"ok":false,"error_code":400,"description":"Bad Request: message text is empty"}']
+------------------------------------------------
+13-06-2020 06:27:07
+------------------------------------------------
+13-06-2020 06:27:07

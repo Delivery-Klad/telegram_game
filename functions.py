@@ -18,8 +18,8 @@ def error_log(reason):  # запись лога ошибок
         print('\n' + args.delimiter_line)
         print(str(datetime.now().strftime('%d-%m-%Y %H:%M:%S')))
         try:
-            file.write('Ошибка в функции {0}'.format(reason))
-            print('Ошибка в функции {0}'.format(reason))
+            file.write(reason)
+            print(reason)
             file.close()
         except Exception as e:
             print(e)
