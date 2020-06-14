@@ -12,6 +12,7 @@ import sqlite3
 import telebot
 import args
 
+
 print("------------------------НАЧАЛАСЬ ЗАГРУЗКА БОТА------------------------")
 bot = telebot.TeleBot(token=args.token)
 dataBase.create_tables()
