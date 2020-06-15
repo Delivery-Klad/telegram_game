@@ -58,3 +58,17 @@ lowList = []  # профессии доступные всем
 all_techList = []  # профессии технарей
 all_gumList = []  # профессии гуманитариев
 all_lowList = []  # профессии доступные всем
+
+
+"""
+дальше идет код для генерации аватаров
+"""
+
+tempImageName = 'TempAvatar.png'
+avatar_directory = 'Images/'
+
+head_file_name = ['head.png']
+body_file_name = ['body.png']
+avatar_file_name = ['avatar.png']
+standard_avatar_file_name = ['standart_avatar.png']
+face_file_name = ['face1.png', 'face2.png', 'face3.png', 'face4.png']

@@ -12,7 +12,6 @@ import sqlite3
 import telebot
 import args
 
-
 print("------------------------НАЧАЛАСЬ ЗАГРУЗКА БОТА------------------------")
 bot = telebot.TeleBot(token=args.token)
 dataBase.create_tables()
@@ -66,24 +65,20 @@ def handler_start(message):
         functions.error_log(e)
 
 
-@bot.message_handler(commands=['help'])  # обработка команды помощи
-def handler_help(message):
+def handler_help(message):  # обработка команды помощи
     try:
         functions.log(message)
+        markup = inline_keyboard(message.from_user.id, False, False, False, True)
         bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
-                         text='Меню помощи\n'
-                              '/start - Начать пользоваться ботом\n'
-                              '/give_task - Дать задание другому игроку\n'
-                              '/corp_help - Информация об организациях')
+                         text='Основное меню:\n'
+                              '/avatar (head, body, face) - Установить аватар', reply_markup=markup)
     except Exception as e:
         functions.error_log(e)
 
 
-@bot.message_handler(commands=['corp_help'])  # функция инвайта в орг
-def handler_corp_help(message):
+def corp_help(user_id):  # функция помощи орг
     try:
-        functions.log(message)
-        bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
+        bot.send_message(parse_mode='HTML', chat_id=user_id,
                          text='<b>Меню помощи организации</b>\n'
                               '/create_corp (+название) - Создать организацию\n'
                               '/set_desc (+название) - Изменить описание организации\n'
@@ -92,7 +87,7 @@ def handler_corp_help(message):
         functions.error_log(e)
 
 
-def inline_keyboard(user_id, corp_menu, me_menu, admin):
+def inline_keyboard(user_id, corp_menu, me_menu, admin, main_menu):
     try:
         markup = types.InlineKeyboardMarkup()
         if corp_menu:
@@ -128,11 +123,15 @@ def inline_keyboard(user_id, corp_menu, me_menu, admin):
             markup.add(key1, key2)
             markup.add(key3, key4)
             markup.add(key5)
+        elif main_menu:
+            key2 = types.InlineKeyboardButton('Дать задание', callback_data='/give_tsk')
+            key3 = types.InlineKeyboardButton('Помощь орг.', callback_data='/crp_help')
+            markup.add(key2)
+            markup.add(key3)
         else:
             user_markup = telebot.types.ReplyKeyboardMarkup(True, False)
-            user_markup.row(args.helpButtonName)
             user_markup.row(args.AboutMeButtonName, args.TopsButtonName)
-            user_markup.row(args.CorpMenuButtonName)
+            user_markup.row(args.helpButtonName, args.CorpMenuButtonName)
             if functions.is_admin(user_id):
                 user_markup.row(args.AhelpButtonName)
             return user_markup
@@ -147,7 +146,7 @@ def handler_corp_menu(message):  # меню организации
         if msg == 'Вы не состоите в организации':
             markup = None
         else:
-            markup = inline_keyboard(message.from_user.id, True, False, False)
+            markup = inline_keyboard(message.from_user.id, True, False, False, False)
         bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                          text=msg, reply_markup=markup)
     except Exception as e:
@@ -183,7 +182,7 @@ def handler_db(message):  # функция обработки запроса б�
 
 
 @bot.message_handler(commands=['change_db'])  # заменить бд
-def handler_help(message):
+def handler_change_db(message):
     try:
         functions.log(message)
         args.change_db.append(message.from_user.id)
@@ -203,8 +202,7 @@ def handler_add_quest(message):
         functions.error_log(e)
 
 
-@bot.message_handler(commands=['give_task'])  # функция выдачи задания
-def handler_give_task(message):
+def handler_give_task(message):  # функция выдачи задания
     try:
         functions.log(message)
         msg, markup = dataBase.get_workers(message.from_user.id)
@@ -572,13 +570,23 @@ def handler_me(message):  # функция информации об аккау�
         company = dataBase.get_corp_name(dataBase.get_corp(ids))
         if company == '0':
             company = 'Отсутствует'
-        markup = inline_keyboard(message.from_user.id, False, True, False)
+        markup = inline_keyboard(message.from_user.id, False, True, False, False)
+        check = dataBase.check_avatar(message.from_user.id)
+        if check:
+            params = dataBase.get_avatar_params(message.from_user.id)
+            functions.generate_avatar(params[0], params[1], params[2])
+            photo = open(args.tempImageName, 'rb')
+        else:
+            photo = open(args.avatar_directory + args.standard_avatar_file_name[0], 'rb')
         msg = '<i>Никнейм: </i> <b>{5}</b>\n<i>Профессия:</i> <b>{0}</b>\n<i>Ранг:</i> <b>{1}</b>\n<i>Баланс:</i> ' \
               '<b>{2}</b>\n<i>Организация:</i> <b>{3}</b>\n<i>Должность в орг.:</i> <b>{4}</b>'. \
             format(dataBase.get_prof(ids), dataBase.get_user_rank(ids), dataBase.get_balance(ids), company,
                    who, dataBase.get_nickname(ids))
-        bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
-                         text=msg, reply_markup=markup)
+        bot.send_photo(parse_mode='HTML', chat_id=message.from_user.id,
+                       photo=photo, caption=msg, reply_markup=markup)
+        photo.close()
+        if check:
+            os.remove(args.tempImageName)
     except Exception as e:
         print(e)
         functions.error_log(e)
@@ -619,7 +627,7 @@ def handler_a_chat(message):
             functions.log(message)
             msg = message.text.split(maxsplit=1)[1]
             users = dataBase.get_all_users()
-            markup = inline_keyboard(message.from_user.id, False, False, False)
+            markup = inline_keyboard(message.from_user.id, False, False, False, False)
             for i in range(len(users)):
                 if users[i] != message.from_user.id:
                     bot.send_message(parse_mode='HTML', chat_id=users[i], text=str('Сообщение от админа | {0} {1}').
@@ -634,6 +642,22 @@ def handler_uptime(message):  # узнать время работы
             tmp_msg = str('<b>\nВремя:</b> ' + str(datetime.now() - args.start_time))
             bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text=str(tmp_msg))
     except Exception as e:
+        functions.error_log(e)
+
+
+@bot.message_handler(commands=['avatar'])  # функция создания аватара
+def set_avatar(message):
+    try:
+        msg = message.text.split(' ')
+        if not msg[1].isnumeric() or not msg[2].isnumeric() or not msg[3].isnumeric():
+            bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text='<b>Ввод некорректен</b>')
+        elif int(msg[1]) >= len(args.head_file_name) or int(msg[2]) >= len(args.body_file_name) or int(msg[3]) >= len(args.face_file_name):
+            bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text='<b>Ввод некорректен</b>')
+        else:
+            dataBase.set_avatar(message.from_user.id, int(msg[1]), int(msg[2]), int(msg[3]))
+            bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text='<b>Аватар установлен</b>')
+    except Exception as e:
+        print(e)
         functions.error_log(e)
 
 
@@ -667,6 +691,12 @@ def func(c):
                                      text='<b>Вы не владелец организации</b>')
             except Exception as e:
                 functions.error_log(e)
+        elif c.data[1:] == 'strt':
+            handler_start()
+        elif c.data[1:] == 'give_tsk':
+            handler_give_task(c)
+        elif c.data[1:] == 'crp_help':
+            corp_help(c.from_user.id)
         elif c.data[1:7] == 'invite':
             if handler_invite(c):
                 bot.answer_callback_query(callback_query_id=c.id, show_alert=True, text='Пользователь приглашен')
@@ -872,7 +902,7 @@ def handler_text(message):
         elif message.text == args.AhelpButtonName:
             try:
                 if functions.is_admin(message.from_user.id):
-                    markup = inline_keyboard(message.from_user.id, False, False, True)
+                    markup = inline_keyboard(message.from_user.id, False, False, True, False)
                     bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                      text='<b>Меню администратора</b>\n'
                                           '/a (+сообщение) - Админ чат\n'
@@ -886,7 +916,7 @@ def handler_text(message):
                 functions.error_log(e)
         elif message.text in args.techList or message.text in args.gumList or message.text in args.lowList:
             if dataBase.set_profession(message, False):
-                markup = inline_keyboard(message.from_user.id, False, False, False)
+                markup = inline_keyboard(message.from_user.id, False, False, False, False)
                 bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                                  text='<i>Ваша профессия</i> <b>' + message.text + '</b>', reply_markup=markup)
                 if dataBase.get_nickname(message.from_user.id) == "None":
@@ -898,7 +928,7 @@ def handler_text(message):
                                  text='<b>Произошла ошибка, повторите попытку позже</b>')
         elif message.from_user.id in args.new_prof_list:
             dataBase.set_profession(message, functions.in_prof_arr(message.text))
-            markup = inline_keyboard(message.from_user.id, False, False, False)
+            markup = inline_keyboard(message.from_user.id, False, False, False, False)
             bot.send_message(parse_mode='HTML', chat_id=message.from_user.id,
                              text='<i>Ваша новая профессия</i> <b>' + message.text + '</b>', reply_markup=markup)
         else:
@@ -954,17 +984,7 @@ def handler_text(message):
 @bot.message_handler(content_types=['photo'])
 def handler_photo(message):
     try:
-        ids = message.from_user.id
-        if ids in avatarList:
-            file_info = bot.get_file(message.photo[len(message.photo) - 1].file_id)
-            downloaded_file = bot.download_file(file_info.file_path)
-            dataBase.add_avatar(ids, downloaded_file)
-            index = avatarList.index(ids)
-            avatarList.pop(index)
-            photo = dataBase.get_avatar(ids)
-            bot.send_photo(chat_id=ids, photo=photo, caption='Ваш аватар')
-        else:
-            functions.wrong_input(ids, dataBase.get_spec(message.from_user.id))
+        functions.wrong_input(message.from_user.id, dataBase.get_spec(message.from_user.id))
     except Exception as e:
         functions.error_log(e)
 

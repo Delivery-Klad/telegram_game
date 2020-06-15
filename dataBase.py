@@ -17,45 +17,76 @@ def create_tables():  # создание таблиц в sqlite если их н
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
         cursor.execute('CREATE TABLE IF NOT EXISTS Users(ID INTEGER,'  # телеграм ID
-                       'NickName TEXT,'         # ник(чтобы не палить username телеграма)
-                       'Spec TEXT,'             # специализация
-                       'Profession TEXT,'       # профессия 
-                       'Status TEXT,'           # работает/отдыхает
-                       'End_time TEXT,'         # время начала выполнения задания
-                       'Count_Works INTEGER,'   # количество выполненных заданий
-                       'UserRank INTEGER,'      # ранг пользователя
-                       'task TEXT,'             # присутствует ли задание
-                       'corptask INTEGER,'      # 1/0 задание от орг
-                       'Money INTEGER,'         # баланс
-                       'isOwner INTEGER,'       # является ли владельцем компании
-                       'Comp INTEGER,'          # ID компании
-                       'TaskNow TEXT)')         # текущее задание
+                       'NickName TEXT,'  # ник(чтобы не палить username телеграма)
+                       'Spec TEXT,'  # специализация
+                       'Profession TEXT,'  # профессия 
+                       'Status TEXT,'  # работает/отдыхает
+                       'End_time TEXT,'  # время начала выполнения задания
+                       'Count_Works INTEGER,'  # количество выполненных заданий
+                       'UserRank INTEGER,'  # ранг пользователя
+                       'task TEXT,'  # присутствует ли задание
+                       'corptask INTEGER,'  # 1/0 задание от орг
+                       'Money INTEGER,'  # баланс
+                       'isOwner INTEGER,'  # является ли владельцем компании
+                       'Comp INTEGER,'  # ID компании
+                       'TaskNow TEXT)')  # текущее задание
         cursor.execute('CREATE TABLE IF NOT EXISTS HiddenInfo(ID INTEGER,'  # телеграм ID
-                       'UserName TEXT,'         # телеграм username
-                       'Reg_Date TEXT,'         # дата регистрации
-                       'InviteID INTEGER,'      # ID приглосившего человека
-                       'isAdmin INTEGER,'       # является ли пользователь админом
-                       'lastWorker INTEGER)')   # Кому последнему было отправлено задание
+                       'UserName TEXT,'  # телеграм username
+                       'Reg_Date TEXT,'  # дата регистрации
+                       'InviteID INTEGER,'  # ID приглосившего человека
+                       'isAdmin INTEGER,'  # является ли пользователь админом
+                       'lastWorker INTEGER)')  # Кому последнему было отправлено задание
         cursor.execute('CREATE TABLE IF NOT EXISTS Quests(Profession TEXT,'  # профессия 
-                       'Quest TEXT,'            # задание
-                       'Rank INTEGER,'          # ранг/сложность задания
-                       'Time INTEGER)')         # время выполнения задания
+                       'Quest TEXT,'  # задание
+                       'Rank INTEGER,'  # ранг/сложность задания
+                       'Time INTEGER)')  # время выполнения задания
         cursor.execute('CREATE TABLE IF NOT EXISTS Profs(Prof TEXT,'  # профессия 
-                       'ProfCheck INTEGER,'     # 0/1/3 - гум/технарь/доступен всем
-                       'ProfRank INTEGER)')     # ранг, с которого доступна профессия
+                       'ProfCheck INTEGER,'  # 0/1/3 - гум/технарь/доступен всем
+                       'ProfRank INTEGER)')  # ранг, с которого доступна профессия
         cursor.execute('CREATE TABLE IF NOT EXISTS Companies(ID INTEGER,'  # уникальный ID
-                       'Name TEXT,'             # название
-                       'Description TEXT,'      # описание
-                       'CountWorks INTEGER,'    # кол-во выполненных работ
-                       'TaskCoolDown INTEGER)')   # кд на выдачу заданий
+                       'Name TEXT,'  # название
+                       'Description TEXT,'  # описание
+                       'CountWorks INTEGER,'  # кол-во выполненных работ
+                       'TaskCoolDown INTEGER)')  # кд на выдачу заданий
         cursor.execute('CREATE TABLE IF NOT EXISTS CorpTasks(Task TEXT,'  # задание
-                       'spec TEXT,'             # специальность
-                       'rank INTEGER,'          # ранг задания
-                       'ownerID INTEGER,'       # ID владельца орг
-                       'id INTEGER)')           # уникальный ID задания
+                       'spec TEXT,'  # специальность
+                       'rank INTEGER,'  # ранг задания
+                       'ownerID INTEGER,'  # ID владельца орг
+                       'id INTEGER)')  # уникальный ID задания
+        cursor.execute('CREATE TABLE IF NOT EXISTS Avatars(ID INTEGER,'  # телеграм ID
+                       'Avatar INTEGER,'  # 1\0 имеет ли пользователь аватар
+                       'Head INTEGER,'  # ID картинки головы
+                       'Body INTEGER,'  # ID картинки тела
+                       'Face INTEGER)')  # ID картинки лица
         cursor.execute('CREATE TABLE IF NOT EXISTS Requests(toUserID INTEGER,'  # кому задание
-                       'fromWho TEXT,'          # от кого задание
-                       'type TEXT)')            # тип задания (что это значит?)
+                       'fromWho TEXT,'  # от кого задание
+                       'type TEXT)')  # тип задания (что это значит?)
+        connect.commit()
+    except Exception as e:
+        functions.error_log(e)
+
+
+def check_avatar(user_id):
+    try:
+        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+        cursor = connect.cursor()
+        cursor.execute('SELECT Avatar FROM Avatars WHERE ID={0}'.format(user_id))
+        res = int(cursor.fetchall()[0][0])
+        if res == 0:
+            return False
+        else:
+            return True
+    except Exception as e:
+        functions.error_log(e)
+
+
+def set_avatar(user_id, head, body, face):
+    try:
+        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+        cursor = connect.cursor()
+        cursor.execute(
+            "UPDATE Avatars SET Avatar=1, Head={0}, Body={1}, Face={2} WHERE ID={3}".
+            format(head, body, face, user_id))
         connect.commit()
     except Exception as e:
         functions.error_log(e)
@@ -92,7 +123,7 @@ def set_nickname(nickname):  # установка ника пользовате�
         functions.error_log(e)
 
 
-def set_profession(message, in_prof_arr):   # установка профессии пользователя
+def set_profession(message, in_prof_arr):  # установка профессии пользователя
     """
     :param message: message
     :param in_prof_arr: dataBase.set_profession
@@ -701,6 +732,17 @@ def get_all_users():
         functions.error_log(e)
 
 
+def get_avatar_params(user_id):
+    try:
+        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
+        cursor = connect.cursor()
+        cursor.execute("SELECT Head, Body, Face FROM Avatars WHERE ID={0}".format(user_id))
+        res = cursor.fetchall()[0]
+        return res
+    except Exception as e:
+        functions.error_log(e)
+
+
 def add_money(user_id, money):  # функция добавления вознаграждения
     """
     :param user_id: user_id
@@ -733,22 +775,6 @@ def add_quest(message):  # функция добавления квеста
         data = message.text.split(' , ')
         data.pop(0)
         cursor.execute("INSERT INTO Quests VALUES(?, ?, ?, ?)", data)
-        connect.commit()
-    except Exception as e:
-        functions.error_log(e)
-
-
-def add_avatar(ids, file):  # это вообще работает?
-    """
-    :param ids: user_id
-    :param file: file
-    :return: наверн что-то должно вернуться
-    """
-    try:
-        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
-        cursor = connect.cursor()
-        data = [ids, r'{}'.format(str(file))]
-        cursor.execute("INSERT INTO userPhotos VALUES(?, ?)", data)
         connect.commit()
     except Exception as e:
         functions.error_log(e)

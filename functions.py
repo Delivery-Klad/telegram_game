@@ -2,6 +2,7 @@
 файл реализации функций бота
 """
 from datetime import datetime
+from PIL import Image
 import random
 import args
 
@@ -67,6 +68,21 @@ def log(message):  # запись лога сообщений
                                                                      str(message.from_user.id),
                                                                      message.data))
         file.close()
+    except Exception as e:
+        error_log(e)
+
+
+def generate_avatar(head_id, body_id, face_id):
+    try:
+        # body = Image.open(args.avatar_directory + args.body_file_name[body_id-1])
+        # head = Image.open(args.avatar_directory + args.head_file_name[head_id-1])
+        # body.paste(head, (0, 0), head)
+        # body.save(args.tempImageName)
+
+        avatar = Image.open(args.avatar_directory + args.avatar_file_name[0])
+        face = Image.open(args.avatar_directory + args.face_file_name[face_id])
+        avatar.paste(face, (0, 0), face)
+        avatar.save(args.tempImageName)
     except Exception as e:
         error_log(e)
 
