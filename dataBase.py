@@ -67,6 +67,10 @@ def create_tables():  # создание таблиц в sqlite если их н
 
 
 def check_avatar(user_id):
+    """
+    :param user_id: user_id
+    :return: создан ли у пользователя аватар
+    """
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
@@ -81,6 +85,13 @@ def check_avatar(user_id):
 
 
 def set_avatar(user_id, head, body, face):
+    """
+    :param user_id: user_id
+    :param head: id of args.head_file_name
+    :param body: id of args.body_file_name
+    :param face: id of args.face_file_name
+    :return: создание аватара пользователя
+    """
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
@@ -733,6 +744,10 @@ def get_all_users():
 
 
 def get_avatar_params(user_id):
+    """
+    :param user_id: user_id
+    :return: получение параметров аватара для его генерации и отправки пользователю
+    """
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
@@ -764,17 +779,15 @@ def add_money(user_id, money):  # функция добавления возна
         functions.error_log(e)
 
 
-def add_quest(message):  # функция добавления квеста
+def add_quest(arguments):  # функция добавления квеста
     """
-    :param message: message
+    :param arguments: аргументы, требуемые для добавления квеста
     :return: добавление квеста
     """
     try:
         connect = sqlite3.connect(args.filesFolderName + args.databaseName)
         cursor = connect.cursor()
-        data = message.text.split(' , ')
-        data.pop(0)
-        cursor.execute("INSERT INTO Quests VALUES(?, ?, ?, ?)", data)
+        cursor.execute("INSERT INTO Quests VALUES(?, ?, ?, ?)", arguments)
         connect.commit()
     except Exception as e:
         functions.error_log(e)
@@ -1126,7 +1139,7 @@ def corp_info(user_id):  # информация об орг
         msg = '<b>Название:</b> <i>{0}</i>\n<b>Владелец:</b> <i>{1}</i>\n<b>Описание:</b> <i>{2}</i>'.format(
             company, owner, desc)
         return msg
-    except IndexError as e:
+    except IndexError:
         msg = 'Вы не состоите в организации'
         return msg
     except Exception as e:
@@ -1314,8 +1327,6 @@ def check_requests(user_id, company):  # проверка приглосов
     cursor = connect.cursor()
     cursor.execute("SELECT toUserID,fromWho FROM Requests")
     reqs = cursor.fetchall()
-    print(reqs)
-    print(len(reqs))
     for i in range(len(reqs)):
         if reqs[i][0] == user_id and reqs[i][1] == company:
             return False

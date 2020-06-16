@@ -22,8 +22,8 @@ def error_log(reason):  # запись лога ошибок
             file.write(reason)
             print(reason)
             file.close()
-        except Exception as e:
-            print(e)
+        except Exception:
+            pass
     except Exception as e:
         print(e)
 
@@ -73,6 +73,12 @@ def log(message):  # запись лога сообщений
 
 
 def generate_avatar(head_id, body_id, face_id):
+    """
+    :param head_id: id of args.head_file_name
+    :param body_id: id of args.body_file_name
+    :param face_id: id of args.face_file_name
+    :return: создание аватара для пользователя
+    """
     try:
         # body = Image.open(args.avatar_directory + args.body_file_name[body_id-1])
         # head = Image.open(args.avatar_directory + args.head_file_name[head_id-1])
