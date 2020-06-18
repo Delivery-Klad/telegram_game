@@ -94,7 +94,7 @@ def corp_help(user_id):  # функция помощи орг
     try:
         markup = inline_keyboard(user_id, False, False, False, False, True)
         bot.send_message(parse_mode='HTML', chat_id=user_id,
-                         text='<b>Меню настроек организации</b>', reply_markup=markup)
+                         text='<b>Меню настроек организации:</b>', reply_markup=markup)
     except Exception as e:
         functions.error_log(e)
 
@@ -112,18 +112,18 @@ def inline_keyboard(user_id, corp_menu: bool, me_menu: bool, admin: bool, main_m
     try:
         markup = types.InlineKeyboardMarkup()
         if main_menu:
-            key1 = types.InlineKeyboardButton('Выдать задание', callback_data='/give_tsk')
-            key2 = types.InlineKeyboardButton('Создать аватар', callback_data='/crt_avatar')
+            key1 = types.InlineKeyboardButton('📝Выдать задание', callback_data='/give_tsk')
+            key2 = types.InlineKeyboardButton('🙇‍♂️Создать аватар', callback_data='/crt_avatar')
             markup.add(key1)
             markup.add(key2)
         elif corp_menu:
             if dataBase.is_owner(user_id):
-                key1 = types.InlineKeyboardButton('Расформировать', callback_data='/remove_corp')
-                key2 = types.InlineKeyboardButton('Передать командование', callback_data='/change_owner')
-                key3 = types.InlineKeyboardButton('Пригласить', callback_data='/invitetoorg')
-                key4 = types.InlineKeyboardButton('Состав', callback_data='/corp_members')
-                key5 = types.InlineKeyboardButton('Получить задания', callback_data='/get_task')
-                key6 = types.InlineKeyboardButton('Настройки организации', callback_data='/corp_settings')
+                key1 = types.InlineKeyboardButton('❌Расформировать', callback_data='/remove_corp')
+                key2 = types.InlineKeyboardButton('🔁Передать командование', callback_data='/change_owner')
+                key3 = types.InlineKeyboardButton('📩Пригласить', callback_data='/toorginvite')
+                key4 = types.InlineKeyboardButton('🙎🏿‍♂️Состав', callback_data='/corp_members')
+                key5 = types.InlineKeyboardButton('📝Получить задания', callback_data='/get_task')
+                key6 = types.InlineKeyboardButton('⚙️Настройки организации', callback_data='/corp_settings')
                 markup.add(key1)
                 markup.add(key2)
                 markup.add(key3)
@@ -131,24 +131,26 @@ def inline_keyboard(user_id, corp_menu: bool, me_menu: bool, admin: bool, main_m
                 markup.add(key5)
                 markup.add(key6)
             else:
-                key1 = types.InlineKeyboardButton('Покинуть', callback_data='/leave_corp')
+                key1 = types.InlineKeyboardButton('❌Покинуть', callback_data='/leave_corp')
                 markup.add(key1)
         elif me_menu:
-            key1 = types.InlineKeyboardButton('Реферальная ссылка', callback_data='/ref')
-            key2 = types.InlineKeyboardButton('Изменить никнейм', callback_data='/change_nickname')
-            key3 = types.InlineKeyboardButton('Изменить специальность', callback_data='/change_spec')
-            key4 = types.InlineKeyboardButton('Изменить профессию', callback_data='/change_prof')
+            key1 = types.InlineKeyboardButton('🔗Реферальная ссылка', callback_data='/ref')
+            key2 = types.InlineKeyboardButton('✏Изменить никнейм', callback_data='/change_nickname')
+            key3 = types.InlineKeyboardButton('✏Изменить специальность', callback_data='/change_spec')
+            key4 = types.InlineKeyboardButton('✏Изменить профессию', callback_data='/change_prof')
             markup.add(key1)
             markup.add(key2)
             markup.add(key3)
             markup.add(key4)
         elif corp_set:
-            key1 = types.InlineKeyboardButton('Создать организацию', callback_data='/crt_org')
-            key2 = types.InlineKeyboardButton('Обновить описание', callback_data='/change_descr')
-            key3 = types.InlineKeyboardButton('Обновить название', callback_data='/change_nameCorp')
-            markup.add(key1)
-            markup.add(key2)
-            markup.add(key3)
+            if dataBase.in_corp(user_id):
+                key1 = types.InlineKeyboardButton('✏Изменить описание', callback_data='/change_descr')
+                key2 = types.InlineKeyboardButton('✏Изменить название', callback_data='/change_nameCorp')
+                markup.add(key1)
+                markup.add(key2)
+            else:
+                key3 = types.InlineKeyboardButton('📌Создать организацию', callback_data='/crt_org')
+                markup.add(key3)
         elif admin:
             key1 = types.InlineKeyboardButton('Логи', callback_data='/log')
             key2 = types.InlineKeyboardButton('Ошибки', callback_data='/errors')
@@ -681,8 +683,8 @@ def handler_tops(message):  # функция для посмотра топов
     try:
         functions.log(message)
         markup = types.InlineKeyboardMarkup()
-        key1 = types.InlineKeyboardButton('Топ богачей', callback_data='/top_rich')
-        key2 = types.InlineKeyboardButton('Топ организаций', callback_data='/top_orgs')
+        key1 = types.InlineKeyboardButton('💰Топ богачей', callback_data='/top_rich')
+        key2 = types.InlineKeyboardButton('📈Топ организаций', callback_data='/top_orgs')
         markup.add(key1)
         markup.add(key2)
         bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text='<b>Выберите из списка:\n</b>',
@@ -722,9 +724,8 @@ def handler_a_chat(message):
             users = dataBase.get_all_users()
             markup = inline_keyboard(message.from_user.id, False, False, False, False, False)
             for i in range(len(users)):
-                if users[i] != message.from_user.id:
-                    bot.send_message(parse_mode='HTML', chat_id=users[i], text=str('Сообщение от админа | {0} {1}').
-                                     format(dataBase.get_nickname(message.from_user.id), msg), reply_markup=markup)
+                bot.send_message(parse_mode='HTML', chat_id=users[i], text=str('Сообщение от админа | {0} {1}').
+                                 format(dataBase.get_nickname(message.from_user.id), msg), reply_markup=markup)
     except Exception as e:
         functions.error_log(e)
 
@@ -775,17 +776,20 @@ def func(c):
             bot.edit_message_text(parse_mode='HTML', chat_id=c.from_user.id, message_id=c.message.message_id,
                                   text='<b>Узнать как пользоваться ботом</b>', reply_markup=None)
             bot.answer_callback_query(callback_query_id=c.id, show_alert=False, text='Ты приемный')
+            return
         elif c.data == '1':
             if handler_accept(c):
                 bot.answer_callback_query(callback_query_id=c.id, show_alert=True, text='Вы начали выполнение задания')
             else:
                 bot.answer_callback_query(callback_query_id=c.id, show_alert=True, text='Нееее, дружок, так не пойдет')
+            return
         elif c.data == '2':
             if handler_cancel(c):
                 bot.answer_callback_query(callback_query_id=c.id, show_alert=True, text='Вы отказались выполнять '
                                                                                         'задание')
             else:
                 bot.answer_callback_query(callback_query_id=c.id, show_alert=True, text='Нееее, дружок, так не пойдет')
+            return
         elif c.data[1:5] == 'task':
             if handler_task(c):
                 bot.answer_callback_query(callback_query_id=c.id, show_alert=False, text='Задание отправлено')
@@ -793,13 +797,16 @@ def func(c):
                                       text=c.message.text)
             else:
                 bot.answer_callback_query(callback_query_id=c.id, show_alert=False, text='Задание не отправлено')
+            return
         elif c.data[1:] == 'give_tsk':
             handler_give_task(c)
+            return
         elif c.data[1:7] == 'invite':
             if handler_invite(c):
                 bot.answer_callback_query(callback_query_id=c.id, show_alert=True, text='Пользователь приглашен')
             else:
                 bot.answer_callback_query(callback_query_id=c.id, show_alert=True, text='Приглашение не отправлено')
+            return
         elif c.data[1:7] == 'accept':
             """
             
@@ -815,6 +822,7 @@ def func(c):
             bot.send_message(parse_mode='HTML', chat_id=c.from_user.id,
                              text='<b>Вы присоединились к организации </b>' + str(company))
             bot.answer_callback_query(callback_query_id=c.id, show_alert=False, text='Вы приняли приглашение')
+            return
         elif c.data[2:6] == 'task':
             if handler_corp_task(c):
                 user_id = c.data.split('_')
@@ -823,6 +831,7 @@ def func(c):
                                       get_nickname(int(user_id[1][4:])))
             else:
                 bot.answer_callback_query(callback_query_id=c.id, show_alert=True, text='Нееее, дружок, так не пойдет')
+            return
         elif c.data[1:9] == 'give_low':
             if dataBase.is_owner(c.from_user.id):
                 ids = str(c.data[9:])
@@ -834,6 +843,7 @@ def func(c):
                 bot.send_message(parse_mode='HTML', chat_id=c.from_user.id,
                                  text='<b>Кажется вы не глава организации</b>')
                 bot.answer_callback_query(callback_query_id=c.id, show_alert=False, text='Error')
+            return
         elif c.data[1:9] == 'give_gum':
             if dataBase.is_owner(c.from_user.id):
                 ids = str(c.data[9:])
@@ -845,6 +855,7 @@ def func(c):
                 bot.send_message(parse_mode='HTML', chat_id=c.from_user.id,
                                  text='<b>Кажется вы не глава организации</b>')
                 bot.answer_callback_query(callback_query_id=c.id, show_alert=False, text='Error')
+            return
         elif c.data[1:10] == 'give_tech':
             if dataBase.is_owner(c.from_user.id):
                 ids = str(c.data[10:])
@@ -856,6 +867,7 @@ def func(c):
                 bot.send_message(parse_mode='HTML', chat_id=c.from_user.id,
                                  text='<b>Кажется вы не глава организации</b>')
                 bot.answer_callback_query(callback_query_id=c.id, show_alert=False, text='Error')
+            return
         elif c.data[1:] == 'corp_members':
             try:
                 msg, markup = dataBase.corp_members(c.from_user.id)
@@ -863,6 +875,7 @@ def func(c):
                                  text=msg, reply_markup=markup)
             except Exception as e:
                 functions.error_log(e)
+            return
         elif c.data[1:] == 'get_task':
             try:
                 if dataBase.in_corp(c.from_user.id):
@@ -881,15 +894,23 @@ def func(c):
                     return False
             except Exception as e:
                 functions.error_log(e)
+        elif c.data[1:] == 'get_new_task':
+            dataBase.refresh_corp_tasks(c.from_user.id)
+            msg, markup = dataBase.get_corp_task(c.from_user.id)
+            bot.edit_message_text(parse_mode='HTML', chat_id=c.from_user.id, message_id=c.message.message_id,
+                                  text=msg, reply_markup=markup)
         elif c.data[1:] == 'corp_settings':
             corp_help(c.from_user.id)
+            return
         elif c.data[1:] == 'top_rich':
             res = dataBase.get_top('rich')
             bot.edit_message_text(parse_mode='HTML', chat_id=c.from_user.id, message_id=c.message.message_id, text=res)
+            return
         elif c.data[1:] == 'top_orgs':
             res = dataBase.get_top('orgs')
             bot.edit_message_text(parse_mode='HTML', chat_id=c.from_user.id, message_id=c.message.message_id, text=res)
-        elif c.data[1:] == 'invitetoorg':
+            return
+        elif c.data[1:] == 'toorginvite':
             try:
                 if dataBase.is_owner(c.from_user.id):
                     msg, markup = dataBase.get_not_in_corp_users(c)
@@ -898,30 +919,37 @@ def func(c):
                 else:
                     bot.send_message(parse_mode='HTML', chat_id=c.from_user.id,
                                      text='<b>Вы не владелец организации</b>')
+                return
             except Exception as e:
+                print(e)
                 functions.error_log(e)
         elif c.data[1:] == 'change_prof':
             bot.send_message(parse_mode='HTML', chat_id=c.from_user.id, text='<b>Выберите новую профессию</b>')
             dataBase.give_new_prof(c.from_user.id)
+            return
         elif c.data[1:] == 'change_spec':
             bot.send_message(parse_mode='HTML', chat_id=c.from_user.id, text=args.test_question)
             dataBase.change_spec(c.from_user.id)
+            return
         elif c.data[1:] == 'leave_corp':
             if handler_leave(c):
                 bot.answer_callback_query(callback_query_id=c.id, show_alert=False, text='Вы покинули орг')
             else:
                 bot.answer_callback_query(callback_query_id=c.id, show_alert=True, text='Нееее, дружок, так не пойдет')
+            return
         elif c.data[1:5] == 'kick':
             if handler_kick(c):
                 bot.answer_callback_query(callback_query_id=c.id, show_alert=False, text='Пользователь исключен')
             else:
                 bot.answer_callback_query(callback_query_id=c.id, show_alert=True, text='Нееее, дружок, так не пойдет')
+            return
         elif c.data[1:] == 'change_nickname':
             try:
                 nickList.append(c.from_user.id)
                 bot.send_message(parse_mode='HTML', chat_id=c.from_user.id, text='<b>Введите новый ник:</b>')
             except Exception as e:
                 functions.error_log(e)
+            return
         elif c.data[1:] == 'crt_avatar':
             bot.send_message(parse_mode='HTML', chat_id=c.from_user.id, text='<b>Выберите параметры аватара:</b>\n'
                                                                              '<i>Head[0-{0}]\nBody[0-{1}]\n'
@@ -930,20 +958,25 @@ def func(c):
                              format(len(args.head_file_name) - 1, len(args.body_file_name) - 1,
                                     len(args.face_file_name) - 1))
             avatarList.append(c.from_user.id)
+            return
         elif c.data[1:] == 'change_descr':
             bot.send_message(parse_mode='HTML', chat_id=c.from_user.id, text='<i>Введите описание организации:</i>')
             descriptionList.append(c.from_user.id)
+            return
         elif c.data[1:] == 'change_nameCorp':
             bot.send_message(parse_mode='HTML', chat_id=c.from_user.id,
                              text='<i>Введите новое название организации:</i>')
             nameOfCorpList.append(c.from_user.id)
+            return
         elif c.data[1:] == 'crt_org':
             createCorpList.append(c.from_user.id)
             bot.send_message(parse_mode='HTML', chat_id=c.from_user.id, text='<i>Введите название организации:</i>')
+            return
         elif c.data[1:] == 'change_owner':
             msg, markup = dataBase.change_owner(c.from_user.id)
             bot.send_message(parse_mode='HTML', chat_id=c.from_user.id,
                              text=msg, reply_markup=markup)
+            return
         elif c.data[1:10] == 'set_owner':
             if handler_set_owner(c):
                 bot.answer_callback_query(callback_query_id=c.id, show_alert=False, text='Владелец обновлен')
@@ -951,8 +984,10 @@ def func(c):
                 bot.answer_callback_query(callback_query_id=c.id, show_alert=True, text='Нееее, дружок, так не пойдет')
             bot.edit_message_text(chat_id=c.from_user.id, message_id=c.message.message_id,
                                   text=c.message.text)
+            return
         elif c.data[1:] == 'strt':
             handler_start()
+            return
         elif c.data[1:] == 'remove_corp':
             try:
                 markup = types.InlineKeyboardMarkup()
@@ -972,12 +1007,12 @@ def func(c):
                 bot.send_message(parse_mode='HTML', chat_id=c.from_user.id, text='<b>Удалить организацию?</b>',
                                  reply_markup=markup)
             except Exception as e:
-                print(e)
                 functions.error_log(e)
         elif c.data[1:] == 'ref':
             bot.send_message(chat_id=c.from_user.id, text="Реферальная ссылка для помощи проекту и себе: "
                                                           "https://telegram.me/" + bot.get_me().username + "?start={}"
                              .format(c.from_user.id))
+            return
         elif c.data[1:] == 'remove_accept':
             members = dataBase.remove_corp(c.from_user.id)
             for i in members:
@@ -985,19 +1020,26 @@ def func(c):
                 dataBase.upd_corp(i, 0)
             bot.edit_message_text(chat_id=c.from_user.id, message_id=c.message.message_id,
                                   text='Организация удалена')
+            return
         elif c.data[1:] == 'remove_decline':
             bot.edit_message_text(chat_id=c.from_user.id, message_id=c.message.message_id,
                                   text='Действие отменено')
+            return
         elif c.data[1:] == 'log':
             handler_log(c)
+            return
         elif c.data[1:] == 'uptime':
             handler_uptime(c)
+            return
         elif c.data[1:] == 'errors':
             handler_error(c)
+            return
         elif c.data[1:] == 'db':
             handler_db(c)
+            return
         elif c.data[1:] == 'exit':
             handler_exit(c)
+            return
     except Exception as e:
         functions.error_log(e)
 

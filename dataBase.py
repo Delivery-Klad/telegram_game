@@ -352,7 +352,9 @@ def get_corp_task(user_id):  # получение задания организ�
                     msg += '{0}\nТребуемый ранг: {1}\nЗадание: <i>{2}</i>\n----------\n'.format(quests[task][1],
                                                                                                 quests[task][2],
                                                                                                 quests[task][0])
-        msg += 'Выберете кому дать задание'
+        msg += 'Выберете кому дать задание: '
+        key_refresh = types.InlineKeyboardButton('🔄Обновить', callback_data='/get_new_task')
+        markup.add(key_refresh)
         return msg, markup
     except Exception as e:
         functions.error_log(e)
@@ -451,6 +453,7 @@ def get_low(user_id, task_id):  # получение работников low с
                 key = types.InlineKeyboardButton(text, callback_data=call)
                 markup.add(key)
                 msg += str(users[i][0]) + ' ' + str(users[i][2]) + ' Ранг: ' + str(users[i][3]) + '\n'
+
         return msg, markup
     except Exception as e:
         functions.error_log(e)
@@ -667,7 +670,6 @@ def get_not_in_corp_users(message):  # получение пользовател
         markup = types.InlineKeyboardMarkup()
         for i in range(len(users)):
             if users[i][0] != message.from_user.id:
-                print(i)
                 call = '/invite' + str(users[i][0])
                 msg = 'Пригласить  ' + str(users[i][1])
                 key = types.InlineKeyboardButton(msg, callback_data=call)
@@ -676,6 +678,7 @@ def get_not_in_corp_users(message):  # получение пользовател
                 msg_text += '\n'
         return msg_text, markup
     except Exception as e:
+        print(e)
         functions.error_log(e)
         return 'Нет свободных людей', None
 
