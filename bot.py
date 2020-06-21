@@ -8,7 +8,7 @@ import threading
 import functions
 import loopWork
 import dataBase
-import sqlite3
+import pg_connect
 import telebot
 import args
 
@@ -45,8 +45,7 @@ def handler_start(message):
         bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text='<b>Узнать как пользоваться ботом</b>',
                          reply_markup=key1)
         contain = False
-        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
-        cursor = connect.cursor()
+        connect, cursor = pg_connect.connect()
         cursor.execute("SELECT ID FROM Users")
         res = cursor.fetchall()
         for i in range(len(res)):
@@ -68,6 +67,8 @@ def handler_start(message):
                     str(datetime.now().strftime('%d-%m-%Y %H:%M:%S')), res, 0]
             cursor.execute('INSERT INTO HiddenInfo VALUES(?, ?, ?, ?, ?)', data)
         connect.commit()
+        cursor.close()
+        connect.close()
     except Exception as e:
         functions.error_log(e)
 
