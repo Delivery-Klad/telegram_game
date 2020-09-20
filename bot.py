@@ -26,6 +26,7 @@ avatarList = []
 print(bot.get_me())
 args.start_time = datetime.now()
 print("------------------------ЗАКОНЧИЛАСЬ ЗАГРУЗКА БОТА------------------------")
+connect, cursor = pg_connect.connect()
 
 
 @bot.message_handler(commands=['start'])
@@ -34,6 +35,8 @@ def handler_start(message):
     :param message: сообщение от пользователя
     :return: None
     """
+    global connect
+    global cursor
     try:
         functions.log(message)
         key1 = types.InlineKeyboardMarkup()
@@ -45,7 +48,6 @@ def handler_start(message):
         bot.send_message(parse_mode='HTML', chat_id=message.from_user.id, text='<b>Узнать как пользоваться ботом</b>',
                          reply_markup=key1)
         contain = False
-        connect, cursor = pg_connect.connect()
         cursor.execute("SELECT ID FROM Users")
         res = cursor.fetchall()
         for i in range(len(res)):
@@ -67,8 +69,6 @@ def handler_start(message):
                     str(datetime.now().strftime('%d-%m-%Y %H:%M:%S')), res, 0]
             cursor.execute('INSERT INTO HiddenInfo VALUES(?, ?, ?, ?, ?)', data)
         connect.commit()
-        cursor.close()
-        connect.close()
     except Exception as e:
         functions.error_log(e)
 

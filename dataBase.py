@@ -9,12 +9,16 @@ import functions
 import args
 
 
+connect, cursor = pg_connect.connect()
+
+
 def create_tables():  # создание таблиц в sqlite если их нет
     """
     :return: создание таблиц, если их нет
     """
+    global connect
+    global cursor
     try:
-        connect, cursor = pg_connect.connect()
         cursor.execute('CREATE TABLE IF NOT EXISTS Users(ID INTEGER,'  # телеграм ID
                        'NickName TEXT,'  # ник(чтобы не палить username телеграма)
                        'Spec TEXT,'  # специализация
@@ -62,8 +66,6 @@ def create_tables():  # создание таблиц в sqlite если их н
                        'fromWho TEXT,'  # от кого задание
                        'type TEXT)')  # тип задания (что это значит?)
         connect.commit()
-        cursor.close()
-        connect.close()
     except Exception as e:
         functions.error_log(e)
 
@@ -73,12 +75,11 @@ def check_avatar(user_id):
     :param user_id: user_id
     :return: создан ли у пользователя аватар
     """
+    global connect
+    global cursor
     try:
-        connect, cursor = pg_connect.connect()
         cursor.execute('SELECT Avatar FROM Avatars WHERE ID={0}'.format(user_id))
         res = int(cursor.fetchall()[0][0])
-        cursor.close()
-        connect.close()
         if res == 0:
             return False
         else:
@@ -95,14 +96,13 @@ def set_avatar(user_id, head, body, face):
     :param face: id of args.face_file_name
     :return: создание аватара пользователя
     """
+    global connect
+    global cursor
     try:
-        connect, cursor = pg_connect.connect()
         cursor.execute(
             "UPDATE Avatars SET Avatar=1, Head={0}, Body={1}, Face={2} WHERE ID={3}".
             format(head, body, face, user_id))
         connect.commit()
-        cursor.close()
-        connect.close()
     except Exception as e:
         functions.error_log(e)
 
@@ -113,13 +113,12 @@ def set_last_worker(user_id, worker_id):
     :param worker_id: worker_id
     :return: установить id пользователя, которому было выдано последнее задание
     """
+    global connect
+    global cursor
     try:
-        connect, cursor = pg_connect.connect()
         cursor.execute(
             "UPDATE HiddenInfo SET lastWorker={0} WHERE ID={1}".format(worker_id, user_id))
         connect.commit()
-        cursor.close()
-        connect.close()
     except Exception as e:
         functions.error_log(e)
 
@@ -129,13 +128,12 @@ def set_nickname(nickname):  # установка ника пользовате�
     :param nickname: message
     :return: установка никнейма
     """
+    global connect
+    global cursor
     try:
-        connect, cursor = pg_connect.connect()
         cursor.execute(
             "UPDATE Users SET NickName='{0}' WHERE ID={1}".format(str(nickname.text), nickname.from_user.id))
         connect.commit()
-        cursor.close()
-        connect.close()
     except Exception as e:
         functions.error_log(e)
 
@@ -146,8 +144,9 @@ def set_profession(message, in_prof_arr):  # установка професси
     :param in_prof_arr: dataBase.set_profession
     :return: установка профессии
     """
+    global connect
+    global cursor
     try:
-        connect, cursor = pg_connect.connect()
         if message.text in args.techList:
             cursor.execute("SELECT Spec FROM Users WHERE ID=" + str(message.from_user.id))
             spec = cursor.fetchall()
@@ -186,8 +185,6 @@ def set_profession(message, in_prof_arr):  # установка професси
                 connect.close()
                 return False
         connect.commit()
-        cursor.close()
-        connect.close()
         return True
     except Exception as e:
         functions.error_log(e)
@@ -199,12 +196,11 @@ def set_owner(user_id, owner):  # установка владельца орг
     :param owner: 1/0
     :return: установка владельца орг
     """
+    global connect
+    global cursor
     try:
-        connect, cursor = pg_connect.connect()
         cursor.execute("UPDATE Users SET isOwner={0} WHERE ID={1}".format(owner, user_id))
         connect.commit()
-        cursor.close()
-        connect.close()
     except Exception as e:
         functions.error_log(e)
 
@@ -214,13 +210,12 @@ def get_last_worker(user_id):
     :param user_id: user_id
     :return: id пользователя, которому было выдано последнее задание
     """
+    global connect
+    global cursor
     try:
-        connect, cursor = pg_connect.connect()
         cursor.execute(
             "SELECT lastWorker FROM HiddenInfo WHERE ID={0}".format(user_id))
         worker = cursor.fetchall()[0][0]
-        cursor.close()
-        connect.close()
         return int(worker)
     except Exception as e:
         functions.error_log(e)
@@ -232,12 +227,11 @@ def get_nickname(user_id):  # получение ника пользовател
     :param user_id: user_id
     :return: ник пользователя
     """
+    global connect
+    global cursor
     try:
-        connect, cursor = pg_connect.connect()
         cursor.execute("SELECT NickName FROM Users WHERE ID=" + str(user_id))
         name = cursor.fetchall()
-        cursor.close()
-        connect.close()
         return name[0][0]
     except Exception as e:
         functions.error_log(e)
@@ -248,12 +242,11 @@ def get_spec(user_id):  # получение специализации поль
     :param user_id: user_id
     :return: специальность пользователя
     """
+    global connect
+    global cursor
     try:
-        connect, cursor = pg_connect.connect()
         cursor.execute("SELECT Spec FROM Users WHERE ID=" + str(user_id))
         spec = cursor.fetchall()
-        cursor.close()
-        connect.close()
         return spec[0][0]
     except Exception as e:
         functions.error_log(e)
@@ -264,11 +257,10 @@ def get_prof(user_id):  # получение профессии пользова
     :param user_id: user_id
     :return: профессия пользователя
     """
-    connect, cursor = pg_connect.connect()
+    global connect
+    global cursor
     cursor.execute("SELECT Profession FROM Users WHERE ID=" + str(user_id))
     prof = cursor.fetchall()
-    cursor.close()
-    connect.close()
     return prof[0][0]
 
 
@@ -277,11 +269,10 @@ def get_user_rank(user_id):  # получение ранга пользоват�
     :param user_id: user_id
     :return: ранг пользователя
     """
-    connect, cursor = pg_connect.connect()
+    global connect
+    global cursor
     cursor.execute("SELECT UserRank FROM Users WHERE ID=" + str(user_id))
     rank = cursor.fetchall()
-    cursor.close()
-    connect.close()
     return rank[0][0]
 
 
@@ -290,11 +281,10 @@ def get_prof_rank(quest):  # получение ранга профессии (�
     :param quest: хз
     :return: ранг профессии (useless?)
     """
-    connect, cursor = pg_connect.connect()
+    global connect
+    global cursor
     cursor.execute("SELECT Rank FROM Quest WHERE Quest=" + str(quest))
     rank = cursor.fetchall()[0][0]
-    cursor.close()
-    connect.close()
     return rank
 
 
@@ -303,8 +293,9 @@ def get_task(user_id):  # получение задания
     :param user_id: user_id
     :return: сгенерированное задание
     """
+    global connect
+    global cursor
     try:
-        connect, cursor = pg_connect.connect()
         cursor.execute("SELECT Quest FROM Quests WHERE Profession='{0}' AND Rank<='{1}'".
                        format(str(get_prof(user_id)), str(get_user_rank(user_id))))
         quests = cursor.fetchall()
@@ -312,8 +303,6 @@ def get_task(user_id):  # получение задания
             task = random.randint(0, len(quests) - 1)
         else:
             task = 0
-        cursor.close()
-        connect.close()
         return quests[task][0]
     except Exception as e:
         functions.error_log(e)
@@ -324,8 +313,9 @@ def get_corp_task(user_id):  # получение задания организ�
     :param user_id: user_id
     :return: список заданий на орг + markup
     """
+    global connect
+    global cursor
     try:
-        connect, cursor = pg_connect.connect()
         cursor.execute("SELECT Quest,Profession,Rank FROM Quests")
         quests = cursor.fetchall()
         msg = 'Вы можете распределеить задания между своими сотрудниками\n----------\nПрофессия: '
@@ -375,8 +365,6 @@ def get_corp_task(user_id):  # получение задания организ�
         msg += 'Выберете кому дать задание: '
         key_refresh = types.InlineKeyboardButton('🔄Обновить', callback_data='/get_new_task')
         markup.add(key_refresh)
-        cursor.close()
-        connect.close()
         return msg, markup
     except Exception as e:
         functions.error_log(e)
@@ -388,9 +376,10 @@ def get_tech(user_id, task_id):  # получение работников tech 
     :param task_id: task_id
     :return: получение работников tech спец
     """
+    global connect
+    global cursor
     try:
         company = get_corp(user_id)
-        connect, cursor = pg_connect.connect()
         cursor.execute("SELECT Profession FROM Quests WHERE Quest=(SELECT Task FROM CorpTasks WHERE id=" +
                        str(task_id) + ")")
         prof = cursor.fetchall()[0][0]
@@ -408,8 +397,6 @@ def get_tech(user_id, task_id):  # получение работников tech 
                 key = types.InlineKeyboardButton(text, callback_data=call)
                 markup.add(key)
                 msg += str(users[i][0]) + ' ' + str(users[i][2]) + ' Ранг: ' + str(users[i][3]) + '\n'
-        cursor.close()
-        connect.close()
         return msg, markup
     except Exception as e:
         functions.error_log(e)
@@ -422,9 +409,10 @@ def get_gum(user_id, task_id):  # получение работников gym с
     :param task_id: task_id
     :return: получение работников gym спец
     """
+    global connect
+    global cursor
     try:
         company = get_corp(user_id)
-        connect, cursor = pg_connect.connect()
         cursor.execute("SELECT Profession FROM Quests WHERE Quest=(SELECT Task FROM CorpTasks WHERE id=" +
                        str(task_id) + ")")
         prof = cursor.fetchall()[0][0]
@@ -442,8 +430,6 @@ def get_gum(user_id, task_id):  # получение работников gym с
                 key = types.InlineKeyboardButton(text, callback_data=call)
                 markup.add(key)
                 msg += str(users[i][0]) + ' ' + str(users[i][2]) + ' Ранг: ' + str(users[i][3]) + '\n'
-        cursor.close()
-        connect.close()
         return msg, markup
     except Exception as e:
         functions.error_log(e)
@@ -456,9 +442,10 @@ def get_low(user_id, task_id):  # получение работников low с
     :param task_id: task_id
     :return: получение работников low спец
     """
+    global connect
+    global cursor
     try:
         company = get_corp(user_id)
-        connect, cursor = pg_connect.connect()
         cursor.execute("SELECT Profession FROM Quests WHERE Quest=(SELECT Task FROM CorpTasks WHERE id=" +
                        str(task_id) + ")")
         prof = cursor.fetchall()[0][0]
@@ -476,8 +463,6 @@ def get_low(user_id, task_id):  # получение работников low с
                 key = types.InlineKeyboardButton(text, callback_data=call)
                 markup.add(key)
                 msg += str(users[i][0]) + ' ' + str(users[i][2]) + ' Ранг: ' + str(users[i][3]) + '\n'
-        cursor.close()
-        connect.close()
         return msg, markup
     except Exception as e:
         functions.error_log(e)
@@ -489,8 +474,9 @@ def get_workers(user_id):  # получение работников для вы
     :param user_id: user_id
     :return: список работников для выдачи задания
     """
+    global connect
+    global cursor
     try:
-        connect, cursor = pg_connect.connect()
         cursor.execute("SELECT ID,NickName,Profession,UserRank FROM Users WHERE Status='{0}' ORDER BY RANDOM() LIMIT 5"
                        .format(str(args.waitStatus)))
         users = cursor.fetchall()
@@ -504,8 +490,6 @@ def get_workers(user_id):  # получение работников для вы
                 markup.add(key)
                 msg_text += str(users[i][1]) + ' ' + str(users[i][2]) + ' Ранг: ' + str(users[i][3])
                 msg_text += '\n'
-        cursor.close()
-        connect.close()
         return msg_text, markup
     except Exception as e:
         functions.error_log(e)
@@ -517,13 +501,12 @@ def get_balance(user_id):  # получение баланса
     :param user_id: user_id
     :return: баланс пользователя
     """
+    global connect
+    global cursor
     try:
-        connect, cursor = pg_connect.connect()
         cursor.execute("SELECT Money FROM Users WHERE ID=" + str(user_id))
         money = str(cursor.fetchall()[0][0])
         money += str(args.currency)
-        cursor.close()
-        connect.close()
         return money
     except Exception as e:
         functions.error_log(e)
@@ -534,12 +517,11 @@ def get_owner(company):  # получение ID владельца орг
     :param company: get_comp()
     :return: ID владельца
     """
-    connect, cursor = pg_connect.connect()
+    global connect
+    global cursor
     cursor.execute("SELECT ID FROM Users WHERE Comp={0} AND isOwner=1".format(str(company)))
     ids = cursor.fetchall()
     ids = ids[0][0]
-    cursor.close()
-    connect.close()
     return ids
 
 
@@ -548,11 +530,10 @@ def get_owner_nickname(company):  # получение ника владельц
     :param company: get_comp()
     :return: ник владельца
     """
-    connect, cursor = pg_connect.connect()
+    global connect
+    global cursor
     cursor.execute("SELECT NickName FROM Users WHERE Comp={0} AND isOwner=1".format(company))
     name = cursor.fetchall()[0][0]
-    cursor.close()
-    connect.close()
     return name
 
 
@@ -561,14 +542,13 @@ def get_task_cost(user_id):  # получение суммы вознаграж�
     :param user_id: user_id
     :return: сумма вознаграждения
     """
+    global connect
+    global cursor
     try:
-        connect, cursor = pg_connect.connect()
         cursor.execute("SELECT TaskNow FROM Users WHERE ID={0}".format(str(user_id)))
         task = cursor.fetchall()[0][0]
         cursor.execute("SELECT Cost FROM Quests WHERE Quest='{0}'".format(task))
         cost = cursor.fetchall()[0][0]
-        cursor.close()
-        connect.close()
         return cost
     except Exception as e:
         functions.error_log(e)
@@ -579,16 +559,15 @@ def get_job_timer(user_id):  # получение таймера работы
     :param user_id: user_id
     :return: время выполнения
     """
+    global connect
+    global cursor
     try:
-        connect, cursor = pg_connect.connect()
         cursor.execute("SELECT TaskNow FROM Users WHERE ID={0}".format(str(user_id)))
         task = cursor.fetchall()[0][0]
         print(task)
         cursor.execute("SELECT Time FROM Quests WHERE Quest='{0}'".format(task))
         time = cursor.fetchall()[0][0]
         print(time)
-        cursor.close()
-        connect.close()
         return int(time)
     except Exception as e:
         functions.error_log(e)
@@ -599,12 +578,11 @@ def get_corp(user_id):  # получение ID орг
     :param user_id: user_id
     :return: ID орг
     """
+    global connect
+    global cursor
     try:
-        connect, cursor = pg_connect.connect()
         cursor.execute("SELECT Comp FROM Users WHERE ID=" + str(user_id))
         corp_id = cursor.fetchall()[0][0]
-        cursor.close()
-        connect.close()
         return corp_id
     except Exception as e:
         functions.error_log(e)
@@ -616,14 +594,13 @@ def get_corp_name(comp_id):  # получение названия орг
     :param comp_id: get_comp()
     :return: название орг
     """
+    global connect
+    global cursor
     try:
         if comp_id == 0:
             return '0'
-        connect, cursor = pg_connect.connect()
         cursor.execute("SELECT Name FROM Companies WHERE ID=" + str(comp_id))
         corp_name = cursor.fetchall()[0][0]
-        cursor.close()
-        connect.close()
         return corp_name
     except Exception as e:
         functions.error_log(e)
@@ -635,15 +612,14 @@ def get_avatar(ids):  # полученя аватара (мб не работа�
     :param ids: user_id
     :return: аватар (мб не работает)
     """
+    global connect
+    global cursor
     try:
-        connect, cursor = pg_connect.connect()
         cursor.execute("SELECT photo FROM userPhotos WHERE ID=" + str(ids))
         photo = cursor.fetchall()[0][0]
         photo = photo.encode()[2:-1]
         print(photo)
         print(type(photo))
-        cursor.close()
-        connect.close()
         return photo
     except Exception as e:
         functions.error_log(e)
@@ -654,7 +630,8 @@ def get_request(to_id):  # получение заданий орг
     :param to_id: to_id
     :return: список заданий на орг
     """
-    connect, cursor = pg_connect.connect()
+    global connect
+    global cursor
     cursor.execute("SELECT DISTINCT toUserID,fromWho,type FROM Requests WHERE toUserID={0}".format(to_id))
     res = cursor.fetchall()
     msg = ''
@@ -666,8 +643,6 @@ def get_request(to_id):  # получение заданий орг
         markup.add(key)
         msg += str(i + 1) + ') ' + str(res[i][1])
         msg += '\n'
-    cursor.close()
-    connect.close()
     return msg, markup
 
 
@@ -676,12 +651,11 @@ def get_ref_owner(user_id):  # получение ID приглосившего 
     :param user_id: user_id
     :return: ID приглосившего человека
     """
+    global connect
+    global cursor
     try:
-        connect, cursor = pg_connect.connect()
         cursor.execute("SELECT InviteID FROM HiddenInfo WHERE ID=" + str(user_id))
         owner_id = cursor.fetchall()[0][0]
-        cursor.close()
-        connect.close()
         if len(str(owner_id)) > 1:
             return int(owner_id)
         else:
@@ -696,8 +670,9 @@ def get_not_in_corp_users(message):  # получение пользовател
     :param message: message
     :return: список пользователей не сост в орг
     """
+    global connect
+    global cursor
     try:
-        connect, cursor = pg_connect.connect()
         cursor.execute("SELECT ID,NickName,Profession,UserRank FROM Users WHERE Comp=0 ORDER BY RANDOM() LIMIT 5")
         users = cursor.fetchall()
         msg_text = ''
@@ -710,8 +685,6 @@ def get_not_in_corp_users(message):  # получение пользовател
                 markup.add(key)
                 msg_text += str(users[i][1]) + ' ' + str(users[i][2]) + ' Ранг: ' + str(users[i][3])
                 msg_text += '\n'
-        cursor.close()
-        connect.close()
         return msg_text, markup
     except Exception as e:
         print(e)
@@ -724,15 +697,14 @@ def get_members_id(corp_id):  # получение ID членов орг
     :param corp_id: get_corp()
     :return: ID членов орг
     """
+    global connect
+    global cursor
     try:
-        connect, cursor = pg_connect.connect()
         cursor.execute("SELECT ID FROM Users WHERE Comp={0}".format(corp_id))
         users = cursor.fetchall()
         res = []
         for i in range(len(users)):
             res.append(int(users[i][0]))
-        cursor.close()
-        connect.close()
         return res
     except Exception as e:
         functions.error_log(e)
@@ -743,8 +715,9 @@ def get_top(top):  # генерация списка топов
     :param top: orgs/rich
     :return: список топов
     """
+    global connect
+    global cursor
     try:
-        connect, cursor = pg_connect.connect()
         if top == 'rich':
             cursor.execute("SELECT NickName FROM Users ORDER BY Money DESC LIMIT 10")
             users = cursor.fetchall()
@@ -762,8 +735,6 @@ def get_top(top):  # генерация списка топов
             res = '<b>Топ-10 организаций:</b>'
             for i in range(len(orgs)):
                 res += '\n{}) {}:'.format(i + 1, orgs[i][0])
-            cursor.close()
-            connect.close()
             return res
     except Exception as e:
         functions.error_log(e)
@@ -773,15 +744,14 @@ def get_all_users():
     """
     :return: все id из users
     """
+    global connect
+    global cursor
     try:
         tmp = []
-        connect, cursor = pg_connect.connect()
         cursor.execute("SELECT ID FROM Users")
         res = cursor.fetchall()
         for i in range(len(res)):
             tmp.append(int(res[i][0]))
-        cursor.close()
-        connect.close()
         return tmp
     except Exception as e:
         functions.error_log(e)
@@ -792,12 +762,11 @@ def get_avatar_params(user_id):
     :param user_id: user_id
     :return: получение параметров аватара для его генерации и отправки пользователю
     """
+    global connect
+    global cursor
     try:
-        connect, cursor = pg_connect.connect()
         cursor.execute("SELECT Head, Body, Face FROM Avatars WHERE ID={0}".format(user_id))
         res = cursor.fetchall()[0]
-        cursor.close()
-        connect.close()
         return res
     except Exception as e:
         functions.error_log(e)
@@ -809,8 +778,9 @@ def add_money(user_id, money):  # функция добавления возна
     :param money: money_count
     :return: добавление денег
     """
+    global connect
+    global cursor
     try:
-        connect, cursor = pg_connect.connect()
         cursor.execute("UPDATE Users SET Money=Money+{0} WHERE ID={1}".format(money, user_id))
         connect.commit()
         upd_task_now(user_id, "None")
@@ -819,8 +789,6 @@ def add_money(user_id, money):  # функция добавления возна
             cursor.execute("UPDATE Users SET Money=Money+{0} WHERE ID={1}".
                            format((money / args.referal_procent), owner_id))
         connect.commit()
-        cursor.close()
-        connect.close()
     except Exception as e:
         functions.error_log(e)
 
@@ -830,12 +798,11 @@ def add_quest(arguments):  # функция добавления квеста
     :param arguments: аргументы, требуемые для добавления квеста
     :return: добавление квеста
     """
+    global connect
+    global cursor
     try:
-        connect, cursor = pg_connect.connect()
         cursor.execute("INSERT INTO Quests VALUES(?, ?, ?, ?)", arguments)
         connect.commit()
-        cursor.close()
-        connect.close()
     except Exception as e:
         functions.error_log(e)
 
@@ -846,16 +813,15 @@ def create_corp(user_id, name):  # создание организации
     :param name: name of corp
     :return: создание орг
     """
+    global connect
+    global cursor
     try:
-        connect, cursor = pg_connect.connect()
         cursor.execute("SELECT MAX(ID) FROM Companies")
         max_id = cursor.fetchall()[0][0] + 1
         data = [max_id, name, 'None', 0, 0]
         cursor.execute("INSERT INTO Companies VALUES(?, ?, ?, ?, ?)", data)
         connect.commit()
         upd_corp(user_id, max_id)
-        cursor.close()
-        connect.close()
     except Exception as e:
         functions.error_log(e)
 
@@ -865,16 +831,15 @@ def remove_corp(user_id):  # удаление организации
     :param user_id: user_id
     :return: удаление орг
     """
+    global connect
+    global cursor
     try:
-        connect, cursor = pg_connect.connect()
         corp_id = get_corp(user_id)
         cursor.execute("DELETE FROM Companies WHERE ID={0}".format(corp_id))
         connect.commit()
         set_owner(user_id, 0)
         upd_corp(user_id, 0)
         members = get_members_id(corp_id)
-        cursor.close()
-        connect.close()
         return members
     except Exception as e:
         functions.error_log(e)
@@ -885,12 +850,11 @@ def is_corp_task(user_id):  # является ли задание задани�
     :param user_id: user_id
     :return: является ли задание заданиеом от орг
     """
+    global connect
+    global cursor
     try:
-        connect, cursor = pg_connect.connect()
         cursor.execute("SELECT corptask FROM Users WHERE ID={0}".format(user_id))
         res = int(cursor.fetchall()[0][0])
-        cursor.close()
-        connect.close()
         if res == 1:
             return True
         elif res == 0:
@@ -905,12 +869,11 @@ def upd_is_corp_task(user_id, is_corp):  # обновление corptask
     :param is_corp: is_corp_task
     :return: обновление corptask
     """
+    global connect
+    global cursor
     try:
-        connect, cursor = pg_connect.connect()
         cursor.execute("UPDATE Users SET corptask={0} WHERE ID={1}".format(is_corp, user_id))
         connect.commit()
-        cursor.close()
-        connect.close()
     except Exception as e:
         functions.error_log(e)
 
@@ -920,12 +883,11 @@ def upd_corp_count_works(corp_id):  # увеличение количества 
     :param corp_id: user_id
     :return: увеличение количества выполненных работ орг
     """
+    global connect
+    global cursor
     try:
-        connect, cursor = pg_connect.connect()
         cursor.execute("UPDATE Companies SET CountWorks=CountWorks+1 WHERE ID={0}".format(corp_id))
         connect.commit()
-        cursor.close()
-        connect.close()
     except Exception as e:
         functions.error_log(e)
 
@@ -936,12 +898,11 @@ def upd_corp(user_id, company):  # обновление организации �
     :param company: get_corp()
     :return: обновление организации пользователя
     """
+    global connect
+    global cursor
     try:
-        connect, cursor = pg_connect.connect()
         cursor.execute("UPDATE Users SET Comp={0} WHERE ID={1}".format(company, user_id))
         connect.commit()
-        cursor.close()
-        connect.close()
     except Exception as e:
         functions.error_log(e)
 
@@ -952,12 +913,11 @@ def upd_spec(user_id, spec):  # обновление специализации 
     :param spec: user's spec
     :return: обновление специализации пользователя
     """
+    global connect
+    global cursor
     try:
-        connect, cursor = pg_connect.connect()
         cursor.execute("UPDATE Users SET Spec='{0}' WHERE ID={1}".format(spec, str(user_id)))
         connect.commit()
-        cursor.close()
-        connect.close()
     except Exception as e:
         functions.error_log(e)
 
@@ -968,11 +928,10 @@ def upd_can_accept(user_id, check):  # обновление возможност
     :param check: 0/1 task column
     :return: обновление возможности принятия задания
     """
-    connect, cursor = pg_connect.connect()
+    global connect
+    global cursor
     cursor.execute("UPDATE Users SET task={0} WHERE ID={1}".format(str(check), str(user_id)))
     connect.commit()
-    cursor.close()
-    connect.close()
 
 
 def upd_task_now(user_id, task):  # обновление текущего задания
@@ -981,12 +940,11 @@ def upd_task_now(user_id, task):  # обновление текущего зад
     :param task: task
     :return: обновление текущего задания
     """
+    global connect
+    global cursor
     try:
-        connect, cursor = pg_connect.connect()
         cursor.execute("UPDATE Users SET TaskNow='{0}' WHERE ID={1}".format(str(task), str(user_id)))
         connect.commit()
-        cursor.close()
-        connect.close()
     except Exception as e:
         functions.error_log(e)
 
@@ -995,21 +953,21 @@ def upd_quests():  # что тут написано? кто это сделал?
     """
     :return: что тут написано? кто это сделал?
     """
-    connect, cursor = pg_connect.connect()
+    global connect
+    global cursor
     cursor.execute("SELECT * FROM {0}".format("Quests"))
     args.QuestsArr = []
     res = cursor.fetchall()
     for i in res:
         args.QuestsArr.append([i[0], i[1], i[2], i[3]])
-    cursor.close()
-    connect.close()
 
 
 def upd_prof():  # Обновление полного списка профессий и профессий для начинающих
     """
     :return: Обновление списка профессий
     """
-    connect, cursor = pg_connect.connect()
+    global connect
+    global cursor
     cursor.execute("SELECT * FROM Profs")
     args.ProfArr = cursor.fetchall()
 
@@ -1034,8 +992,6 @@ def upd_prof():  # Обновление полного списка профес
             args.all_gumList.append(i[0])
         elif i[1] == 3:
             args.all_lowList.append(i[0])
-    cursor.close()
-    connect.close()
 
 
 def in_corp(user_id):  # проверка состоит ли пользователь в орг
@@ -1043,12 +999,11 @@ def in_corp(user_id):  # проверка состоит ли пользоват
     :param user_id: user_id
     :return: состоит ли пользователь в орг
     """
+    global connect
+    global cursor
     try:
-        connect, cursor = pg_connect.connect()
         cursor.execute("SELECT Comp FROM Users WHERE ID=" + str(user_id))
         corp_name = int(cursor.fetchall()[0][0])
-        cursor.close()
-        connect.close()
         if corp_name == 0:
             return False
         else:
@@ -1063,12 +1018,11 @@ def is_owner(user_id):  # проверка является ли пользов�
     :param user_id: user_id
     :return: является ли пользователь главой орг
     """
+    global connect
+    global cursor
     try:
-        connect, cursor = pg_connect.connect()
         cursor.execute("SELECT Comp FROM Users WHERE isOwner=1 AND ID=" + str(user_id))
         res = cursor.fetchall()[0][0]
-        cursor.close()
-        connect.close()
         return True
     except Exception as e:
         functions.error_log(e)
@@ -1080,12 +1034,11 @@ def is_free(user_id):  # проверить выполняет ли пользо
     :param user_id: user_id
     :return: выполняет ли пользователь какую-либо работу сейчас
     """
+    global connect
+    global cursor
     try:
-        connect, cursor = pg_connect.connect()
         cursor.execute("SELECT Status FROM Users WHERE ID=" + str(user_id))
         status = cursor.fetchall()
-        cursor.close()
-        connect.close()
         if status[0][0] == args.waitStatus:
             return True
         else:
@@ -1100,8 +1053,9 @@ def give_corp_task(task_id, user_id):  # выдача заданий на орг
     :param user_id: user_id
     :return: список заданий на организацию
     """
+    global connect
+    global cursor
     try:
-        connect, cursor = pg_connect.connect()
         cursor.execute("SELECT Task,spec,rank FROM CorpTasks WHERE id=" + str(task_id))
         task = cursor.fetchall()
         if get_user_rank(user_id) >= int(task[0][2]) and get_spec(user_id) == task[0][1]:
@@ -1109,8 +1063,6 @@ def give_corp_task(task_id, user_id):  # выдача заданий на орг
         cursor.execute("DELETE FROM CorpTasks WHERE id=" + str(task_id))
         connect.commit()
         msg = '<b>Вы получили задание от главы организиции:</b> ' + task[0][0]
-        cursor.close()
-        connect.close()
         return msg
     except Exception as e:
         functions.error_log(e)
@@ -1122,11 +1074,10 @@ def kick_from_corp(user_id):  # исключение пользователя и
     :param user_id: user_id
     :return: исключение пользователя из орг
     """
-    connect, cursor = pg_connect.connect()
+    global connect
+    global cursor
     cursor.execute("UPDATE Users SET Comp=0 WHERE ID={0}".format(user_id))
     connect.commit()
-    cursor.close()
-    connect.close()
 
 
 def corp_members(user_id):  # список пользователей в орг
@@ -1134,14 +1085,13 @@ def corp_members(user_id):  # список пользователей в орг
     :param user_id: user_id
     :return: список пользователей в орг
     """
-    connect, cursor = pg_connect.connect()
+    global connect
+    global cursor
     markup = types.InlineKeyboardMarkup()
     if get_corp(user_id) == 0:
         call = '/me'
         key = types.InlineKeyboardButton('/me', callback_data=call)
         markup.add(key)
-        cursor.close()
-        connect.close()
         return 'Вы не состоите в организации', markup
     cursor.execute("SELECT ID,NickName,Profession,UserRank FROM Users WHERE Comp={0}".
                    format(get_corp(user_id)))
@@ -1155,8 +1105,6 @@ def corp_members(user_id):  # список пользователей в орг
             markup.add(key)
         msg += '<b>' + str(members[i][1]) + '</b> <i>' + str(members[i][2]) + ' Ранг: ' + str(members[i][3]) + '</i>'
         msg += '\n'
-    cursor.close()
-    connect.close()
     return msg, markup
 
 
@@ -1165,14 +1113,13 @@ def change_owner(user_id):  # смена владельца орг
     :param user_id: user_id
     :return: смена владельца орг
     """
-    connect, cursor = pg_connect.connect()
+    global connect
+    global cursor
     markup = types.InlineKeyboardMarkup()
     if get_corp(user_id) == 0:
         call = '/me'
         key = types.InlineKeyboardButton('/me', callback_data=call)
         markup.add(key)
-        cursor.close()
-        connect.close()
         return 'Вы не состоите в организации', markup
     cursor.execute("SELECT ID,NickName,Profession,UserRank FROM Users WHERE Comp={0}".
                    format(get_corp(user_id)))
@@ -1186,8 +1133,6 @@ def change_owner(user_id):  # смена владельца орг
             markup.add(key)
         msg += '<b>' + str(members[i][1]) + '</b> <i>' + str(members[i][2]) + ' Ранг: ' + str(members[i][3]) + '</i>'
         msg += '\n'
-    cursor.close()
-    connect.close()
     return msg, markup
 
 
@@ -1196,8 +1141,9 @@ def corp_info(user_id):  # информация об орг
     :param user_id: user_id
     :return: информация об орг
     """
+    global connect
+    global cursor
     try:
-        connect, cursor = pg_connect.connect()
         corp_id = get_corp(user_id)
         cursor.execute("SELECT Description FROM Companies WHERE ID={0}".format(corp_id))
         desc = cursor.fetchall()[0][0]
@@ -1206,8 +1152,6 @@ def corp_info(user_id):  # информация об орг
         owner = get_owner_nickname(corp_id)
         msg = '<b>Название:</b> <i>{0}</i>\n<b>Владелец:</b> <i>{1}</i>\n<b>Описание:</b> <i>{2}</i>'.format(
             company, owner, desc)
-        cursor.close()
-        connect.close()
         return msg
     except IndexError:
         msg = 'Вы не состоите в организации'
@@ -1224,17 +1168,14 @@ def update_corp_description(user_id, desc):  # обновление описан
     :param desc: corp description
     :return: обновление описание орг
     """
+    global connect
+    global cursor
     try:
-        connect, cursor = pg_connect.connect()
         if is_owner(user_id):
             cursor.execute("UPDATE Companies SET Description='{0}' WHERE ID={1}".format(desc, get_corp(user_id)))
             connect.commit()
-            cursor.close()
-            connect.close()
             return 'Описание обновлено'
         else:
-            cursor.close()
-            connect.close()
             return 'Вы не владелец организации'
     except Exception as e:
         functions.error_log(e)
@@ -1246,17 +1187,14 @@ def update_corp_name(user_id, name):  # обновление описания о
     :param name: name of org
     :return: обновление описания орг
     """
+    global connect
+    global cursor
     try:
-        connect, cursor = pg_connect.connect()
         if is_owner(user_id):
             cursor.execute("UPDATE Companies SET Name='{0}' WHERE ID={1}".format(name, get_corp(user_id)))
             connect.commit()
-            cursor.close()
-            connect.close()
             return 'Название обновлено'
         else:
-            cursor.close()
-            connect.close()
             return 'Вы не владелец организации'
     except Exception as e:
         functions.error_log(e)
@@ -1267,17 +1205,14 @@ def leave_corp(user_id):  # покинуть орг
     :param user_id: user_id
     :return: покинуть орг
     """
+    global connect
+    global cursor
     try:
-        connect, cursor = pg_connect.connect()
         if not is_owner(user_id):
             cursor.execute("UPDATE Users SET Comp=0 WHERE ID={0}".format(user_id))
             connect.commit()
-            cursor.close()
-            connect.close()
             return True
         else:
-            cursor.close()
-            connect.close()
             return False
     except Exception as e:
         functions.error_log(e)
@@ -1288,11 +1223,10 @@ def can_accept(user_id):  # может ли принимать задание
     :param user_id: user_id
     :return: может ли user принимать задание
     """
-    connect, cursor = pg_connect.connect()
+    global connect
+    global cursor
     cursor.execute("SELECT task FROM Users WHERE ID=" + str(user_id))
     can = cursor.fetchall()
-    cursor.close()
-    connect.close()
     if can[0][0] == "1":
         upd_can_accept(user_id, 0)
         return True
@@ -1305,16 +1239,15 @@ def up_lvl(user_id):  # поднятие уровня
     :param user_id: user_id
     :return: поднятие уровня пользователя
     """
+    global connect
+    global cursor
     try:
-        connect, cursor = pg_connect.connect()
         cursor.execute("SELECT Count_Works FROM Users WHERE ID=" + str(user_id))
         jobs = cursor.fetchall()
         if jobs[0][0] in args.jobs_to_lvl_up:
             cursor.execute("UPDATE Users SET UserRank=UserRank+1 WHERE ID=" + str(user_id))
             give_new_prof(user_id)
         connect.commit()
-        cursor.close()
-        connect.close()
     except Exception as e:
         functions.error_log(e)
 
@@ -1324,9 +1257,10 @@ def give_new_prof(user_id):  # выдача новой профессии
     :param user_id: user_id
     :return: выдача списка новых профессий
     """
+    global connect
+    global cursor
     try:
         user_markup = telebot.types.ReplyKeyboardMarkup(True, False)
-        connect, cursor = pg_connect.connect()
         cursor.execute("SELECT Spec FROM Users WHERE ID=" + str(user_id))
         prof_id = cursor.fetchall()
         prof_id = prof_id[0][0]
@@ -1346,8 +1280,6 @@ def give_new_prof(user_id):  # выдача новой профессии
                               text='<i>У вас появилась возможность выбрать новую профессию</i>',
                               reply_markup=user_markup)
         args.new_prof_list.append(user_id)
-        cursor.close()
-        connect.close()
     except Exception as e:
         functions.error_log(e)
 
@@ -1359,13 +1291,12 @@ def start_job(user_id, status, time):  # замена статуса и указ
     :param time: время выполнения работы
     :return: замена статуса и указание времени начала работы
     """
+    global connect
+    global cursor
     try:
-        connect, cursor = pg_connect.connect()
         cursor.execute("UPDATE Users SET Status='{0}' WHERE ID='{1}'".format(str(status), str(user_id)))
         cursor.execute("UPDATE Users SET End_time='{0}' WHERE ID='{1}'".format(str(time), str(user_id)))
         connect.commit()
-        cursor.close()
-        connect.close()
     except Exception as e:
         functions.error_log(e)
 
@@ -1375,13 +1306,12 @@ def plus_count_works(user_id):  # указание количества выпо
     :param user_id: user_id
     :return: добавление +1 к выполненным работам
     """
+    global connect
+    global cursor
     try:
-        connect, cursor = pg_connect.connect()
         cursor.execute("UPDATE Users SET Count_Works=Count_Works+1 WHERE ID='{0}'".format(str(user_id)))
         connect.commit()
         up_lvl(user_id)  # повышение ранга
-        cursor.close()
-        connect.close()
     except Exception as e:
         functions.error_log(e)
 
@@ -1392,12 +1322,11 @@ def minus_money(user_id, money):  # вычитание денег
     :param money: money count
     :return: вычитание денег
     """
+    global connect
+    global cursor
     try:
-        connect, cursor = pg_connect.connect()
         cursor.execute("UPDATE Users SET Money=Money-{0} WHERE ID='{1}'".format(money, user_id))
         connect.commit()
-        cursor.close()
-        connect.close()
     except Exception as e:
         functions.error_log(e)
 
@@ -1408,11 +1337,10 @@ def check_requests(user_id, company):  # проверка приглосов
     :param company: get_corp()
     :return: проверка списка приглосов
     """
-    connect, cursor = pg_connect.connect()
+    global connect
+    global cursor
     cursor.execute("SELECT toUserID,fromWho FROM Requests")
     reqs = cursor.fetchall()
-    cursor.close()
-    connect.close()
     for i in range(len(reqs)):
         if reqs[i][0] == user_id and reqs[i][1] == company:
             return False
@@ -1425,12 +1353,11 @@ def new_req(to_id, from_who):  # создание нового запроса
     :param from_who: from user id
     :return: создание нового запроса
     """
-    connect, cursor = pg_connect.connect()
+    global connect
+    global cursor
     cursor.execute("INSERT INTO Requests VALUES ({0},'{1}',0)".format(to_id, from_who))
     connect.commit()
     get_request(to_id)
-    cursor.close()
-    connect.close()
 
 
 def delete_request(user_id):  # удаление запроса
@@ -1438,11 +1365,10 @@ def delete_request(user_id):  # удаление запроса
     :param user_id: user_id
     :return: удаление запроса
     """
-    connect, cursor = pg_connect.connect()
+    global connect
+    global cursor
     cursor.execute("DELETE FROM Requests WHERE toUserID={0}".format(user_id))
     connect.commit()
-    cursor.close()
-    connect.close()
 
 
 def refresh_corp_tasks(user_id):  # обновление заданий орг
@@ -1450,12 +1376,11 @@ def refresh_corp_tasks(user_id):  # обновление заданий орг
     :param user_id: user_id
     :return: обновление заданий орг
     """
+    global connect
+    global cursor
     try:
-        connect, cursor = pg_connect.connect()
         cursor.execute("DELETE FROM CorpTasks WHERE ownerID={0}".format(user_id))
         connect.commit()
-        cursor.close()
-        connect.close()
     except Exception as e:
         functions.error_log(e)
 
@@ -1465,9 +1390,8 @@ def change_spec(user_id):  # изменение специализации
     :param user_id: user_id
     :return: изменение специализации пользователя
     """
-    connect, cursor = pg_connect.connect()
+    global connect
+    global cursor
     cursor.execute("UPDATE Users SET Spec='None',Profession='None',Count_Works=0,Status='{0}',"
                    "End_time='None',UserRank=0 WHERE ID={1}".format(str(args.waitStatus), str(user_id)))
     connect.commit()
-    cursor.close()
-    connect.close()
