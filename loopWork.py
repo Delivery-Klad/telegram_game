@@ -2,6 +2,7 @@
 файл функции, выполняющей команды в зависимости от времени
 """
 from datetime import datetime
+import pg_connect
 import dataBase
 import sqlite3
 import args
@@ -15,8 +16,7 @@ import args
 
 def timer():
     try:
-        connect = sqlite3.connect(args.filesFolderName + args.databaseName)
-        cursor = connect.cursor()
+        connect, cursor = pg_connect.connect()
         can = True
         while True:
             try:
